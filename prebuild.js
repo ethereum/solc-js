@@ -7,7 +7,7 @@ var http = require('http');
 console.log('Downloading', package.version);
 
 var file = fs.createWriteStream('soljson.js');
-http.get('http://chriseth.github.io/browser-solidity/bin/soljson-' + package.version + '.js', function(response) {
+http.get('http://ethereum.github.io/solc-bin/bin/soljson-' + package.version + '.js', function(response) {
   response.pipe(file);
 //  response.on('end', function () {
 //    file.close()
