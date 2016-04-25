@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/ethereum/solc-js#readme",
   "dependencies": {
+    "memorystream": "^0.3.1",
     "require-from-string": "^1.1.0"
   }
 }
