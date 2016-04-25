@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/ethereum/solc-js/issues"
   },
-  "homepage": "https://github.com/ethereum/solc-js#readme"
+  "homepage": "https://github.com/ethereum/solc-js#readme",
+  "dependencies": {
+    "require-from-string": "^1.1.0"
+  }
 }

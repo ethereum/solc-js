@@ -1,5 +1,6 @@
-function setupMethods (soljson){
+var requireFromString = require('require-from-string');
 
+function setupMethods (soljson){
 	var compileJSON = soljson.cwrap("compileJSON", "string", ["string", "number"]);
 	var compileJSONMulti =
 		'_compileJSONMulti' in soljson ?
@@ -53,6 +54,9 @@ function setupMethods (soljson){
 	return {
 		version: version,
 		compile: compile,
+		loadVersion: function( data ){
+			return setupMethods ( requireFromString(data) );
+		},
 		useVersion: function( versionString ){
 			return setupMethods( require('./bin/soljson-' + versionString + '.js' ) );
 		}
