@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chriseth/browser-solidity.git"
+    "url": "git+https://github.com/ethereum/solc-js.git"
   },
   "keywords": [
     "ethereum",
@@ -18,7 +18,7 @@
   "author": "chriseth",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/chriseth/browser-solidity/issues"
+    "url": "https://github.com/ethereum/solc-js/issues"
   },
-  "homepage": "https://github.com/chriseth/browser-solidity#readme"
+  "homepage": "https://github.com/ethereum/solc-js#readme"
 }
