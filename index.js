@@ -63,4 +63,4 @@ function setupMethods (soljson){
 	}
 }
 
-module.exports = setupMethods( require('./bin/soljson-latest.js') );
+module.exports = setupMethods( require('./soljson.js') );
