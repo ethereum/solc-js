@@ -4,7 +4,7 @@
   "description": "Solidity compiler",
   "main": "index.js",
   "scripts": {
-    "prebuild": "./prebuild.js",
+    "prepublish": "./downloadCurrentVersion.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

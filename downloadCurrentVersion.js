@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
+// This is used to download the correct binary version
+// as part of the prepublish step.
+
 var package = require('./package.json');
 var fs = require('fs');
 var http = require('http');
 var MemoryStream = require('memorystream');
 
 function getVersionList (cb) {
-  console.log('Downloading available version list');
+  console.log('Retrieving available version list...');
 
   var mem = new MemoryStream(null, { readable: false } );
   http.get('http://ethereum.github.io/solc-bin/bin/list.txt', function(response) {
@@ -17,24 +20,21 @@ function getVersionList (cb) {
   });
 }
 
-function getSoljson (version) {
-  console.log('Downloading version ', version);
+function downloadBinary (version) {
+  console.log('Downloading version', version);
 
   var file = fs.createWriteStream('soljson.js');
   http.get('http://ethereum.github.io/solc-bin/bin/soljson-' + version + '.js', function(response) {
     response.pipe(file);
-//    response.on('end', function () {
-//      file.close()
-//    });
+    file.on('finish', function() {
+      file.close(function() {
+        console.log("Done.");
+      });
+    });
   });
-
-  // FIXME: is this really the way to wait for this?
-  (function wait () {
-    if (!file.closed) {
-      setTimeout(wait, 1000);
-    }
-  })();
 }
+
+console.log("Downloading correct solidity binary...");
 
 getVersionList(function(list) {
   var wanted = package.version.match(/^(\d\.\d\.\d)-?\d?$/)[1];
@@ -50,7 +50,7 @@ getVersionList(function(list) {
     }
 
     if (version[1] === wanted) {
-      getSoljson(sources[i].match(/^soljson-(.*).js$/)[1]);
+      downloadBinary(sources[i].match(/^soljson-(.*).js$/)[1]);
       return;
     }
   }
