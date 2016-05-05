@@ -1,4 +1,6 @@
 var requireFromString = require('require-from-string');
+var http = require('http');
+var MemoryStream = require('memorystream');
 
 function setupMethods (soljson){
 	var compileJSON = soljson.cwrap("compileJSON", "string", ["string", "number"]);
@@ -54,11 +56,33 @@ function setupMethods (soljson){
 	return {
 		version: version,
 		compile: compile,
-		loadVersion: function( data ){
-			return setupMethods ( requireFromString(data) );
+		/// Use the given version if available.
+		/// You can also pass the full contents of the binary as versionString.
+		useVersion: function (versionString) {
+			var mod;
+			if (versionString.length > 1000)
+				mod = requireFromString(versionString);
+			else
+				mod = require('./bin/soljson-' + versionString + '.js'); 
+			return setupMethods(mod);
 		},
-		useVersion: function( versionString ){
-			return setupMethods( require('./bin/soljson-' + versionString + '.js' ) );
+		/// Loads the compiler of the given version from the github repository
+		/// instead of from the local filesystem.
+		loadRemoteVersion: function (versionString, cb) {
+			var mem = new MemoryStream(null, {readable: false});
+			var url = 'http://ethereum.github.io/solc-bin/bin/soljson-' + versionString + '.js';
+			http.get(url, function (response) {
+				if (response.statusCode !== 200)
+					cb('Error retrieving binary: ' + response.statusMessage);
+				else {
+					response.pipe(mem);
+					response.on('end', function () {
+						cb(null, setupMethods(requireFromString(mem.toString())));
+					});
+				}
+			}).on('error', function (error) {
+				cb(error);
+			});
 		}
 	}
 }
