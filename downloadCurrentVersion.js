@@ -5,14 +5,14 @@
 
 var package = require('./package.json');
 var fs = require('fs');
-var http = require('http');
+var https = require('https');
 var MemoryStream = require('memorystream');
 
 function getVersionList (cb) {
   console.log('Retrieving available version list...');
 
   var mem = new MemoryStream(null, { readable: false } );
-  http.get('http://ethereum.github.io/solc-bin/bin/list.txt', function(response) {
+  https.get('https://ethereum.github.io/solc-bin/bin/list.txt', function(response) {
     response.pipe(mem);
     response.on('end', function () {
       cb(mem.toString());
@@ -24,7 +24,7 @@ function downloadBinary (version) {
   console.log('Downloading version', version);
 
   var file = fs.createWriteStream('soljson.js');
-  http.get('http://ethereum.github.io/solc-bin/bin/soljson-' + version + '.js', function(response) {
+  https.get('https://ethereum.github.io/solc-bin/bin/soljson-' + version + '.js', function(response) {
     response.pipe(file);
     file.on('finish', function() {
       file.close(function() {

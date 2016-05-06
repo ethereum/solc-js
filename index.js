@@ -1,5 +1,5 @@
 var requireFromString = require('require-from-string');
-var http = require('http');
+var https = require('https');
 var MemoryStream = require('memorystream');
 
 function setupMethods (soljson){
@@ -57,24 +57,19 @@ function setupMethods (soljson){
 		version: version,
 		compile: compile,
 		/// Use the given version if available.
-		/// You can also pass the full contents of the binary as versionString.
 		useVersion: function (versionString) {
-			var mod;
-			if (versionString.length > 1000)
-				mod = requireFromString(versionString);
-			else
-				mod = require('./bin/soljson-' + versionString + '.js'); 
-			return setupMethods(mod);
+			return setupMethods(require('./bin/soljson-' + versionString + '.js'));
 		},
 		/// Loads the compiler of the given version from the github repository
 		/// instead of from the local filesystem.
 		loadRemoteVersion: function (versionString, cb) {
 			var mem = new MemoryStream(null, {readable: false});
-			var url = 'http://ethereum.github.io/solc-bin/bin/soljson-' + versionString + '.js';
-			http.get(url, function (response) {
+			var url = 'https://ethereum.github.io/solc-bin/bin/soljson-' + versionString + '.js';
+			https.get(url, function (response) {
 				if (response.statusCode !== 200)
 					cb('Error retrieving binary: ' + response.statusMessage);
-				else {
+				else
+				{
 					response.pipe(mem);
 					response.on('end', function () {
 						cb(null, setupMethods(requireFromString(mem.toString())));
@@ -83,7 +78,9 @@ function setupMethods (soljson){
 			}).on('error', function (error) {
 				cb(error);
 			});
-		}
+		},
+		/// Use this if you want to add wrapper functions around the pure module.
+		setupMethods: setupMethods
 	}
 }
 
