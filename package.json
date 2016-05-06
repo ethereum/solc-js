@@ -16,6 +16,7 @@
     "solidity",
     "compiler"
   ],
+  "files": [ "index.js", "soljson.js" ],
   "author": "chriseth",
   "license": "MIT",
   "bugs": {
