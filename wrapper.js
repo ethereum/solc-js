@@ -47,11 +47,29 @@ function setupMethods (soljson) {
     return JSON.parse(result);
   };
 
+  var linkBytecode = function (bytecode, libraries) {
+    for (var libraryName in libraries) {
+      var libLabel = '__' + libraryName + Array(39 - libraryName.length).join('_');
+
+      var hexAddress = libraries[libraryName];
+      // remove 0x prefix
+      hexAddress = hexAddress.slice(2);
+      hexAddress = Array(40 - hexAddress.length + 1).join('0') + hexAddress;
+
+      while (bytecode.indexOf(libLabel) >= 0) {
+        bytecode = bytecode.replace(libLabel, hexAddress);
+      }
+    }
+
+    return bytecode;
+  };
+
   var version = soljson.cwrap('version', 'string', []);
 
   return {
     version: version,
     compile: compile,
+    linkBytecode: linkBytecode,
     supportsMulti: compileJSONMulti !== null,
     supportsImportCallback: compileJSONCallback !== null,
     // Use the given version if available.
