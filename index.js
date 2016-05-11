@@ -44,7 +44,7 @@ function setupMethods (soljson){
 		var result = '';
 		if (readCallback !== undefined && compileJSONCallback !== null)
 			result = compileJSONCallback(JSON.stringify(input), optimise, readCallback);
-		if (typeof(input) != typeof('') && compileJSONMulti !== null)
+		else if (typeof(input) != typeof('') && compileJSONMulti !== null)
 			result = compileJSONMulti(JSON.stringify(input), optimise);
 		else
 			result = compileJSON(input, optimise);
