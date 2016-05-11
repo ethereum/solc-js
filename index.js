@@ -19,9 +19,9 @@ function setupMethods (soljson){
 		var wrapCallback = function(callback) {
 			return soljson.Runtime.addFunction(function(path, contents, error) {
 				var result = callback(soljson.Pointer_stringify(path));
-				if (typeof(result.contents) === typeof(''))
+				if (typeof(result.contents) === 'string')
 					copyString(result.contents, contents);
-				if (typeof(result.error) === typeof(''))
+				if (typeof(result.error) === 'string')
 					copyString(result.error, error);
 			});
 		};
@@ -38,7 +38,7 @@ function setupMethods (soljson){
 		var result = '';
 		if (readCallback !== undefined && compileJSONCallback !== null)
 			result = compileJSONCallback(JSON.stringify(input), optimise, readCallback);
-		else if (typeof(input) != typeof('') && compileJSONMulti !== null)
+		else if (typeof(input) !== 'string' && compileJSONMulti !== null)
 			result = compileJSONMulti(JSON.stringify(input), optimise);
 		else
 			result = compileJSON(input, optimise);
