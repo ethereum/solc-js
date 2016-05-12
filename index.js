@@ -11,8 +11,6 @@ function setupMethods (soljson){
 	var compileJSONCallback = null;
 	if ('_compileJSONCallback' in soljson)
 	{
-		/// TODO: Allocating memory and copying the strings over
-		/// to the emscripten runtime does not seem to work.
 		var copyString = function(str, ptr) {
 			var buffer = soljson._malloc(str.length + 1);
 			soljson.writeStringToMemory(str, buffer);
@@ -20,10 +18,6 @@ function setupMethods (soljson){
 		};
 		var wrapCallback = function(callback) {
 			return soljson.Runtime.addFunction(function(path, contents, error) {
-				// path is char*, contents is char**, error is char**
-				// TODO copying the results does not seem to work.
-				// This is not too bad, because most of the requests
-				// cannot be answered synchronously anyway.
 				var result = callback(soljson.Pointer_stringify(path));
 				if (typeof(result.contents) === typeof(''))
 					copyString(result.contents, contents);
@@ -44,7 +38,7 @@ function setupMethods (soljson){
 		var result = '';
 		if (readCallback !== undefined && compileJSONCallback !== null)
 			result = compileJSONCallback(JSON.stringify(input), optimise, readCallback);
-		if (typeof(input) != typeof('') && compileJSONMulti !== null)
+		else if (typeof(input) != typeof('') && compileJSONMulti !== null)
 			result = compileJSONMulti(JSON.stringify(input), optimise);
 		else
 			result = compileJSON(input, optimise);

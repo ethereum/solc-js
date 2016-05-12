@@ -31,6 +31,23 @@ Starting from version 0.1.6, multiple files are supported with automatic import 
 
 Note that all input files that are imported have to be supplied, the compiler will not load any additional files on its own.
 
+Starting from version 0.2.1, a callback is supported to resolve missing imports as follows:
+
+	var solc = require('solc');
+	var input = {
+		'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+	};
+	function findImports(path) {
+	   if (path === 'lib.sol')
+	      return { contents: 'library L { function f() returns (uint) { return 7; } }' }
+	   else
+	      return { error: 'File not found' }
+	}
+	var output = solc.compile({sources: input}, 1, findImports);
+	for (var contractName in output.contracts)
+		console.log(contractName + ': ' + output.contracts[contractName].bytecode);
+
+
 ###Using a legacy version
 
 In order to allow compiling contracts using a specific version of solidity, the `solc.useVersion` method is available. This returns a new solc object using the version provided. **Note**: version strings must match the version substring of the files availble in `/bin/soljson-*.js`. See below for an example.
