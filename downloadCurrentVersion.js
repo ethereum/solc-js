@@ -40,7 +40,7 @@ getVersionList(function(list) {
   var wanted = package.version.match(/^(\d\.\d\.\d)-?\d?$/)[1];
 
   var sources = list.split('\n');
-  for (var i = sources.length - 1; i >= 0; i--) {
+  for (var i = 0; i < sources.length; i++) {
     // FIXME: use build as well
     var version = sources[i].match(/^soljson-v([0-9.]*)-.*.js$/);
 
