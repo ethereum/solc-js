@@ -38,20 +38,12 @@ console.log("Downloading correct solidity binary...");
 
 getVersionList(function(list) {
   var wanted = package.version.match(/^(\d\.\d\.\d)-?\d?$/)[1];
+  
+  var latest = list.split('\n')
+    .map(function(src) {return src.match(/^soljson-v([0-9.]*)-.*.js$/)})
+    .filter(function(version) { return version})
+    .find(function(version) { return wanted === version[1]});
 
-  var sources = list.split('\n');
-  for (var i = sources.length - 1; i >= 0; i--) {
-    // FIXME: use build as well
-    var version = sources[i].match(/^soljson-v([0-9.]*)-.*.js$/);
+  downloadBinary(latest[0].match(/^soljson-(.*).js$/)[1]);
 
-    // Skip invalid lines
-    if (!version) {
-      continue;
-    }
-
-    if (version[1] === wanted) {
-      downloadBinary(sources[i].match(/^soljson-(.*).js$/)[1]);
-      return;
-    }
-  }
 });
