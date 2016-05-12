@@ -37,7 +37,7 @@ function downloadBinary (version) {
 console.log("Downloading correct solidity binary...");
 
 getVersionList(function(list) {
-  var wanted = package.version.match(/^(\d\.\d\.\d)-?\d?$/)[1];
+  var wanted = package.version.match(/^(\d+\.\d+\.\d+)-?\d*$/)[1];
 
   var sources = list.split('\n');
   for (var i = sources.length - 1; i >= 0; i--) {
