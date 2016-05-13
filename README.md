@@ -46,5 +46,5 @@ In order to allow compiling contracts using a specific version of solidity, the 
 If the version is not available locally, you can use `solc.loadRemoteVersion(version, cb)` to load it directly
 from github.
 
-You can also load the "binary" manually by e.g. `var b = require("/my/local/soljson.js")` and then use
-`solc.setupMethods(b)` to create the familiar wrapper functions described above.
+You can also load the "binary" manually and use `setupMethods` to create the familiar wrapper functions described above:
+`var sol = solc.setupMethods(require("/my/local/soljson.js"))`.
