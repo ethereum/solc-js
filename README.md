@@ -70,6 +70,11 @@ var solcV011 = solc.useVersion('v0.1.1-2015-08-04-6ff4cd6');
 var output = solcV011.compile('contract t { function g() {} }', 1);
 ```
 
+If the version is not available locally, you can use `solc.loadRemoteVersion(version, callback)` to load it directly from GitHub.
+
+You can also load the "binary" manually and use `setupMethods` to create the familiar wrapper functions described above:
+`var sol = solc.setupMethods(require("/my/local/soljson.js"))`.
+
 ### Using the Latest Development Snapshot
 
 By default, the npm version is only created for releases. This prevents people from deploying contracts with non-release versions because they are less stable and harder to verify. If you would like to use the latest development snapshot (at your own risk!), you may use the following example code.
