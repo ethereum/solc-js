@@ -1,9 +1,9 @@
 # solc-js
-Javascript bindings for the solidity compiler
+JavaScript bindings for the Solidity compiler.
 
-#Nodejs usage
+# Node.js Usage
 
-To use the latest stable version of the solidity compiler via nodejs you can install it via npm
+To use the latest stable version of the Solidity compiler via Node.js you can install it via npm:
 
 	npm install solc
 
@@ -48,9 +48,9 @@ Starting from version 0.2.1, a callback is supported to resolve missing imports 
 		console.log(contractName + ': ' + output.contracts[contractName].bytecode);
 
 
-###Using a legacy version
+### Using a Legacy Version
 
-In order to allow compiling contracts using a specific version of solidity, the `solc.useVersion` method is available. This returns a new solc object using the version provided. **Note**: version strings must match the version substring of the files availble in `/bin/soljson-*.js`. See below for an example.
+In order to allow compiling contracts using a specific version of Solidity, the `solc.useVersion` method is available. This returns a new solc object using the version provided. **Note**: version strings must match the version substring of the files availble in `/bin/soljson-*.js`. See below for an example.
 
 	var solc = require('solc');
 	// by default the latest version is used
@@ -60,7 +60,7 @@ In order to allow compiling contracts using a specific version of solidity, the 
 	var solcV011 = solc.useVersion( 'v0.1.1-2015-08-04-6ff4cd6' );
 	var output = solcV011.compile( "contract t { function g() {} }", 1 );
 
-###Using the latest development snapshot
+### Using the Latest Development Snapshot
 
 By default, the npm version is only created for releases. This prevents people from deploying contracts with non-release versions because they are less stable and harder to verify. If you would like to use the latest development snapshot (at your own risk!), you may use the following example code.
 
