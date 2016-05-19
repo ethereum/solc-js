@@ -3,7 +3,7 @@ JavaScript bindings for the Solidity compiler.
 
 ## Node.js Usage
 
-To use the latest stable version of the Solidity compiler via Nodejs you can install it via npm:
+To use the latest stable version of the Solidity compiler via Node.js you can install it via npm:
 
 ```bash
 npm install solc
