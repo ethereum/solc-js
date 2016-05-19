@@ -78,6 +78,10 @@ By default, the npm version is only created for releases. This prevents people f
 var solc = require('solc');
 
 // getting the development snapshot
-var solcSnapshot = solc.loadRemoteVersion('latest');
-var output = solcSnapshot.compile('contract t { function g() {} }', 1);
+var solcSnapshot = solc.loadRemoteVersion('latest', function(err, solcSnapshot) {
+	if (err) {
+		// An error was encountered, display and quit
+	}
+	var output = solcSnapshot.compile("contract t { function g() {} }", 1);
+});
 ```
