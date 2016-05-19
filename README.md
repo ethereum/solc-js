@@ -3,7 +3,7 @@ Javascript bindings for the solidity compiler
 
 #Nodejs usage
 
-To use the solidity compiler via nodejs you can install it via npm
+To use the latest stable version of the solidity compiler via nodejs you can install it via npm
 
 	npm install solc
 
@@ -59,3 +59,13 @@ In order to allow compiling contracts using a specific version of solidity, the 
 	// getting a legacy version
 	var solcV011 = solc.useVersion( 'v0.1.1-2015-08-04-6ff4cd6' );
 	var output = solcV011.compile( "contract t { function g() {} }", 1 );
+
+###Using the latest development snapshot
+
+By default, the npm version is only created for releases. This prevents people from deploying contracts with non-release versions because they are less stable and harder to verify. If you would like to use the latest development snapshot (at your own risk!), you may use the following example code.
+
+	var solc = require('solc');
+
+	// getting the development snapshot
+	var solcSnapshot = solc.loadRemoteVersion('latest');
+	var output = solcSnapshot.compile( "contract t { function g() {} }", 1 );
