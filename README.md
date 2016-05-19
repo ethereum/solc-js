@@ -5,7 +5,7 @@ JavaScript bindings for the Solidity compiler.
 
 To use the latest stable version of the Solidity compiler via Nodejs you can install it via npm:
 
-```sh
+```bash
 npm install solc
 ```
 
