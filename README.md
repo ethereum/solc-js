@@ -55,6 +55,18 @@ for (var contractName in output.contracts)
 	console.log(contractName + ': ' + output.contracts[contractName].bytecode);
 ```
 
+**Note:**
+If you are using Electron, `nodeIntegration` is on for `BrowserWindow` by default. If it is on, Electron will provide a `require` method which will not behave as expected and this may cause calls, such as `require('solc')`, to fail.
+
+To turn off `nodeIntegration`, use the following:
+
+```javascript
+new BrowserWindow({
+	webPreferences: {
+		nodeIntegration: false
+	}
+});
+```
 
 ### Using a Legacy Version
 
