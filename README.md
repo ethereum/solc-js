@@ -1,5 +1,5 @@
 # solc-js
-JavaScript bindings for the Solidity compiler.
+JavaScript bindings for the [Solidity compiler](https://github.com/ethereum/solidity).
 
 ## Node.js Usage
 
