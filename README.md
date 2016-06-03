@@ -1,5 +1,7 @@
 # solc-js
-JavaScript bindings for the Solidity compiler.
+JavaScript bindings for the [Solidity compiler](https://github.com/ethereum/solidity).
+
+Uses the Emscripten compiled Solidity found in the [solc-bin repository](https://github.com/ethereum/solc-bin).
 
 ## Node.js Usage
 
