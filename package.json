@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prepublish": "./downloadCurrentVersion.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape ./test/index.js"
   },
   "repository": {
     "type": "git",
@@ -26,5 +26,8 @@
   "dependencies": {
     "memorystream": "^0.3.1",
     "require-from-string": "^1.1.0"
+  },
+  "devDependencies": {
+    "tape": "^4.5.1"
   }
 }
