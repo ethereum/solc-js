@@ -58,6 +58,8 @@ function setupMethods (soljson) {
   return {
     version: version,
     compile: compile,
+    supportsMulti: compileJSONMulti !== null,
+    supportsImportCallback: compileJSONCallback !== null,
     // Use the given version if available.
     useVersion: function (versionString) {
       return setupMethods(require('./bin/soljson-' + versionString + '.js'));
