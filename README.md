@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ethereum/solc-js.svg?branch=master)](https://travis-ci.org/ethereum/solc-js)
+
 # solc-js
 JavaScript bindings for the [Solidity compiler](https://github.com/ethereum/solidity).
 
