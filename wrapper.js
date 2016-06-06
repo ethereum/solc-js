@@ -55,6 +55,9 @@ function setupMethods (soljson) {
       var libLabel = '__' + internalName + Array(37 - internalName.length).join('_') + '__';
 
       var hexAddress = libraries[libraryName];
+      if (hexAddress.slice(0, 2) !== '0x' || hexAddress.length > 42) {
+        throw new Error('Invalid address specified for ' + libraryName);
+      }
       // remove 0x prefix
       hexAddress = hexAddress.slice(2);
       hexAddress = Array(40 - hexAddress.length + 1).join('0') + hexAddress;
