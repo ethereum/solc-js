@@ -49,7 +49,10 @@ function setupMethods (soljson) {
 
   var linkBytecode = function (bytecode, libraries) {
     for (var libraryName in libraries) {
-      var libLabel = '__' + libraryName + Array(39 - libraryName.length).join('_');
+      // truncate to 37 characters
+      var internalName = libraryName.slice(0, 36);
+      // prefix and suffix with __
+      var libLabel = '__' + internalName + Array(37 - internalName.length).join('_') + '__';
 
       var hexAddress = libraries[libraryName];
       // remove 0x prefix
