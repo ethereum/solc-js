@@ -3,7 +3,7 @@
 // This is used to download the correct binary version
 // as part of the prepublish step.
 
-var package = require('./package.json');
+var pkg = require('./package.json');
 var fs = require('fs');
 var https = require('https');
 var MemoryStream = require('memorystream');
@@ -37,7 +37,7 @@ function downloadBinary (version) {
 console.log('Downloading correct solidity binary...');
 
 getVersionList(function (list) {
-  var wanted = package.version.match(/^(\d+\.\d+\.\d+)-?\d*$/)[1];
+  var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)-?\d*$/)[1];
 
   var sources = list.split('\n');
   for (var i = sources.length - 1; i >= 0; i--) {
