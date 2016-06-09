@@ -104,3 +104,15 @@ solc.loadRemoteVersion('latest', function(err, solcSnapshot) {
 	var output = solcSnapshot.compile("contract t { function g() {} }", 1);
 });
 ```
+
+### Linking bytecode
+
+When using libraries, the resulting bytecode will contain placeholders for the real addresses of the referenced libraries. These have to be updated, via a process called linking, before deploying the contract.
+
+The `linkBytecode` method provides a simple helper for linking:
+
+```javascript
+bytecode = solc.linkBytecode(bytecode, { 'MyLibrary': '0x123456...' });
+```
+
+Note: in future versions of Solidity a more sophisticated linker architecture will be introduced.  Once that changes, this method will still be usable for output created by old versions of Solidity.
