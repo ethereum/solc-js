@@ -4,6 +4,7 @@
   "description": "Solidity compiler",
   "main": "index.js",
   "scripts": {
+    "lint": "semistandard",
     "prepublish": "./downloadCurrentVersion.js",
     "test": "tape ./test/index.js"
   },
@@ -16,7 +17,11 @@
     "solidity",
     "compiler"
   ],
-  "files": [ "index.js", "soljson.js" ],
+  "files": [
+    "index.js",
+    "soljson.js",
+    "wrapper.js"
+  ],
   "author": "chriseth",
   "license": "MIT",
   "bugs": {
@@ -28,6 +33,12 @@
     "require-from-string": "^1.1.0"
   },
   "devDependencies": {
+    "semistandard": "^8.0.0",
     "tape": "^4.5.1"
+  },
+  "semistandard": {
+    "ignore": [
+      "soljson.js"
+    ]
   }
 }
