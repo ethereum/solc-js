@@ -51,3 +51,50 @@ tape('Loading Legacy Versions', function (t) {
     });
   });
 });
+
+tape('Linking', function (t) {
+  t.test('link properly', function (st) {
+    var input = {
+      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+    };
+    var output = solc.compile({sources: input});
+    var bytecode = solc.linkBytecode(output.contracts['x'].bytecode, { 'L': '0x123456' });
+    st.ok(bytecode.indexOf('_') < 0);
+    st.end();
+  });
+
+  t.test('linker to fail with missing library', function (st) {
+    var input = {
+      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+    };
+    var output = solc.compile({sources: input});
+    var bytecode = solc.linkBytecode(output.contracts['x'].bytecode, { });
+    st.ok(bytecode.indexOf('_') >= 0);
+    st.end();
+  });
+
+  t.test('linker to fail with invalid address', function (st) {
+    var input = {
+      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+    };
+    var output = solc.compile({sources: input});
+    st.throws(function () {
+      solc.linkBytecode(output.contracts['x'].bytecode, { 'L': '' });
+    });
+    st.end();
+  });
+
+  t.test('linker properly with truncated library name', function (st) {
+    var input = {
+      'lib.sol': 'library L1234567890123456789012345678901234567890 { function f() returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L1234567890123456789012345678901234567890.f(); } }'
+    };
+    var output = solc.compile({sources: input});
+    var bytecode = solc.linkBytecode(output.contracts['x'].bytecode, { 'L1234567890123456789012345678901234567890': '0x123456' });
+    st.ok(bytecode.indexOf('_') < 0);
+    st.end();
+  });
+});
