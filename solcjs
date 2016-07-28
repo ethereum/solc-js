@@ -48,7 +48,11 @@ if (!argv.bin) {
 var sources = {};
 
 for (var i = 0; i < files.length; i++) {
-  sources[ files[i] ] = fs.readFileSync(files[i]).toString();
+  try {
+    sources[ files[i] ] = fs.readFileSync(files[i]).toString();
+  } catch (e) {
+    abort(`Error reading ${files[i]}: ${e}`);
+  }
 }
 
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);

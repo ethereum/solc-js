@@ -28,4 +28,10 @@ tape('CLI', function (t) {
     spt.succeeds();
     spt.end();
   });
+
+  t.test('invalid file specified', function (st) {
+    var spt = spawn(st, './solcjs --bin test/fileNotFound.sol');
+    spt.stdout.match(/^Error reading /);
+    spt.end();
+  });
 });
