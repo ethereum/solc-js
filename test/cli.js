@@ -42,4 +42,20 @@ tape('CLI', function (t) {
     spt.succeeds();
     spt.end();
   });
+
+  t.test('--interface', function (st) {
+    var spt = spawn(st, './solcjs --interface test/DAO/Token.sol');
+    spt.stderr.empty();
+    spt.stdout.empty();
+    spt.succeeds();
+    spt.end();
+  });
+
+  t.test('--bin --abi --interface', function (st) {
+    var spt = spawn(st, './solcjs --bin --abi --interface test/DAO/Token.sol');
+    spt.stderr.empty();
+    spt.stdout.empty();
+    spt.succeeds();
+    spt.end();
+  });
 });

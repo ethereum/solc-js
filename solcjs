@@ -25,6 +25,10 @@ var yargs = require('yargs')
     describe: 'ABI of the contracts.',
     type: 'boolean'
   })
+  .option('interface', {
+    describe: 'Solidity Interface of the contracts.',
+    type: 'boolean'
+  })
   .option('output-dir', {
     alias: 'o',
     describe: 'Output directory for the contracts.',
@@ -45,7 +49,7 @@ function abort (msg) {
   process.exit(1);
 }
 
-if (!(argv.bin || argv.abi)) {
+if (!(argv.bin || argv.abi || argv.interface)) {
   abort('Invalid option selected');
 }
 
@@ -68,5 +72,9 @@ for (var contractName in output.contracts) {
 
   if (argv.abi) {
     fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
+  }
+
+  if (argv.interface) {
+    fs.writeFileSync(path.join(destination, contractName + '_interface.sol'), output.contracts[contractName].solidity_interface);
   }
 }
