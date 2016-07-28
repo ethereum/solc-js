@@ -21,6 +21,10 @@ var yargs = require('yargs')
     describe: 'Binary of the contracts in hex.',
     type: 'boolean'
   })
+  .option('abi', {
+    describe: 'ABI of the contracts.',
+    type: 'boolean'
+  })
   .option('output-dir', {
     alias: 'o',
     describe: 'Output directory for the contracts.',
@@ -41,7 +45,7 @@ function abort (msg) {
   process.exit(1);
 }
 
-if (!argv.bin) {
+if (!(argv.bin || argv.abi)) {
   abort('Invalid option selected');
 }
 
@@ -58,5 +62,11 @@ for (var i = 0; i < files.length; i++) {
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
 
 for (var contractName in output.contracts) {
-  fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
+  if (argv.bin) {
+    fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
+  }
+
+  if (argv.abi) {
+    fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
+  }
 }

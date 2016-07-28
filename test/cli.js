@@ -34,4 +34,12 @@ tape('CLI', function (t) {
     spt.stdout.match(/^Error reading /);
     spt.end();
   });
+
+  t.test('--abi', function (st) {
+    var spt = spawn(st, './solcjs --abi test/DAO/Token.sol');
+    spt.stderr.empty();
+    spt.stdout.empty();
+    spt.succeeds();
+    spt.end();
+  });
 });
