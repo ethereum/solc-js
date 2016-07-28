@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var fs = require('fs');
+var path = require('path');
 var solc = require('./index.js');
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
@@ -20,6 +21,11 @@ var yargs = require('yargs')
     describe: 'Binary of the contracts in hex.',
     type: 'boolean'
   })
+  .option('destination', {
+    alias: 'D',
+    describe: 'Output directory for the contracts.',
+    type: 'string'
+  })
   .global([ 'version', 'optimize' ])
   .version()
   .showHelpOnFail(false, 'Specify --help for available options')
@@ -28,6 +34,7 @@ var yargs = require('yargs')
 
 var argv = yargs.argv;
 var files = argv._;
+var destination = argv.destination || '.'
 
 function abort (msg) {
   console.log(msg || 'Error occured');
@@ -47,5 +54,5 @@ for (var i = 0; i < files.length; i++) {
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
 
 for (var contractName in output.contracts) {
-  fs.writeFileSync(contractName + '.bin', output.contracts[contractName].bytecode);
+  fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
 }
