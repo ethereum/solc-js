@@ -59,7 +59,7 @@ for (var i = 0; i < files.length; i++) {
   try {
     sources[ files[i] ] = fs.readFileSync(files[i]).toString();
   } catch (e) {
-    abort(`Error reading ${files[i]}: ${e}`);
+    abort('Error reading ' + files[i] + ': ' + e);
   }
 }
 
