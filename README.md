@@ -13,7 +13,19 @@ To use the latest stable version of the Solidity compiler via Node.js you can in
 npm install solc
 ```
 
-And then use it like so:
+### Using on the command line
+
+If this package is installed globally (`npm install -g solc`), a commandline tool called `solcjs` will be available.
+
+To see all the supported features, execute:
+
+```bash
+solcjs --help
+```
+
+### Using in projects
+
+It can also be included and used in other projects:
 
 ```javascript
 var solc = require('solc');

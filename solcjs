@@ -1,0 +1,80 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var path = require('path');
+var solc = require('./index.js');
+// FIXME: remove annoying exception catcher of Emscripten
+//        see https://github.com/chriseth/browser-solidity/issues/167
+process.removeAllListeners('uncaughtException');
+
+var yargs = require('yargs')
+  .usage('Usage: $0 [options] [input_file...]')
+  .option('version', {
+    describe: 'Show version and exit.',
+    type: 'boolean'
+  })
+  .option('optimize', {
+    describe: 'Enable bytecode optimizer.',
+    type: 'boolean'
+  })
+  .option('bin', {
+    describe: 'Binary of the contracts in hex.',
+    type: 'boolean'
+  })
+  .option('abi', {
+    describe: 'ABI of the contracts.',
+    type: 'boolean'
+  })
+  .option('interface', {
+    describe: 'Solidity Interface of the contracts.',
+    type: 'boolean'
+  })
+  .option('output-dir', {
+    alias: 'o',
+    describe: 'Output directory for the contracts.',
+    type: 'string'
+  })
+  .global([ 'version', 'optimize' ])
+  .version()
+  .showHelpOnFail(false, 'Specify --help for available options')
+  .help()
+  .demand(1, 'Must provide a file');
+
+var argv = yargs.argv;
+var files = argv._;
+var destination = argv['output-dir'] || '.'
+
+function abort (msg) {
+  console.log(msg || 'Error occured');
+  process.exit(1);
+}
+
+if (!(argv.bin || argv.abi || argv.interface)) {
+  abort('Invalid option selected');
+}
+
+var sources = {};
+
+for (var i = 0; i < files.length; i++) {
+  try {
+    sources[ files[i] ] = fs.readFileSync(files[i]).toString();
+  } catch (e) {
+    abort('Error reading ' + files[i] + ': ' + e);
+  }
+}
+
+var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
+
+for (var contractName in output.contracts) {
+  if (argv.bin) {
+    fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
+  }
+
+  if (argv.abi) {
+    fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
+  }
+
+  if (argv.interface) {
+    fs.writeFileSync(path.join(destination, contractName + '_interface.sol'), output.contracts[contractName].solidity_interface);
+  }
+}
