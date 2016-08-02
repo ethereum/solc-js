@@ -92,7 +92,7 @@ new BrowserWindow({
 
 ### Using a Legacy Version
 
-In order to compile contracts using a specific version of Solidity, the `solc.useVersion` method is available. This returns a new `solc` object that uses a version of the compiler specified. **Note**: version strings must match the version substring of the files availble in `/bin/soljson-*.js`. See below for an example.
+In order to compile contracts using a specific version of Solidity, the `solc.useVersion` method is available. This returns a new `solc` object that uses a version of the compiler specified. **Note**: version strings must match the version substring of the files available in `/bin/soljson-*.js`. See below for an example.
 
 ```javascript
 var solc = require('solc');
