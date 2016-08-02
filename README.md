@@ -13,9 +13,15 @@ To use the latest stable version of the Solidity compiler via Node.js you can in
 npm install solc
 ```
 
-### Using on the command line
+Alternatively, in order to get the latest development version, you can install the version available here on GitHub:
 
-If this package is installed globally (`npm install -g solc`), a commandline tool called `solcjs` will be available.
+```bash
+npm install https://github.com/ethereum/solc-js.git
+```
+
+### Usage on the Command-Line
+
+If this package is installed globally (`npm install -g solc`), a command-line tool called `solcjs` will be available.
 
 To see all the supported features, execute:
 
@@ -23,7 +29,7 @@ To see all the supported features, execute:
 solcjs --help
 ```
 
-### Using in projects
+### Usage in Projects
 
 It can also be included and used in other projects:
 
@@ -86,7 +92,7 @@ new BrowserWindow({
 
 ### Using a Legacy Version
 
-In order to allow compiling contracts using a specific version of Solidity, the `solc.useVersion` method is available. This returns a new solc object using the version provided. **Note**: version strings must match the version substring of the files availble in `/bin/soljson-*.js`. See below for an example.
+In order to compile contracts using a specific version of Solidity, the `solc.useVersion` method is available. This returns a new `solc` object that uses a version of the compiler specified. **Note**: version strings must match the version substring of the files availble in `/bin/soljson-*.js`. See below for an example.
 
 ```javascript
 var solc = require('solc');
@@ -119,7 +125,7 @@ solc.loadRemoteVersion('latest', function(err, solcSnapshot) {
 });
 ```
 
-### Linking bytecode
+### Linking Bytecode
 
 When using libraries, the resulting bytecode will contain placeholders for the real addresses of the referenced libraries. These have to be updated, via a process called linking, before deploying the contract.
 
