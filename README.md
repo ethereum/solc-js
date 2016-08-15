@@ -13,12 +13,6 @@ To use the latest stable version of the Solidity compiler via Node.js you can in
 npm install solc
 ```
 
-Alternatively, in order to get the latest development version, you can install the version available here on GitHub:
-
-```bash
-npm install https://github.com/ethereum/solc-js.git
-```
-
 ### Usage on the Command-Line
 
 If this package is installed globally (`npm install -g solc`), a command-line tool called `solcjs` will be available.
