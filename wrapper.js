@@ -29,7 +29,13 @@ function setupMethods (soljson) {
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
       var cb = wrapCallback(readCallback);
-      var output = compileInternal(input, optimize, cb);
+      var output;
+      try {
+        output = compileInternal(input, optimize, cb);
+      } catch (e) {
+        soljson.Runtime.removeFunction(cb);
+        throw e;
+      }
       soljson.Runtime.removeFunction(cb);
       return output;
     };
