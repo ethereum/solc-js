@@ -16,7 +16,7 @@ function setupMethods (soljson) {
       soljson.setValue(ptr, buffer, '*');
     };
     var wrapCallback = function (callback) {
-      return soljson.Runtime.addFunction(function (path, contents, error) {
+      return function (path, contents, error) {
         var result = callback(soljson.Pointer_stringify(path));
         if (typeof result.contents === 'string') {
           copyString(result.contents, contents);
@@ -24,12 +24,18 @@ function setupMethods (soljson) {
         if (typeof result.error === 'string') {
           copyString(result.error, error);
         }
-      });
+      };
     };
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
-      var cb = wrapCallback(readCallback);
-      var output = compileInternal(input, optimize, cb);
+      var cb = soljson.Runtime.addFunction(wrapCallback(readCallback));
+      var output;
+      try {
+        output = compileInternal(input, optimize, cb);
+      } catch (e) {
+        soljson.Runtime.removeFunction(cb);
+        throw e;
+      }
       soljson.Runtime.removeFunction(cb);
       return output;
     };
