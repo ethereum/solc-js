@@ -12,7 +12,7 @@ function getVersionList (cb) {
   console.log('Retrieving available version list...');
 
   var mem = new MemoryStream(null, { readable: false });
-  https.get('https://ethereum.github.io/solc-bin/bin/list.txt', function (response) {
+  https.get('https://ethereum.github.io/solc-bin/bin/list.json', function (response) {
     response.pipe(mem);
     response.on('end', function () {
       cb(mem.toString());
@@ -37,21 +37,7 @@ function downloadBinary (version) {
 console.log('Downloading correct solidity binary...');
 
 getVersionList(function (list) {
-  var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)-?\d*$/)[1];
-
-  var sources = list.split('\n');
-  for (var i = sources.length - 1; i >= 0; i--) {
-    // FIXME: use build as well
-    var version = sources[i].match(/^soljson-v([0-9.]*)-.*.js$/);
-
-    // Skip invalid lines
-    if (!version) {
-      continue;
-    }
-
-    if (version[1] === wanted) {
-      downloadBinary(sources[i].match(/^soljson-(.*).js$/)[1]);
-      return;
-    }
-  }
+  var list = JSON.parse(list);
+  var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
+  downloadBinary(list.releases[wanted]);
 });
