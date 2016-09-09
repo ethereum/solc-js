@@ -11,7 +11,7 @@
     "lint": "semistandard",
     "prepublish": "./solcjs-get",
     "test": "tape ./test/index.js",
-    "clean": "rm -r *.abi *.bin output"
+    "clean": "rm -rf *.abi *.bin output"
   },
   "repository": {
     "type": "git",
