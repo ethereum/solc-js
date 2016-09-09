@@ -54,12 +54,6 @@ function getVersionList (cb) {
   });
 }
 
-// input: soljson-v0.1.4+commit.5f6c3cd.js
-// output: v0.1.4+commit.5f6c3cd
-function getVersion(path){
-  return path.replace('soljson-', '').replace('.js','');
-}
-
 function downloadBinary (version, cb) {
   console.log('Downloading version', version);
 
