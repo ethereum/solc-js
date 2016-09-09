@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
+var fs = require('fs-extra');
 var path = require('path');
 var solc = require('./index.js');
 // FIXME: remove annoying exception catcher of Emscripten
@@ -60,7 +60,7 @@ for (var i = 0; i < files.length; i++) {
 }
 
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
-
+fs.ensureDirSync (destination);
 for (var contractName in output.contracts) {
   if (argv.bin) {
     fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
