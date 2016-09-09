@@ -94,6 +94,23 @@ for (var i = 0; i < files.length; i++) {
 console.log("Compiling with version: " + solc.version());
 
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
+
+if (output.errors) {
+  // TODO: Remove once the following is clarified:
+  // https://github.com/ethereum/solc-js/issues/53
+  // only leave the console.error
+
+  if (output.errors[0].indexOf('Warning') > 0) {
+    console.log('Compiled with Warnings: ', output.errors);
+  } else {
+    console.error('Compiled with Errors: ', output.errors);
+  }
+} else if (output.warnings) {
+  console.warn('Compiled with Warnings: ', output.warnings);
+} else {
+  console.log('Compiled with sucess.');
+}
+
 fs.ensureDirSync (destination);
 for (var contractName in output.contracts) {
   if (argv.bin) {
