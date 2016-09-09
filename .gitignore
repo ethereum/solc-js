@@ -34,3 +34,8 @@ test_DAO_Token_sol_TokenInterface.abi
 test_DAO_Token_sol_TokenInterface.bin
 test_DAO_Token_sol_tokenRecipient.abi
 test_DAO_Token_sol_tokenRecipient.bin
+
+bin
+out
+*.bin
+*.abi
