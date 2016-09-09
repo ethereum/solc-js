@@ -126,10 +126,10 @@ else
     }
     else{
       console.log("Requested version: latest release");
-      wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
+      wanted = list.releases[pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1]];
     }
 
-    downloadBinary(list.releases[wanted], function(file){
+    downloadBinary(wanted, function(file){
       fs.copy(file, 'soljson.js'); // for backward compatibility
     });
   });
