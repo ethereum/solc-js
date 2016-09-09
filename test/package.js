@@ -8,6 +8,7 @@ tape('Compilation', function (t) {
     st.ok(output.contracts['x'].bytecode.length > 0);
     st.end();
   });
+
   t.test('multiple files can be compiled', function (st) {
     var input = {
       'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
@@ -20,6 +21,7 @@ tape('Compilation', function (t) {
     st.ok(output.contracts['L'].bytecode.length > 0);
     st.end();
   });
+
   t.test('lazy-loading callback works', function (st) {
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
@@ -39,6 +41,7 @@ tape('Compilation', function (t) {
     st.end();
   });
 });
+
 tape('Loading Legacy Versions', function (t) {
   t.test('loading remote version - development snapshot', function (st) {
     // getting the development snapshot
