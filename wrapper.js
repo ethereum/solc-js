@@ -73,6 +73,24 @@ function setupMethods (soljson) {
     } else {
       result = compileJSON(input, optimise);
     }
+
+    var res = JSON.parse(result);
+    if (res.errors) {
+      // TODO: Remove once the following is clarified:
+      // https://github.com/ethereum/solc-js/issues/53
+      // only leave the console.error
+
+      if (res.errors[0].indexOf('Warning') > 0) {
+        console.log('Compiled with Warnings: ', res.errors);
+      } else {
+        console.error('Compiled with Errors: ', res.errors);
+      }
+    } else if (res.warnings) {
+      console.warn('Compiled with Warnings: ', res.warnings);
+    } else {
+      console.log('Compiled with sucess.');
+    }
+
     return JSON.parse(result);
   };
 
@@ -192,6 +210,7 @@ function setupMethods (soljson) {
         cb(error);
       });
     },
+
     // Use this if you want to add wrapper functions around the pure module.
     setupMethods: setupMethods
   };

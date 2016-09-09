@@ -28,6 +28,19 @@ Note: this commandline interface is not compatible with `solc` provided by the S
 used in combination with an Ethereum client via the `eth.compile.solidity()` RPC method. Please refer to the
 [Solidity compiler documentation](https://solidity.readthedocs.io/) for instructions to install `solc`.
 
+Typical scenario:
+```bash
+solcjs-get
+solcjs -o output --bin --abi contract.sol
+```
+
+or for a specific compiler:
+```bash
+solcjs-get --list
+solcjs-get soljson-v0.3.5+commit.5f97274.js
+solcjs -o output --comp soljson-v0.3.5+commit.5f97274.js --bin --abi contract.sol
+```
+
 ### Usage in Projects
 
 #### From early versions

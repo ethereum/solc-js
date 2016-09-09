@@ -4,13 +4,15 @@
   "description": "Solidity compiler",
   "main": "index.js",
   "bin": {
-    "solcjs": "solcjs"
+    "solcjs": "solcjs",
+    "solcjs-get": "solcjs-get"
   },
   "scripts": {
     "lint": "semistandard",
-    "prepublish": "./downloadCurrentVersion.js && ./verifyVersion.js",
+    "prepublish": "./solcjs-get",
     "pretest": "npm run lint",
     "test": "tape ./test/index.js",
+    "clean": "rm -rf *.abi *.bin output"
     "coverage": "istanbul cover node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && coveralls <coverage/lcov.info"
   },
@@ -28,6 +30,7 @@
     "index.js",
     "linker.js",
     "solcjs",
+    "solcjs-get",
     "soljson.js",
     "translate.js",
     "wrapper.js"
