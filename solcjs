@@ -31,7 +31,7 @@ var yargs = require('yargs')
     type: 'string'
   })
   .global([ 'version', 'optimize' ])
-  .version()
+  .version(function() { return solc.version(); })
   .showHelpOnFail(false, 'Specify --help for available options')
   .help()
   .demand(1, 'Must provide a file');

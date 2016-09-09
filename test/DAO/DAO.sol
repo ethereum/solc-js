@@ -146,7 +146,7 @@ contract DAOInterface {
     }
 
     // Used to restrict access to certain functions to only DAO Token Holders
-    modifier onlyTokenholders {}
+    modifier onlyTokenholders { _; }
 
     /// @dev Constructor setting the Curator and the address
     /// for the contract able to create another DAO as well as the parameters
@@ -177,8 +177,7 @@ contract DAOInterface {
     //  );
 
     /// @notice Create Token with `msg.sender` as the beneficiary
-    /// @return Whether the token creation was successful
-    function () returns (bool success);
+    function ();
 
 
     /// @dev This function is used to send ether back
@@ -355,7 +354,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     // Modifier that allows only shareholders to vote and create new proposals
     modifier onlyTokenholders {
         if (balanceOf(msg.sender) == 0) throw;
-            _
+            _;
     }
 
     function DAO(
@@ -393,11 +392,11 @@ contract DAO is DAOInterface, Token, TokenCreation {
         allowedRecipients[curator] = true;
     }
 
-    function () returns (bool success) {
+    function () {
         if (now < closingTime + creationGracePeriod && msg.sender != address(extraBalance))
-            return createTokenProxy(msg.sender);
+            createTokenProxy(msg.sender);
         else
-            return receiveEther();
+            receiveEther();
     }
 
 
