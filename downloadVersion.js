@@ -57,15 +57,15 @@ function getVersionList (cb) {
 function downloadBinary (version, cb) {
   console.log('Downloading version', version);
   var targetPath = path.join(compilerDir, version);
-  
+
   https.get('https://ethereum.github.io/solc-bin/bin/' + version, function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
       process.exit(1);
     }
 
-    fs.ensureDirSync (compilerDir);
-    
+    fs.ensureDirSync(compilerDir);
+
     var file = fs.createWriteStream(targetPath);
 
     response.pipe(file);
@@ -79,16 +79,16 @@ function downloadBinary (version, cb) {
 }
 
 if (argv.list) {
-  console.log("Getting the list of all versions ...");
+  console.log('Getting the list of all versions ...');
   getVersionList(function (list) {
     list = JSON.parse(list).builds;
     for (var i = list.length - 1; i >= 0; i--) {
-      console.log(list[i].version, list[i].path );
+      console.log(list[i].version, list[i].path);
     }
     process.exit(0);
   });
 } else if (argv.clean) {
-  console.log('Removing all local compilers in '+ compilerDir +' ...');
+  console.log('Removing all local compilers in ' + compilerDir + ' ...');
   fs.remove(compilerDir, function (err) {
     if (err) return console.error(err);
 
@@ -96,40 +96,39 @@ if (argv.list) {
     process.exit(0);
   });
 } else if (argv.all) {
-  console.log("Getting all the versions ...");
+  console.log('Getting all the versions ...');
   getVersionList(function (list) {
-    list =  JSON.parse(list).builds;
+    list = JSON.parse(list).builds;
     for (var i = list.length - 1; i >= 0; i--) {
       var target = list[i].path;
-      if (target.indexOf('nightly')>0 && !argv.nightly) continue;
+      if (target.indexOf('nightly') > 0 && !argv.nightly) continue;
 
       downloadBinary(target);
     }
   });
-}  else if (argv.releases) {
-  console.log("Getting all the releases ...");
+} else if (argv.releases) {
+  console.log('Getting all the releases ...');
   getVersionList(function (list) {
-    list =  JSON.parse(list).releases;
-    for(var key in list) {
+    list = JSON.parse(list).releases;
+    for (var key in list) {
       downloadBinary(list[key]);
     }
   });
-}
-else
+} else {
   getVersionList(function (list) {
     list = JSON.parse(list);
-    
+
     var wanted = null;
     if (requestedVersion) {
-      console.log("Requested version: " + requestedVersion);
+      console.log('Requested version: ' + requestedVersion);
       wanted = requestedVersion;
-    }
-    else{
-      console.log("Requested version: latest release");
+    } else {
+      console.log('Requested version: latest release');
       wanted = list.releases[pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1]];
     }
 
-    downloadBinary(wanted, function(file){
+    downloadBinary(wanted, function (file) {
       fs.copy(file, 'soljson.js'); // for backward compatibility
     });
   });
+}

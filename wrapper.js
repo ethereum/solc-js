@@ -51,13 +51,14 @@ function setupMethods (soljson) {
       result = compileJSON(input, optimise);
     }
 
-    var res = JSON.parse(result); 
-    if (res.errors)
-      console.log("Compiled with Errors:", res.errors);
-    else if (res.warnings)
-        console.log("Compiled with Warnings:", res.warnings);
-    else
-      console.log("Compiled without error.");
+    var res = JSON.parse(result);
+    if (res.errors) {
+      console.log('Compiled with Errors:', res.errors);
+    } else if (res.warnings) {
+      console.log('Compiled with Warnings:', res.warnings);
+    } else {
+      console.log('Compiled without error.');
+    }
     return JSON.parse(result);
   };
 
@@ -114,6 +115,7 @@ function setupMethods (soljson) {
         cb(error);
       });
     },
+
     // Use this if you want to add wrapper functions around the pure module.
     setupMethods: setupMethods
   };

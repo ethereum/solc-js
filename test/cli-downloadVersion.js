@@ -1,6 +1,5 @@
 const tape = require('tape');
 const spawn = require('tape-spawn');
-const pkg = require('../package.json');
 
 tape('CLI downloadVersion', function (t) {
   t.test('--list', function (st) {
