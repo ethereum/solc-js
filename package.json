@@ -4,12 +4,14 @@
   "description": "Solidity compiler",
   "main": "index.js",
   "bin": {
-    "solcjs": "solcjs"
+    "solcjs": "solcjs",
+    "solcjs-get": "solcjs-get"
   },
   "scripts": {
     "lint": "semistandard",
-    "prepublish": "./downloadVersion.js",
-    "test": "tape ./test/index.js"
+    "prepublish": "./solcjs-get",
+    "test": "tape ./test/index.js",
+    "clean": "rm -r *.abi *.bin output"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,7 @@
   "files": [
     "index.js",
     "solcjs",
+    "solcjs-get",
     "soljson.js",
     "wrapper.js"
   ],
