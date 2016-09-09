@@ -50,6 +50,9 @@ function setupMethods (soljson) {
     } else {
       result = compileJSON(input, optimise);
     }
+
+    if (JSON.parse(result).errors)
+      console.log("Compiled with Errors:", result);
     return JSON.parse(result);
   };
 
