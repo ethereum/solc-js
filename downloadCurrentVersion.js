@@ -13,6 +13,10 @@ function getVersionList (cb) {
 
   var mem = new MemoryStream(null, { readable: false });
   https.get('https://ethereum.github.io/solc-bin/bin/list.json', function (response) {
+    if (response.statusCode !== 200) {
+      console.log('Error downloading file: ' + response.statusCode);
+      process.exit(1);
+    }
     response.pipe(mem);
     response.on('end', function () {
       cb(mem.toString());
@@ -24,7 +28,11 @@ function downloadBinary (version) {
   console.log('Downloading version', version);
 
   var file = fs.createWriteStream('soljson.js');
-  https.get('https://ethereum.github.io/solc-bin/bin/soljson-' + version + '.js', function (response) {
+  https.get('https://ethereum.github.io/solc-bin/bin/' + version, function (response) {
+    if (response.statusCode !== 200) {
+      console.log('Error downloading file: ' + response.statusCode);
+      process.exit(1);
+    }
     response.pipe(file);
     file.on('finish', function () {
       file.close(function () {
