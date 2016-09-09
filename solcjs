@@ -36,11 +36,6 @@ var yargs = require('yargs')
     describe: 'Select a specific solidity compiler. Compilers´ location is ~/.soljs/',
     type: 'string'
   })
-  // .option('list-compilers', {
-  //   alias: 'lc',
-  //   describe: 'List available compilers',
-  //   type: 'string'
-  // })
   .global([ 'version', 'optimize' ])
   .showHelpOnFail(false, 'Specify --help for available options')
   .help();
@@ -81,6 +76,9 @@ function abort (msg) {
 if (!(argv.bin || argv.abi)) {
   abort('Invalid option selected');
 }
+
+if (!files.length)
+  abort('You must provide at least one file to compile.');
 
 var sources = {};
 

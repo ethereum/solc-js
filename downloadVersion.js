@@ -56,7 +56,8 @@ function getVersionList (cb) {
 
 function downloadBinary (version, cb) {
   console.log('Downloading version', version);
-
+  var targetPath = path.join(compilerDir, version);
+  
   https.get('https://ethereum.github.io/solc-bin/bin/' + version, function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
@@ -64,7 +65,7 @@ function downloadBinary (version, cb) {
     }
 
     fs.ensureDirSync (compilerDir);
-    var targetPath = path.join(compilerDir, version);
+    
     var file = fs.createWriteStream(targetPath);
 
     response.pipe(file);
