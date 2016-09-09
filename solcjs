@@ -2,7 +2,8 @@
 
 var fs = require('fs');
 var path = require('path');
-var solc = require('./index.js');
+
+
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
@@ -27,18 +28,50 @@ var yargs = require('yargs')
   })
   .option('output-dir', {
     alias: 'o',
-    describe: 'Output directory for the contracts.',
+    describe: 'Output directory for the contracts. Defaults to ./',
     type: 'string'
   })
+  .option('compiler', {
+    alias: 'comp',
+    describe: 'Select a specific solidity compiler. Compilers´ location is ~/.soljs/',
+    type: 'string'
+  })
+  // .option('list-compilers', {
+  //   alias: 'lc',
+  //   describe: 'List available compilers',
+  //   type: 'string'
+  // })
   .global([ 'version', 'optimize' ])
-  .version(function() { return solc.version(); })
   .showHelpOnFail(false, 'Specify --help for available options')
-  .help()
-  .demand(1, 'Must provide a file');
+  .help();
+  //.demand(1, 'Must provide a file');
 
 var argv = yargs.argv;
 var files = argv._;
-var destination = argv['output-dir'] || '.'
+var destination = argv['output-dir'] || '.';
+var compiler = argv.compiler;
+
+// here we get the default version of the compiler
+solc = require('./index.js');
+
+function getVersion(path){
+  return path.replace('soljson-', '').replace('.js','');
+}
+
+// if the user needs a specific one, we load it
+if (compiler ){
+  console.log("Custom compiler requested: " + compiler);
+  var expectedPath = './'+path.join('bin', compiler);
+
+  //solc = solc.setupMethods(require(expectedPath));
+  solc = solc.useVersion(getVersion(compiler));
+  console.log("compiler version:" + solc.version());
+}
+
+if (argv.version){
+  console.log( solc.version());
+  process.exit(0);
+}
 
 function abort (msg) {
   console.log(msg || 'Error occured');
@@ -59,6 +92,7 @@ for (var i = 0; i < files.length; i++) {
   }
 }
 
+console.log("Compiling with version: " + solc.version());
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
 
 for (var contractName in output.contracts) {
