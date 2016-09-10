@@ -85,8 +85,9 @@ function setupMethods (soljson) {
     supportsMulti: compileJSONMulti !== null,
     supportsImportCallback: compileJSONCallback !== null,
     // Use the given version if available.
-    useVersion: function (versionString) {
-      return setupMethods(require('./bin/soljson-' + versionString + '.js'));
+    useVersion: function (compilerRepo, versionString) {
+      versionString = versionString.replace('soljson-', '');
+      return setupMethods(require(compilerRepo + '/soljson-' + versionString + '.js'));
     },
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
