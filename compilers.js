@@ -27,8 +27,17 @@ function compilers(repo) {
     var versions =Object.keys(rel);
     var res= [];
     for (var v in versions){
-      res.push(rel[v]);
+
+      res.push(rel[versions[v]]);
     }
+    return res;
+  }
+
+  var pathExistsIn = function (path, list){
+    for (var i = list.length - 1; i >= 0; i--) {
+      if( list[i].path === path) return true;
+    }
+    return false;
   }
 
   var getList = function( cb) {
@@ -50,6 +59,7 @@ function compilers(repo) {
         var res = {};
         var builds = json.builds;
         res.builds = builds;
+
        releases = getReleaseArray(json.releases); // here we get an array
 
        res.getNightlies  = function(){
@@ -65,10 +75,11 @@ function compilers(repo) {
 
       res.getReleases = function(){
         var n = [];
+        
         for (var item in builds){
           var i = builds[item];
 
-          if (i.path in releases)
+          if (releases.indexOf(i.path)>0)
             n.push(i);
         }
         return n;
@@ -154,7 +165,7 @@ function compilers(repo) {
     getList: getList,
     getRepo: getRepo,
     getListLocal: getListLocal,
-
+    pathExistsIn: pathExistsIn,
         // Use this if you want to add wrapper functions around the pure module.
         compilers: compilers
       };

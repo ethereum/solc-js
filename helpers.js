@@ -62,6 +62,7 @@ function helpers() {
 			}
 		},
 		exit: function(){
+			// console.log('Exiting...');
 			process.exit(0);
 		},
 		

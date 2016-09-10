@@ -4,6 +4,7 @@ var fs = require('fs-extra');
 var path = require('path');
 var pkg = require('./package.json');
 var helpers = require('./helpers')();
+const chalk = require('chalk');
 
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
@@ -184,18 +185,49 @@ if (cmd === 'list'){
   console.log('Remote mode');
   console.log('opt: '+ opt);
   compilers.getList( function(err, list){
+    compilers.getListLocal(function(err, local){
+      var releases = list.getReleases();
+      var build=null;
+      var i;
 
-    if (opt.release)
-      console.log(list.getReleases());
+      if (opt.all){
+        opt.release= true;
+        opt.nightly= true;
+      }
 
+      var weHaveIt = null;
 
+      if (opt.release){
+        for ( i in releases){
+         build = releases[i];
+         weHaveIt =compilers.pathExistsIn(build.path, local.builds);
+
+         if (weHaveIt)
+          console.log(chalk.green.bold(build.version + ' \t ' + build.path));
+        else
+
+          console.log(chalk.gray(build.version + ' \t ' + build.path));
+      }
+    }
+
+    var nightlies = list.getNightlies();
+    if (opt.nightly){
+      for ( i in nightlies) {
+        build = nightlies[i];
+        weHaveIt =compilers.pathExistsIn(build.path, local.builds);
+        if (weHaveIt)
+          console.log(chalk.green.bold(build.version + ' \t ' + build.path));
+        else
+
+          console.log(chalk.gray(build.version + ' \t ' + build.path));
+      }
+    } 
     helpers.exit();
+  });
   });
 }
 
 }
-
-
 
 
 
