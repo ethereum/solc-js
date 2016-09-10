@@ -2,122 +2,223 @@
 
 var fs = require('fs-extra');
 var path = require('path');
+var pkg = require('./package.json');
+var helpers = require('./helpers')();
 
+
+var fakeList= ['v1', 'v2', 'v3'];
 
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
 
+var cmds = {get: 'get', build:'build', list:'list', version: 'version', info: 'info'};
+
 var yargs = require('yargs')
-  .usage('Usage: $0 [options] [input_file...]')
-  .option('version', {
-    describe: 'Show version and exit.',
-    type: 'boolean'
-  })
-  .option('optimize', {
-    describe: 'Enable bytecode optimizer.',
-    type: 'boolean'
-  })
-  .option('bin', {
-    describe: 'Binary of the contracts in hex.',
-    type: 'boolean'
-  })
-  .option('abi', {
-    describe: 'ABI of the contracts.',
-    type: 'boolean'
-  })
-  .option('output-dir', {
-    alias: 'o',
-    describe: 'Output directory for the contracts. Defaults to ./',
-    type: 'string'
-  })
-  .option('compiler', {
-    alias: 'comp',
-    describe: 'Select a specific solidity compiler. Compilers´ location is ~/.soljs/',
-    type: 'string'
-  })
-  .global([ 'version', 'optimize' ])
-  .showHelpOnFail(false, 'Specify --help for available options')
-  .help();
-  //.demand(1, 'Must provide a file');
+.usage('Usage: $0 <cmd> [options] [input_file...]')
+
+
+.example('$0 info', 'Some information about your environment')
+.example('$0 version', 'Shows the version of the default compiler')
+.example('$0 get --latest', 'Get the latest compiler')
+.example('$0 get soljson-v0.1.1+commit.6ff4cd6', 'Get a specific compiler version')
+.example('$0 list --releases', 'List available releases')
+.example('$0 list --local', 'List compilers you have locally installed')
+
+.command(cmds.info, 'Show some info about solcjs')
+.command(cmds.version, 'Show version and exit')
+
+.command(cmds.get, 'Fetch one or more compilers')
+.alias('latest', 'latest')
+
+.command(cmds.list, 'List available compilers')
+.option('local', {
+  describe: 'Switch for the local compilers',
+  type: 'boolean',
+  default: false,
+})
+
+
+.command(cmds.build, 'Build a smart contract')
+.option('optimize', {
+  describe: 'Enable bytecode optimizer.',
+  type: 'boolean'
+})
+.option('bin', {
+  alias: 'bin',
+  type: 'boolean',
+  default: false,
+  describe: 'x marks the spot'
+})
+.option('abi', {
+  describe: 'ABI of the contracts.',
+  type: 'boolean'
+})
+.option('output-dir', {
+  alias: 'o',
+  describe: 'Output directory for the contracts. Defaults to ./',
+  type: 'string'
+})
+.option('compiler', {
+  alias: 'comp',
+  describe: 'Select a specific solidity compiler. Compilers´ location is ~/.soljs/',
+  type: 'string'
+})
+
+
+
+
+.global([ 'version', 'optimize' ])
+.showHelpOnFail(true, 'Specify --help for available options')
+.help()
+.demand(1, 'You need to provide at least a command.');
+
+
+// Samples
+// solcjs                       => help
+// solcjs --help                => help
+// solcjs build|list|get
+//    build   => --abi --bin --optimize file1 files2 ...
+//    
+//    list [--releases] => list releases only
+//    list --commit     => releases + commits
+//    list --nightly    => releases + commits + nightly = ALL 
+//    list --local      => show what we have against what is available
+//    
+//    get --latest      => get the latest
+//    get <version>     => get a specific version
+//    get --all         => get all the compilers not already there
+
 
 var argv = yargs.argv;
-var files = argv._;
-var destination = argv['output-dir'] || '.';
+var cmd = argv._[0].toLowerCase();
+
+
+// debug
+if (1){
+  console.log(argv);
+  console.log('cmd ' + cmd);
+}
+
+
+// Check the command
+if (!(cmd in cmds))
+  helpers.abort('cmd unknown');
+
+
 var compiler = argv.compiler;
+var compilers = require('./compilers')();
 
-// here we get the default version of the compiler
-solc = require('./index.js');
+if (cmd === 'list'){
+  if(argv.local)
+    compilers.getListLocal();
+  else
+    compilers.getList({
+      release: argv.releases, 
+      nightly: argv.nightly,
+      commit: argv.commit
+    }, function(list){
+      console.log(list);
+    });
 
-function getVersion(path){
-  return path.replace('soljson-', '').replace('.js','');
+  helpers.exit();
 }
 
-// if the user needs a specific one, we load it
-if (compiler ){
-  console.log("Custom compiler requested: " + compiler);
-  var expectedPath = './'+path.join('bin', compiler);
 
-  //solc = solc.setupMethods(require(expectedPath));
-  solc = solc.useVersion(getVersion(compiler));
-  console.log("compiler version:" + solc.version());
+if (cmd === 'info'){
+  console.log('You are running solcjs version ' + pkg.version);
+  console.log('Compiler Repo: ' + repo);
+  console.log('Node version ' + process.version);
+  helpers.exit();
 }
 
-if (argv.version){
-  console.log( solc.version());
-  process.exit(0);
-}
 
-function abort (msg) {
-  console.error(msg || 'Error occured');
-  process.exit(1);
-}
 
-if (!files.length)
-  abort('You must provide at least one file to compile.');
+var solc = helpers.getSolidityCompiler(compilers.repository, compiler);
+console.log("Using compiler version:" + solc.version());
 
-if (!(argv.bin || argv.abi)) {
-  abort('Invalid option selected');
-}
+if (cmd === 'build'){
+  var files  = argv._.shift();
+  var destination = argv['output-dir'] || '.';
 
-var sources = {};
+  if (!files.length)
+    helpers.abort('You must provide at least one file to compile.');
 
-for (var i = 0; i < files.length; i++) {
-  try {
-    sources[ files[i] ] = fs.readFileSync(files[i]).toString();
-  } catch (e) {
-    abort('Error reading ' + files[i] + ': ' + e);
+  if (!(argv.bin || argv.abi)) {
+    helpers.abort('Invalid option selected');
   }
-}
 
-// TODO: to bring back once https://github.com/ethereum/solc-js/issues/22 is clarified
-console.log("Compiling with version: " + solc.version());
+  var sources = helpers.getSources(files);
 
-var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
+  // TODO: to bring back once https://github.com/ethereum/solc-js/issues/22 is clarified
+  console.log("Compiling with version: " + solc.version());
 
-if (output.errors) {
-  // TODO: Remove once the following is clarified:
-  // https://github.com/ethereum/solc-js/issues/53
-  // only leave the console.error
+  var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
 
-  if (output.errors[0].indexOf('Warning') > 0) {
-    console.log('Compiled with Warnings: ', output.errors);
+  if (output.errors) {
+    // TODO: Remove once the following is clarified:
+    // https://github.com/ethereum/solc-js/issues/53
+    // only leave the console.error
+
+    if (output.errors[0].indexOf('Warning') > 0) {
+      console.log('Compiled with Warnings: ', output.errors);
+    } else {
+      console.error('Compiled with Errors: ', output.errors);
+    }
+  } else if (output.warnings) {
+    console.warn('Compiled with Warnings: ', output.warnings);
   } else {
-    console.error('Compiled with Errors: ', output.errors);
+    console.log('Compiled with sucess.');
   }
-} else if (output.warnings) {
-  console.warn('Compiled with Warnings: ', output.warnings);
-} else {
-  console.log('Compiled with sucess.');
+
+  fs.ensureDirSync (destination);
+  for (var contractName in output.contracts) {
+    if (argv.bin) {
+      fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
+    }
+
+    if (argv.abi) {
+      fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
+    }
+  }
+
 }
 
-fs.ensureDirSync (destination);
-for (var contractName in output.contracts) {
-  if (argv.bin) {
-    fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
+
+if (cmd === 'get'){
+  if (argv.list) {
+    console.log('Getting the list of all versions ...');
+    compilers.getList(function (list) {
+      list = JSON.parse(list).builds;
+      for (var i = list.length - 1; i >= 0; i--) {
+        console.log(list[i].version, list[i].path);
+      }
+      helpers.exit();
+    });
   }
 
-  if (argv.abi) {
-    fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
-  }
+  compilers.getList(function (list) {
+    list = JSON.parse(list);
+
+    var wanted = null;
+    if (requestedVersion) {
+      console.log('Requested version: ' + requestedVersion);
+      wanted = requestedVersion;
+    } else {
+      console.log('Requested version: latest release');
+      wanted = list.releases[pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1]];
+    }
+
+    downloadBinary(wanted, function (file) {
+      if (!requestedVersion){
+        fs.copy(file, 'soljson.js'); // for backward compatibility
+      }
+    });
+  });
+}
+
+
+if (cmd === 'version'){
+  console.log(solc.version());
+  helpers.exit();
 }
