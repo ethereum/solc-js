@@ -147,29 +147,34 @@ if (cmd === 'list'){
     ) {                             
     console.log('Summary mode');
 
-  compilers.getListLocal(function(err, res){
-    if (err) console.err(err);
-    console.log('Summary of your local compilers:');
-    console.log('total    : ' + res.data.length);
-    console.log('Nightly  : ' + res.getNightlies().length);
-    console.log('Releases : ' + res.getReleases().length);
+  compilers.getListLocal( function(err, local){
+    compilers.getList( function(err2, remote){
+      console.log('Summary of your local compilers:');
+      console.log('total    : ' + local.builds.length);
+      console.log('Nightly  : ' + local.getNightlies().length);
+      // console.log('Releases : ' + local.getReleases().length);
+      
+      console.log('Summary of your remote compilers:');
+      console.log('total    : ' + remote.builds.length);
+      console.log('Nightly  : ' + remote.getNightlies().length);
+      console.log('Releases : ' + remote.getReleases().length);
+      
 
-    helpers.exit();
+      helpers.exit();
+    });
   });
-
-
 } else if(opt.local) {     
   console.log('Local mode');
 
-  compilers.getListLocal(function(err, res){
+  compilers.getListLocal( function(err, res){
     if (err) console.err(err);
 
     console.log('Your local compilers:');
-    for (var item in res.data){
-      var i = res.data[item];
+    for (var item in res.builds){
+      var i = res.builds[item];
       console.log(i.version + ' \t ' + i.path);
     }
-    console.log('Total:   ' + res.data.length);
+    console.log('Total:   ' + res.builds.length);
 
     helpers.exit();
   });
@@ -177,12 +182,13 @@ if (cmd === 'list'){
 
 } else {                        
   console.log('Remote mode');
-  compilers.getList({
-    release: argv.releases, 
-    nightly: argv.nightly,
-    commit: argv.commit
-  }, function(list){
-    console.log(list);
+  console.log('opt: '+ opt);
+  compilers.getList( function(err, list){
+
+    if (opt.release)
+      console.log(list.getReleases());
+
+
     helpers.exit();
   });
 }

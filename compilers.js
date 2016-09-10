@@ -6,6 +6,11 @@ var MemoryStream = require('memorystream');
 var https = require('https');
 
 function compilers(repo) {
+  var local= {};
+  var remote= {};
+  var remoteRepo = 'https://ethereum.github.io/solc-bin/bin/list.json';
+  var releases=[];
+
   var getRepo = function() {
     var repo = null;
     if (helpers.isNode())
@@ -17,70 +22,41 @@ function compilers(repo) {
     return repo;
   };
 
-  var getList = function(filters, cb) {
-    console.log('Retrieving available version list with filters', filters);
+  // we get a hash: { "0.4.1": "soljson-v0.4.1+commit.4fc6fc2c.js", ... }
+  function getReleaseArray(rel){
+    var versions =Object.keys(rel);
+    var res= [];
+    for (var v in versions){
+      res.push(rel[v]);
+    }
+  }
+
+  var getList = function( cb) {
+    console.log('Getting compilers from remote repository: ' + remoteRepo );
+    // console.log('Retrieving available version list with filters', filters);
 
     var mem = new MemoryStream(null, { readable: false });
-    https.get('https://ethereum.github.io/solc-bin/bin/list.json', function(response) {
+    https.get(remoteRepo, function(response) {
       if (response.statusCode !== 200) {
         console.log('Error downloading file: ' + response.statusCode);
         process.exit(1);
       }
       response.pipe(mem);
       response.on('end', function() {
-                // if (argv.all) {
-              // console.log('Getting all the versions ...');
-              var json = mem.toString();
-              var res = [];
 
-              list = JSON.parse(json).builds;
-              for (var i = list.length - 1; i >= 0; i--) {
-                var target = list[i].path;
-                if (target.indexOf('nightly') > 0 && !argv.nightly) continue;
+        var json = JSON.parse(mem.toString());
+        // console.log(json);
 
-                res.push(target);
-                  // downloadBinary(target);
-                }  
+        var res = {};
+        var builds = json.builds;
+        res.builds = builds;
+       releases = getReleaseArray(json.releases); // here we get an array
 
-              // });
-              // } else if (argv.releases) {
-              //     console.log('Getting all the releases ...');
-              //     compilers.getList(function (list) {
-              //       list = JSON.parse(list).releases;
-              //       for (var key in list) {
-              //         downloadBinary(list[key]);
-              //     }
-              // });
-              // }
-              cb(res);
-            });
-    });
-  };
-
-  var getListLocal = function(cb){
-    console.log('Getting compilers from your local repository: <' + repository + '>');
-
-    fs.readdir(repository, function(err, files) {
-      var res = {};
-      var data=[];
-
-      for (var f in files) {
-        var file = files[f];
-        var compData = helpers.extractCompilerData(file);
-
-        data.push( {
-          path: file, 
-          version: compData.version, 
-          prerelease: compData.prerelease, 
-          build: compData.build} );       
-      }
-
-      res.data = data;
-      res.getNightlies = function(){
+       res.getNightlies  = function(){
         var n = [];
-        for (var item in data){
-          var i = data[item];
-    
+        for (var item in builds){
+          var i = builds[item];
+
           if (i.prerelease)
             n.push(i);
         }
@@ -89,15 +65,84 @@ function compilers(repo) {
 
       res.getReleases = function(){
         var n = [];
-        for (var item in data){
-          var i = data[item];
-    
-          if (!i.prerelease)
+        for (var item in builds){
+          var i = builds[item];
+
+          if (i.path in releases)
             n.push(i);
         }
         return n;
       };
 
+        // for (var i = builds.length - 1; i >= 0; i--) {
+        //   var target = builds[i].path;
+        //   if (target.indexOf('nightly') > 0 && !filters.nightly) continue;
+
+        //   res.push(target);
+        //     // downloadBinary(target);
+        //   }  
+
+        // });
+        // } else if (argv.releases) {
+        //     console.log('Getting all the releases ...');
+        //     compilers.getList(function (list) {
+        //       list = JSON.parse(list).releases;
+        //       for (var key in list) {
+        //         downloadBinary(list[key]);
+        //     }
+        // });
+        // }
+        cb(null, res);
+      });
+    });
+  };
+
+  var getListLocal = function( cb){
+    console.log('Getting compilers from your local repository: ' + repository );
+    // console.log('Retrieving available version list with filters', filters);
+
+    fs.readdir(repository, function(err, files) {
+      var res = {};
+      var builds=[];
+
+      for (var f in files) {
+        var file = files[f];
+        var compData = helpers.extractCompilerData(file);
+
+        builds.push( {
+          path: file, 
+          version: compData.version, 
+          prerelease: compData.prerelease, 
+          build: compData.build} );       
+      }
+
+      res.builds = builds;
+      res.getNightlies  = function(){
+        var n = [];
+        for (var item in builds){
+          var i = builds[item];
+
+          if (i.prerelease)
+            n.push(i);
+        }
+        return n;
+      };
+
+      // not sure if this is a valid way...
+      // It is better to get the real data from the remote.
+      // 
+      // res.getReleases = function(){  
+      //   var n = [];
+      //   for (var item in builds){
+      //     var i = builds[item];
+
+      //     if (!i.prerelease)
+      //       n.push(i);
+      //   }
+      //   return n;
+      // };
+
+      local = res;
       cb(err, res);
     });
   };
