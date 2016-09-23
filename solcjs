@@ -154,16 +154,16 @@ if (cmd === 'list'){
     ) {                             
   compilers.getListLocal( function(err, local){
     compilers.getList( function(err2, remote){
-      console.log('Summary of your local compilers:');
-      console.log('total    : ' + local.builds.length);
+      console.log(chalk.blue('Summary of your local compilers:'));
       console.log('Nightly  : ' + local.getNightlies().length);
       // console.log('Releases : ' + local.getReleases().length);
+      console.log('TOTAL    : ' + local.builds.length);
       
-      console.log('Summary of the remote compilers:');
-      console.log('total    : ' + remote.builds.length);
+      console.log(chalk.blue('Summary of the remote compilers:'));
+      
       console.log('Nightly  : ' + remote.getNightlies().length);
       console.log('Releases : ' + remote.getReleases().length);
-      
+      console.log('TOTAL    : ' + remote.builds.length);
 
       helpers.exit();
     });
@@ -340,5 +340,3 @@ if (cmd === 'build'){
     }
   }
 }
-
-
