@@ -280,7 +280,9 @@ if (cmd === 'version') {
 // solcjs build --abi --optimize c.sol
 
 if (cmd === 'build') {
-  var files = argv._.shift();
+  argv._.shift();
+  var files = argv._;
+
   var destination = argv['output-dir'] || '.';
 
   if (!files.length) {
@@ -314,8 +316,11 @@ if (cmd === 'build') {
     console.log('Compiled with sucess.');
   }
 
+  console.log(destination, output);
   fs.ensureDirSync(destination);
+
   for (var contractName in output.contracts) {
+    console.log('Writting output for ' + contractName);
     if (argv.bin) {
       fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
     }
