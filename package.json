@@ -9,6 +9,7 @@
   "scripts": {
     "lint": "semistandard",
     "test": "tape ./test/index.js",
+    "prepublish": "./solcjs get --latest",
     "clean": "rm -rf *.abi *.bin output"
   },
   "repository": {

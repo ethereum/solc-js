@@ -246,8 +246,10 @@ if (cmd === 'get') {
 
     compilers.downloadBinary(wanted, argv.force, function (file) {
       if (!requestedVersion) {
-        fs.copy(file, 'soljson.js'); // for backward compatibility
-        helpers.exit();
+        fs.copy(file, 'soljson.js', function() {
+          console.log('Replaced local soljson.js');
+          helpers.exit();
+        }); // for backward compatibility
       }
     });
   });
