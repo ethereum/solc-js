@@ -50,6 +50,7 @@ function setupMethods (soljson) {
     } else {
       result = compileJSON(input, optimise);
     }
+
     return JSON.parse(result);
   };
 
@@ -106,6 +107,7 @@ function setupMethods (soljson) {
         cb(error);
       });
     },
+
     // Use this if you want to add wrapper functions around the pure module.
     setupMethods: setupMethods
   };

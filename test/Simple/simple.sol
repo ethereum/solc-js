@@ -1,0 +1,4 @@
+contract SimpleContract{
+	address addr;
+
+}

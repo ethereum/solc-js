@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
+var fs = require('fs-extra');
 var path = require('path');
-var solc = require('./index.js');
+
+
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
@@ -27,23 +28,53 @@ var yargs = require('yargs')
   })
   .option('output-dir', {
     alias: 'o',
-    describe: 'Output directory for the contracts.',
+    describe: 'Output directory for the contracts. Defaults to ./',
+    type: 'string'
+  })
+  .option('compiler', {
+    alias: 'comp',
+    describe: 'Select a specific solidity compiler. Compilers´ location is ~/.soljs/',
     type: 'string'
   })
   .global([ 'version', 'optimize' ])
-  .version(function() { return solc.version(); })
   .showHelpOnFail(false, 'Specify --help for available options')
-  .help()
-  .demand(1, 'Must provide a file');
+  .help();
+  //.demand(1, 'Must provide a file');
 
 var argv = yargs.argv;
 var files = argv._;
-var destination = argv['output-dir'] || '.'
+var destination = argv['output-dir'] || '.';
+var compiler = argv.compiler;
+
+// here we get the default version of the compiler
+solc = require('./index.js');
+
+function getVersion(path){
+  return path.replace('soljson-', '').replace('.js','');
+}
+
+// if the user needs a specific one, we load it
+if (compiler ){
+  console.log("Custom compiler requested: " + compiler);
+  var expectedPath = './'+path.join('bin', compiler);
+
+  //solc = solc.setupMethods(require(expectedPath));
+  solc = solc.useVersion(getVersion(compiler));
+  console.log("compiler version:" + solc.version());
+}
+
+if (argv.version){
+  console.log( solc.version());
+  process.exit(0);
+}
 
 function abort (msg) {
-  console.log(msg || 'Error occured');
+  console.error(msg || 'Error occured');
   process.exit(1);
 }
+
+if (!files.length)
+  abort('You must provide at least one file to compile.');
 
 if (!(argv.bin || argv.abi)) {
   abort('Invalid option selected');
@@ -59,8 +90,28 @@ for (var i = 0; i < files.length; i++) {
   }
 }
 
+// TODO: to bring back once https://github.com/ethereum/solc-js/issues/22 is clarified
+console.log("Compiling with version: " + solc.version());
+
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
 
+if (output.errors) {
+  // TODO: Remove once the following is clarified:
+  // https://github.com/ethereum/solc-js/issues/53
+  // only leave the console.error
+
+  if (output.errors[0].indexOf('Warning') > 0) {
+    console.log('Compiled with Warnings: ', output.errors);
+  } else {
+    console.error('Compiled with Errors: ', output.errors);
+  }
+} else if (output.warnings) {
+  console.warn('Compiled with Warnings: ', output.warnings);
+} else {
+  console.log('Compiled with sucess.');
+}
+
+fs.ensureDirSync (destination);
 for (var contractName in output.contracts) {
   if (argv.bin) {
     fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
