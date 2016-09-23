@@ -1,0 +1,4 @@
+contract SimpleError {
+	wrong addr;
+
+}
