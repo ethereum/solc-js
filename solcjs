@@ -3,8 +3,8 @@
 var fs = require('fs-extra');
 var path = require('path');
 var pkg = require('./package.json');
-var helpers = require('./helpers')();
-const chalk = require('chalk');
+var helpers = require('./lib/helpers')();
+var chalk = require('chalk');
 
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
@@ -12,73 +12,85 @@ process.removeAllListeners('uncaughtException');
 
 
 
-var cmds = {get: 'get', build:'build', list:'list', version: 'version', info: 'info'};
+var cmds = {get: 'get', build:'build', list:'list', version: 'version', info: 'info', clean: 'clean'};
 
 var yargs = require('yargs')
 .usage('Usage: $0 <cmd> [options] [input_file...]')
 
 
-.example('$0 info', 'Some information about your environment')
-.example('$0 version', 'Shows the version of the default compiler')
-.example('$0 get --latest', 'Get the latest compiler')
+.example('$0 info', 'Some information about your env')
+.example('$0 version', 'Shows the default compiler')
+
+.example('$0 get [--latest]', 'Get the latest compiler')
 .example('$0 get soljson-v0.1.1+commit.6ff4cd6', 'Get a specific compiler version')
-.example('$0 list --releases', 'List available releases')
-.example('$0 list --local', 'List compilers you have locally installed')
+// We don´t advertised the next one until we skip the compilers we already have
+// .example('$0 get  --all', 'List all compilers and highlight those available locally')
+
+.example('$0 list', 'Summary local vs remote')
+.example('$0 list --release', 'List available releases')
+.example('$0 list --local', 'List compilers installed locally')
+.example('$0 list --all', 'List all compilers and highlight those available locally')
+
 
 .command(cmds.info, 'Show some info about solcjs')
 .command(cmds.version, 'Show version and exit')
 
 .command(cmds.list, 'List available compilers')
-// .option('local', {
-//   describe: 'Switch for the local compilers',
-//   type: 'boolean'
-// })
-// .option('release', {
-//   describe: 'Switch for the release compilers',
-//   type: 'boolean'
-// })
-// .option('nightly', {
-//   describe: 'Switch for the release compilers',
-//   type: 'boolean'
-// })
-// .option('all', {
-//   describe: 'Switch for the release compilers',
-//   type: 'boolean'
-// })
+.option('local', {
+  describe: 'List - all the local compilers',
+  type: 'boolean'
+})
+.option('release', {
+  describe: 'List - all the releases',
+  type: 'boolean'
+})
+.option('nightly', {
+  describe: 'List - the nightlies',
+  type: 'boolean'
+})
+.option('all', {
+  describe: 'List - all the builds',
+  type: 'boolean'
+})
 .option('force', {
-  describe: 'Force overwritting of local files',
+  describe: 'Force overwritting/deleting of local files',
   type: 'boolean',
   default: false
 })
 
 .command(cmds.get, 'Fetch one or more compilers')
-.alias('latest', 'latest')
+.option('latest', {
+  describe: 'Fetch the latest build',
+  type: 'boolean'
+})
+.alias('get', 'get')
 
-
+.command(cmds.clean, 'Delete a/some compilers')
+.alias('clean', 'clean')
 
 .command(cmds.build, 'Build a smart contract')
 .option('optimize', {
-  describe: 'Enable bytecode optimizer',
+  describe: 'Build - Enable bytecode optimizer',
   type: 'boolean'
 })
 .option('bin', {
   alias: 'bin',
   type: 'boolean',
   default: false,
-  describe: 'Generate the bytecode of the contract(s)'
+  describe: 'Build - Generate the bytecode of the contract(s)'
 })
 .option('abi', {
-  describe: 'Generate the ABI of the contract(s)',
+  describe: 'Build - Generate the ABI of the contract(s)',
   type: 'boolean'
 })
 .option('output-dir', {
   alias: 'o',
-  describe: 'Output directory for the contracts. Defaults to ./',
+  describe: 'Build - Output directory. Defaults to ./',
   type: 'string'
 })
 .option('compiler', {
   alias: 'comp',
-  describe: 'Select a specific solidity compiler. Compilers´ location is ~/.soljs/',
+  describe: 'Build - Select a specific solidity compiler',
   type: 'string'
 })
 
@@ -87,8 +99,6 @@ var yargs = require('yargs')
 .showHelpOnFail(true, 'Specify --help for available options')
 .help()
 .demand(1, 'You need to provide at least a command.');
-
-
 
 
 var argv = yargs.argv;
@@ -108,9 +118,7 @@ if (!(cmd in cmds))
 
 
 var compiler = argv.compiler;
-var compilers = require('./compilers')();
-
-
+var compilers = require('./lib/compilers')();
 
 
 if (cmd === 'info'){
@@ -125,7 +133,7 @@ if (cmd === 'info'){
 // solcjs list            => returns the summary of the number of releases online + local
 // solcjs list --local    => list the local compilers
 // solcjs list --all      => same as solcjs list --releases --nightly
-// solcjs list --release => releases only
+// solcjs list --release  => releases only
 // solcjs list --nightly  => nightly only
 
 if (cmd === 'list'){
@@ -136,8 +144,6 @@ if (cmd === 'list'){
     all: argv.all
   };
 
-  console.log(opt);
-
   var localCompilers;
 
   if (!opt.local &&
@@ -146,8 +152,6 @@ if (cmd === 'list'){
     !opt.nightly &&
     !opt.all
     ) {                             
-    console.log('Summary mode');
-
   compilers.getListLocal( function(err, local){
     compilers.getList( function(err2, remote){
       console.log('Summary of your local compilers:');
@@ -155,7 +159,7 @@ if (cmd === 'list'){
       console.log('Nightly  : ' + local.getNightlies().length);
       // console.log('Releases : ' + local.getReleases().length);
       
-      console.log('Summary of your remote compilers:');
+      console.log('Summary of the remote compilers:');
       console.log('total    : ' + remote.builds.length);
       console.log('Nightly  : ' + remote.getNightlies().length);
       console.log('Releases : ' + remote.getReleases().length);
@@ -165,8 +169,6 @@ if (cmd === 'list'){
     });
   });
 } else if(opt.local) {     
-  console.log('Local mode');
-
   compilers.getListLocal( function(err, res){
     if (err) console.err(err);
 
@@ -182,8 +184,6 @@ if (cmd === 'list'){
 
 
 } else {                        
-  console.log('Remote mode');
-  console.log('opt: '+ opt);
   compilers.getList( function(err, list){
     compilers.getListLocal(function(err, local){
       var releases = list.getReleases();
@@ -196,16 +196,17 @@ if (cmd === 'list'){
       }
 
       var weHaveIt = null;
-
+      console.log(chalk.blue('The versions you already have are ') + 
+        chalk.green.bold('shown in green ') +
+        chalk.blue('in the list below.'));
       if (opt.release){
         for ( i in releases){
          build = releases[i];
-         weHaveIt =compilers.pathExistsIn(build.path, local.builds);
+         weHaveIt = compilers.pathExistsIn(build.path, local.builds);
 
          if (weHaveIt)
           console.log(chalk.green.bold(build.version + ' \t ' + build.path));
         else
-
           console.log(chalk.gray(build.version + ' \t ' + build.path));
       }
     }
@@ -218,7 +219,6 @@ if (cmd === 'list'){
         if (weHaveIt)
           console.log(chalk.green.bold(build.version + ' \t ' + build.path));
         else
-
           console.log(chalk.gray(build.version + ' \t ' + build.path));
       }
     } 
@@ -229,19 +229,63 @@ if (cmd === 'list'){
 
 }
 
+if (cmd === 'clean'){
+  console.log('I let you do this one. You compilers are in:', compilers.repository);
+  helpers.exit();
+}
+
+// Usage:
+// solcjs get             => fetch latest release unless already there
+// solcjs get ... --force => fetch whatever is requested and overwrite if present
+// solcjs get <version1> <version2>,...   => fetch each of the given versions
+// solcjs get --releases  => releases only
+// solcjs get --nightly   => nightly only
+// solcjs get --commit    => commit only
+// solcjs get --all       => same as solcjs get --releases --nightly --commit
+// 
+// //    get --latest      => get the latest
+//    get <version>     => get a specific version
+//    get --all         => get all the compilers not already there
+if (cmd === 'get'){
+  var requestedVersion = argv._[1];
+  if (requestedVersion && requestedVersion.indexOf('.js')<=0)
+    requestedVersion += '.js';
+
+  compilers.getList(function (err, list) {
+    
+    // list = JSON.parse(list);
+
+    var wanted = null;
+    if (requestedVersion) {
+      console.log('Requested version: ' + requestedVersion);
+      wanted = requestedVersion;
+    } else {
+      var pkgVersion = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];      
+      console.log('Requested version: latest release ('+pkgVersion+')');
+      wanted =  list.getRelease(pkgVersion).path;
+      // console.log('Wanted:' + wanted, list, pkg.version);
+    }
+
+    compilers.downloadBinary(wanted, argv.force, function (file) {
+      if (!requestedVersion){
+        fs.copy(file, 'soljson.js'); // for backward compatibility
+        helpers.exit();
+      }
+    });
+  });
+}
 
 
 
+var solc;
 
-
-
-var solc = helpers.getSolidityCompiler(compilers.repository, compiler);
-console.log("Using compiler version:" + solc.version());
-
+if (cmd === 'version' || cmd === 'build') {
+  solc = helpers.getSolidityCompiler(compilers.repository, compiler);
+}
 
 
 if (cmd === 'version'){
-  console.log(solc.version());
+  console.log('Using compiler version: ' + solc.version());
   helpers.exit();
 }
 
@@ -295,51 +339,6 @@ if (cmd === 'build'){
       fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
     }
   }
-
 }
 
-
-// Usage:
-// solcjs get             => fetch latest release unless already there
-// solcjs get ... --force => fetch whatever is requested and overwrite if present
-// solcjs get <version1> <version2>,...   => fetch each of the given versions
-// solcjs get --releases  => releases only
-// solcjs get --nightly   => nightly only
-// solcjs get --commit    => commit only
-// solcjs get --all       => same as solcjs get --releases --nightly --commit
-// 
-// //    get --latest      => get the latest
-//    get <version>     => get a specific version
-//    get --all         => get all the compilers not already there
-if (cmd === 'get'){
-  if (argv.list) {
-    console.log('Getting the list of all versions ...');
-    compilers.getList(function (list) {
-      list = JSON.parse(list).builds;
-      for (var i = list.length - 1; i >= 0; i--) {
-        console.log(list[i].version, list[i].path);
-      }
-      helpers.exit();
-    });
-  }
-
-  compilers.getList(function (list) {
-    list = JSON.parse(list);
-
-    var wanted = null;
-    if (requestedVersion) {
-      console.log('Requested version: ' + requestedVersion);
-      wanted = requestedVersion;
-    } else {
-      console.log('Requested version: latest release');
-      wanted = list.releases[pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1]];
-    }
-
-    downloadBinary(wanted, function (file) {
-      if (!requestedVersion){
-        fs.copy(file, 'soljson.js'); // for backward compatibility
-      }
-    });
-  });
-}
 
