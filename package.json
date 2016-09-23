@@ -4,12 +4,10 @@
   "description": "Solidity compiler",
   "main": "index.js",
   "bin": {
-    "solcjs": "solcjs",
-    "solcjs-get": "solcjs-get"
+    "solcjs": "solcjs"
   },
   "scripts": {
     "lint": "semistandard",
-    "prepublish": "./solcjs-get",
     "test": "tape ./test/index.js",
     "clean": "rm -rf *.abi *.bin output"
   },
