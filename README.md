@@ -23,6 +23,19 @@ To see all the supported features, execute:
 solcjs --help
 ```
 
+Typical scenario:
+```bash
+solcjs-get
+solcjs -o output --bin --abi contract.sol
+```
+
+or for a specific compiler:
+```bash
+solcjs-get --list
+solcjs-get soljson-v0.3.5+commit.5f97274.js
+solcjs -o output --comp soljson-v0.3.5+commit.5f97274.js --bin --abi contract.sol
+```
+
 ### Usage in Projects
 
 It can also be included and used in other projects:

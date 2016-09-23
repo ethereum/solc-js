@@ -50,6 +50,7 @@ function setupMethods (soljson) {
     } else {
       result = compileJSON(input, optimise);
     }
+
     return JSON.parse(result);
   };
 
@@ -85,8 +86,8 @@ function setupMethods (soljson) {
     supportsMulti: compileJSONMulti !== null,
     supportsImportCallback: compileJSONCallback !== null,
     // Use the given version if available.
-    useVersion: function (versionString) {
-      return setupMethods(require('./bin/soljson-' + versionString + '.js'));
+    useVersion: function (compilerRepo, versionString) {
+      return setupMethods(require(compilerRepo + '/soljson-' + versionString + '.js'));
     },
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
@@ -106,6 +107,7 @@ function setupMethods (soljson) {
         cb(error);
       });
     },
+
     // Use this if you want to add wrapper functions around the pure module.
     setupMethods: setupMethods
   };
