@@ -100,13 +100,6 @@ var yargs = require('yargs')
 var argv = yargs.argv;
 var cmd = argv._[0].toLowerCase();
 
-// debug
-if (0) {
-  console.log(argv);
-  console.log('cmd ' + cmd);
-}
-
-// Check the command
 if (!(cmd in cmds)) {
   helpers.abort('cmd unknown');
 }
@@ -241,8 +234,6 @@ if (cmd === 'get') {
   }
 
   compilers.getList(function (err, list) {
-    // list = JSON.parse(list);
-
     var wanted = null;
     if (requestedVersion) {
       console.log('Requested version: ' + requestedVersion);
@@ -251,7 +242,6 @@ if (cmd === 'get') {
       var pkgVersion = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
       console.log('Requested version: latest release (' + pkgVersion + ')');
       wanted = list.getRelease(pkgVersion).path;
-      // console.log('Wanted:' + wanted, list, pkg.version);
     }
 
     compilers.downloadBinary(wanted, argv.force, function (file) {
