@@ -1,20 +1,7 @@
 const tape = require('tape');
 const spawn = require('tape-spawn');
-const pkg = require('../package.json');
 
-tape('CLI', function (t) {
-  t.test('--version', function (st) {
-    var spt = spawn(st, './solcjs --version');
-    spt.stdout.match(RegExp(pkg.version + '(-[^a-zA-A0-9.+]+)?(\\+[^a-zA-Z0-9.-]+)?'));
-    spt.end();
-  });
-
-  t.test('no parameters', function (st) {
-    var spt = spawn(st, './solcjs');
-    spt.stderr.match(/^You must provide at least one file to compile/);
-    spt.end();
-  });
-
+tape('CLI BUILD', function (t) {
   t.test('no mode specified', function (st) {
     var spt = spawn(st, './solcjs test/DAO/Token.sol');
     spt.stderr.match(/^Invalid option selected/);

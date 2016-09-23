@@ -1,5 +1,5 @@
 require('./package.js');
 
-require('./cli/cli.js');
+require('./cli/_cli.js');
 
 require('./determinism.js');
