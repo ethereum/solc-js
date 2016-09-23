@@ -81,8 +81,10 @@ var yargs = require('yargs')
 })
 .option('output-dir', {
   alias: 'o',
-  describe: 'Build - Output directory. Defaults to ./',
-  type: 'string'
+  describe: 'Build - Output directory. Defaults to ./out',
+  type: 'string',
+  default: 'out'
+
 })
 .option('compiler', {
   alias: 'comp',
@@ -133,8 +135,6 @@ if (cmd === 'list') {
     nightly: argv.nightly,
     all: argv.all
   };
-
-  var localCompilers;
 
   if (!opt.local &&
     !opt.release &&
@@ -298,35 +298,37 @@ if (cmd === 'build') {
   // TODO: to bring back once https://github.com/ethereum/solc-js/issues/22 is clarified
   console.log('Compiling with version: ' + solc.version());
 
-  var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
+  if (!sources) {
+    helpers.abort('ERROR getting the contract source', files);
+  }
 
+  var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
   if (output.errors) {
     // TODO: Remove once the following is clarified:
     // https://github.com/ethereum/solc-js/issues/53
     // only leave the console.error
+    helpers.printCompilationResult(output.errors);
 
-    if (output.errors[0].indexOf('Warning') > 0) {
-      console.log('Compiled with Warnings: ', output.errors);
-    } else {
-      console.error('Compiled with Errors: ', output.errors);
-    }
   } else if (output.warnings) {
-    console.warn('Compiled with Warnings: ', output.warnings);
+    helpers.printCompilationResult( output.warnings);
   } else {
-    console.log('Compiled with sucess.');
+    console.log(chalk.green('Compiled with success.'));
   }
 
-  console.log(destination, output);
   fs.ensureDirSync(destination);
 
   for (var contractName in output.contracts) {
-    console.log('Writting output for ' + contractName);
+    var target = '';
+
     if (argv.bin) {
-      fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
+      target = path.join(destination, contractName + '.bin');
+      fs.writeFileSync(target, output.contracts[contractName].bytecode);
     }
 
     if (argv.abi) {
-      fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
+      target = path.join(destination, contractName + '.abi');
+      fs.writeFileSync(target, output.contracts[contractName].interface);
     }
+    console.log('   ' + target);
   }
 }
