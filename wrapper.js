@@ -5,6 +5,7 @@ var https = require('https');
 var MemoryStream = require('memorystream');
 
 function setupMethods (soljson) {
+  if (soljson) {
   var compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
   var compileJSONMulti = null;
   if ('_compileJSONMulti' in soljson) {
@@ -162,6 +163,7 @@ function setupMethods (soljson) {
 
   if ('_license' in soljson) {
     license = soljson.cwrap('license', 'string', []);
+  }
   }
 
   return {
