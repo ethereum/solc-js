@@ -1,3 +1,13 @@
-var wrapper = require('./wrapper.js');
+var fs = require('fs');
 
-module.exports = wrapper(require('./soljson.js'));
+try {
+    stats = fs.lstatSync('./soljson.js');
+	var wrapper = require('./wrapper.js');
+	module.exports = wrapper(require('./soljson.js'));
+}
+catch (e) {
+    console.error('soljson.js not available.');
+}
+
+
+

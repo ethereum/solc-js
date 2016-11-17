@@ -40,7 +40,7 @@ tape('CLI BUILD', function (t) {
     spt.end();
   });
 
-  t.test('--bin --abi', function (st) {
+  t.test('--bin --abi -o output', function (st) {
     var spt = spawn(st, './solcjs build --bin --abi test/DAO/Token.sol');
     spt.stderr.empty();
     spt.succeeds();
