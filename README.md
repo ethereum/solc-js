@@ -23,8 +23,6 @@ To see all the supported features, execute:
 solcjs --help
 ```
 
-<<<<<<< HEAD
-=======
 Typical scenario:
 ```bash
 solcjs get --latest
@@ -38,7 +36,6 @@ solcjs get soljson-v0.3.5+commit.5f97274
 solcjs -o output --comp soljson-v0.3.5+commit.5f97274 --bin --abi contract.sol
 ```
 
->>>>>>> 697645a... Major refactoring
 ### Usage in Projects
 
 It can also be included and used in other projects:

@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
+var fs = require('fs-extra');
 var path = require('path');
-<<<<<<< HEAD
 var solc = require('./index.js');
-=======
 var pkg = require('./package.json');
 var helpers = require('./lib/helpers')();
 var chalk = require('chalk');
 
->>>>>>> 697645a... Major refactoring
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
@@ -17,47 +14,6 @@ process.removeAllListeners('uncaughtException');
 var cmds = {get: 'get', build: 'build', list: 'list', version: 'version', info: 'info', clean: 'clean'};
 
 var yargs = require('yargs')
-<<<<<<< HEAD
-  .usage('Usage: $0 [options] [input_file...]')
-  .option('version', {
-    describe: 'Show version and exit.',
-    type: 'boolean'
-  })
-  .option('optimize', {
-    describe: 'Enable bytecode optimizer.',
-    type: 'boolean'
-  })
-  .option('bin', {
-    describe: 'Binary of the contracts in hex.',
-    type: 'boolean'
-  })
-  .option('abi', {
-    describe: 'ABI of the contracts.',
-    type: 'boolean'
-  })
-  .option('output-dir', {
-    alias: 'o',
-    describe: 'Output directory for the contracts.',
-    type: 'string'
-  })
-  .global([ 'version', 'optimize' ])
-  .version(function() { return solc.version(); })
-  .showHelpOnFail(false, 'Specify --help for available options')
-  .help()
-  .demand(1, 'Must provide a file');
-
-var argv = yargs.argv;
-var files = argv._;
-var destination = argv['output-dir'] || '.'
-
-function abort (msg) {
-  console.log(msg || 'Error occured');
-  process.exit(1);
-}
-
-if (!(argv.bin || argv.abi)) {
-  abort('Invalid option selected');
-=======
 .usage('Usage: $0 <cmd> [options] [input_file...]')
 
 .example('$0 info', 'Some information about your env')
@@ -304,7 +260,6 @@ var solc;
 
 if (cmd === 'version' || cmd === 'build') {
   solc = helpers.getSolidityCompiler(compilers.repository, compiler);
->>>>>>> 697645a... Major refactoring
 }
 
 if (cmd === 'version') {
@@ -327,13 +282,6 @@ if (cmd === 'build') {
     helpers.abort('You must provide at least one file to compile.');
   }
 
-<<<<<<< HEAD
-var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
-
-for (var contractName in output.contracts) {
-  if (argv.bin) {
-    fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
-=======
   if (!(argv.bin || argv.abi)) {
     helpers.abort('Invalid option selected');
   }
@@ -358,7 +306,6 @@ for (var contractName in output.contracts) {
     helpers.printCompilationResult( output.warnings);
   } else {
     console.log(chalk.green('Compiled with success.'));
->>>>>>> 697645a... Major refactoring
   }
 
   fs.ensureDirSync(destination);
