@@ -57,8 +57,10 @@ function setupMethods (soljson) {
       // https://github.com/ethereum/solc-js/issues/53
       // only leave the console.error
 
-      if (res.errors[0].indexOf('Warning') > 0) {
-        console.log('Compiled with Warnings: ', res.errors);
+      if (res.errors.filter(function (value) {
+        value.indexOf('Warning') > 0;
+      })) {
+        console.error('Compiled with Warnings: ', res.errors);
       } else {
         console.error('Compiled with Errors: ', res.errors);
       }

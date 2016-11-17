@@ -45,8 +45,9 @@ function abort (msg) {
   process.exit(1);
 }
 
-if (!files.length)
+if (!files.length) {
   abort('You must provide at least one file to compile.');
+}
 
 if (!(argv.bin || argv.abi)) {
   abort('Invalid option selected');
@@ -62,7 +63,6 @@ for (var i = 0; i < files.length; i++) {
   }
 }
 
-console.log("Compiling with version: " + solc.version());
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
 
 for (var contractName in output.contracts) {
