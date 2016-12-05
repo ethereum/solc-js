@@ -21,6 +21,7 @@
     "compiler"
   ],
   "files": [
+    "abi.js",
     "index.js",
     "solcjs",
     "soljson.js",
