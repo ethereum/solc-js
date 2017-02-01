@@ -14,7 +14,7 @@ tape('Deterministic Compilation', function (t) {
     }
     for (i = 0; i < 10; i++) {
       var output = solc.compile({sources: input}, 1);
-      var bytecode = output.contracts.DAO.bytecode;
+      var bytecode = output.contracts['DAO.sol:DAO'].bytecode;
       st.ok(bytecode.length > 0);
       if (prevBytecode !== null) {
         st.equal(prevBytecode, bytecode);
