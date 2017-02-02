@@ -4,8 +4,8 @@ const solc = require('../index.js');
 tape('Compilation', function (t) {
   t.test('single files can be compiled', function (st) {
     var output = solc.compile('contract x { function g() {} }');
-    st.ok('x' in output.contracts);
-    st.ok(output.contracts['x'].bytecode.length > 0);
+    st.ok(':x' in output.contracts);
+    st.ok(output.contracts[':x'].bytecode.length > 0);
     st.end();
   });
   t.test('multiple files can be compiled', function (st) {
@@ -14,10 +14,10 @@ tape('Compilation', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
     var output = solc.compile({sources: input});
-    st.ok('x' in output.contracts);
-    st.ok('L' in output.contracts);
-    st.ok(output.contracts['x'].bytecode.length > 0);
-    st.ok(output.contracts['L'].bytecode.length > 0);
+    st.ok('cont.sol:x' in output.contracts);
+    st.ok('lib.sol:L' in output.contracts);
+    st.ok(output.contracts['cont.sol:x'].bytecode.length > 0);
+    st.ok(output.contracts['lib.sol:L'].bytecode.length > 0);
     st.end();
   });
   t.test('lazy-loading callback works', function (st) {
@@ -32,10 +32,10 @@ tape('Compilation', function (t) {
       }
     }
     var output = solc.compile({sources: input}, 0, findImports);
-    st.ok('x' in output.contracts);
-    st.ok('L' in output.contracts);
-    st.ok(output.contracts['x'].bytecode.length > 0);
-    st.ok(output.contracts['L'].bytecode.length > 0);
+    st.ok('cont.sol:x' in output.contracts);
+    st.ok('lib.sol:L' in output.contracts);
+    st.ok(output.contracts['cont.sol:x'].bytecode.length > 0);
+    st.ok(output.contracts['lib.sol:L'].bytecode.length > 0);
     st.end();
   });
 });
@@ -46,8 +46,8 @@ tape('Loading Legacy Versions', function (t) {
     solc.loadRemoteVersion('latest', function (err, solcSnapshot) {
       st.notOk(err);
       var output = solcSnapshot.compile('contract x { function g() {} }');
-      st.ok('x' in output.contracts);
-      st.ok(output.contracts['x'].bytecode.length > 0);
+      st.ok(':x' in output.contracts);
+      st.ok(output.contracts[':x'].bytecode.length > 0);
     });
   });
 });
@@ -59,7 +59,7 @@ tape('Linking', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
     var output = solc.compile({sources: input});
-    var bytecode = solc.linkBytecode(output.contracts['x'].bytecode, { 'L': '0x123456' });
+    var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L': '0x123456' });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
   });
@@ -70,7 +70,7 @@ tape('Linking', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
     var output = solc.compile({sources: input});
-    var bytecode = solc.linkBytecode(output.contracts['x'].bytecode, { });
+    var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { });
     st.ok(bytecode.indexOf('_') >= 0);
     st.end();
   });
@@ -82,7 +82,7 @@ tape('Linking', function (t) {
     };
     var output = solc.compile({sources: input});
     st.throws(function () {
-      solc.linkBytecode(output.contracts['x'].bytecode, { 'L': '' });
+      solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L': '' });
     });
     st.end();
   });
@@ -93,7 +93,7 @@ tape('Linking', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L1234567890123456789012345678901234567890.f(); } }'
     };
     var output = solc.compile({sources: input});
-    var bytecode = solc.linkBytecode(output.contracts['x'].bytecode, { 'L1234567890123456789012345678901234567890': '0x123456' });
+    var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L1234567890123456789012345678901234567890': '0x123456' });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
   });
