@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// hold on to any exception handlers that existed prior to this script running, we'll be adding them back at the end
+var originalUncaughtExceptionListeners = process.listeners("uncaughtException");
+
 var fs = require('fs-extra');
 var path = require('path');
 var solc = require('./index.js');
@@ -70,3 +73,5 @@ for (var contractName in output.contracts) {
     fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
   }
 }
+
+originalUncaughtExceptionListeners.forEach(function (listener) { process.addListener('uncaughtException', listener); });
