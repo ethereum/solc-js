@@ -99,12 +99,17 @@ function setupMethods (soljson) {
         } else {
           response.pipe(mem);
           response.on('end', function () {
-            cb(null, setupMethods(requireFromString(mem.toString())));
+            var solcContent = mem.toString();
+            cb(null, setupMethods(requireFromString(solcContent)), solcContent);
           });
         }
       }).on('error', function (error) {
         cb(error);
       });
+    },
+    // Loads the compiler from a given file path. 
+    loadVersionFromFilePath: function (filePath) {
+      return setupMethods(require(filePath));
     },
     // Use this if you want to add wrapper functions around the pure module.
     setupMethods: setupMethods
