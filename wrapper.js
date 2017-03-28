@@ -81,6 +81,9 @@ function setupMethods (soljson) {
   return {
     version: version,
     compile: compile,
+    compileJSON: compileJSON,
+    compileJSONMulti: compileJSONMulti,
+    compileJSONCallback: compileJSONCallback,
     linkBytecode: linkBytecode,
     supportsMulti: compileJSONMulti !== null,
     supportsImportCallback: compileJSONCallback !== null,
