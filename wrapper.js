@@ -9,7 +9,8 @@ function setupMethods (soljson) {
     compileJSONMulti = soljson.cwrap('compileJSONMulti', 'string', ['string', 'number']);
   }
   var compileJSONCallback = null;
-  if ('_compileJSONCallback' in soljson) {
+  var compileStandard = null;
+  if (('_compileJSONCallback' in soljson) || ('_compileStandard' in soljson)) {
     var copyString = function (str, ptr) {
       var buffer = soljson._malloc(str.length + 1);
       soljson.writeStringToMemory(str, buffer);
@@ -26,12 +27,14 @@ function setupMethods (soljson) {
         }
       };
     };
-    var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
-    compileJSONCallback = function (input, optimize, readCallback) {
+
+    // This calls compile() with args || cb
+    var runWithReadCallback = function (readCallback, compile, args) {
       var cb = soljson.Runtime.addFunction(wrapCallback(readCallback));
       var output;
       try {
-        output = compileInternal(input, optimize, cb);
+        args.push(cb);
+        output = compile.apply(undefined, args);
       } catch (e) {
         soljson.Runtime.removeFunction(cb);
         throw e;
@@ -39,6 +42,17 @@ function setupMethods (soljson) {
       soljson.Runtime.removeFunction(cb);
       return output;
     };
+
+    var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
+    compileJSONCallback = function (input, optimize, readCallback) {
+      return runWithReadCallback(readCallback, compileInternal, [ input, optimize ]);
+    };
+    if ('_compileStandard' in soljson) {
+      var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
+      compileStandard = function (input, readCallback) {
+        return runWithReadCallback(readCallback, compileStandardInternal, [ input ]);
+      };
+    }
   }
 
   var compile = function (input, optimise, readCallback) {
@@ -81,9 +95,11 @@ function setupMethods (soljson) {
   return {
     version: version,
     compile: compile,
+    compileStandard: compileStandard,
     linkBytecode: linkBytecode,
     supportsMulti: compileJSONMulti !== null,
     supportsImportCallback: compileJSONCallback !== null,
+    supportsStandard: compileStandard !== null,
     // Use the given version if available.
     useVersion: function (versionString) {
       return setupMethods(require('./bin/soljson-' + versionString + '.js'));
