@@ -38,6 +38,38 @@ tape('Compilation', function (t) {
     st.ok(output.contracts['lib.sol:L'].bytecode.length > 0);
     st.end();
   });
+  t.test('compiling standard JSON', function (st) {
+    if (!solc.supportsStandard) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
+
+    var input = {
+      'language': 'Solidity',
+      'sources': {
+        'lib.sol': {
+          'content': 'library L { function f() returns (uint) { return 7; } }'
+        },
+        'cont.sol': {
+          'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+        }
+      }
+    };
+
+    function bytecodeExists (output, fileName, contractName) {
+      try {
+        return output.contracts[fileName][contractName]['evm']['bytecode']['object'].length > 0;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    var output = JSON.parse(solc.compileStandard(JSON.stringify(input)));
+    st.ok(bytecodeExists(output, 'cont.sol', 'x'));
+    st.ok(bytecodeExists(output, 'lib.sol', 'L'));
+    st.end();
+  });
 });
 tape('Loading Legacy Versions', function (t) {
   t.test('loading remote version - development snapshot', function (st) {
