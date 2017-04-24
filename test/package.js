@@ -70,6 +70,43 @@ tape('Compilation', function (t) {
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
     st.end();
   });
+  t.test('compiling standard JSON (with callback)', function (st) {
+    if (!solc.supportsStandard) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
+
+    var input = {
+      'language': 'Solidity',
+      'sources': {
+        'cont.sol': {
+          'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+        }
+      }
+    };
+
+    function findImports (path) {
+      if (path === 'lib.sol') {
+        return { contents: 'library L { function f() returns (uint) { return 7; } }' };
+      } else {
+        return { error: 'File not found' };
+      }
+    }
+
+    function bytecodeExists (output, fileName, contractName) {
+      try {
+        return output.contracts[fileName][contractName]['evm']['bytecode']['object'].length > 0;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    var output = JSON.parse(solc.compileStandard(JSON.stringify(input), findImports));
+    st.ok(bytecodeExists(output, 'cont.sol', 'x'));
+    st.ok(bytecodeExists(output, 'lib.sol', 'L'));
+    st.end();
+  });
 });
 tape('Loading Legacy Versions', function (t) {
   t.test('loading remote version - development snapshot', function (st) {
