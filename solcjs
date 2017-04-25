@@ -28,6 +28,10 @@ var yargs = require('yargs')
     describe: 'ABI of the contracts.',
     type: 'boolean'
   })
+  .option('standard-json', {
+    describe: 'Turn on Standard JSON Input / Output mode.',
+    type: 'boolean'
+  })
   .option('output-dir', {
     alias: 'o',
     describe: 'Output directory for the contracts.',
@@ -37,7 +41,6 @@ var yargs = require('yargs')
   .version(function() { return solc.version(); })
   .showHelpOnFail(false, 'Specify --help for available options')
   .help()
-  .demand(1, 'Must provide a file');
 
 var argv = yargs.argv;
 var files = argv._;
@@ -45,6 +48,26 @@ var destination = argv['output-dir'] || '.'
 
 function abort (msg) {
   console.log(msg || 'Error occured');
+  process.exit(1);
+}
+
+if (argv['standard-json']) {
+  if (!solc.supportsStandard) {
+    abort('Compiler does not support Standard JSON I/O');
+  }
+
+  var size = fs.fstatSync(process.stdin.fd).size;
+
+  if (size <= 0) {
+    abort('Empty input was read');
+  }
+
+  var input = fs.readSync(process.stdin.fd, size)[0];
+
+  console.log(solc.compileStandard(input));
+  process.exit(0);
+} else if (files.length === 0) {
+  console.error('Must provide a file');
   process.exit(1);
 }
 
