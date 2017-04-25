@@ -58,6 +58,11 @@ function translateJsonCompiler (output) {
     ret['contracts'][fileName][contractName] = contractOutput;
   }
 
+  if (output['formal']) {
+    ret['why3'] = output['formal']['why3'];
+    // FIXME: map errors to the above list
+  }
+
   return ret;
 }
 
