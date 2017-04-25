@@ -1,17 +1,21 @@
+function translateErrors (ret, errors) {
+  for (var error in errors) {
+    // FIXME: parse warnings here
+    ret.push({
+      type: 'Error',
+      component: 'general',
+      severity: 'error',
+      message: errors[error],
+      formattedMessage: errors[error]
+    });
+  }
+}
+
 function translateJsonCompiler (output) {
   var ret = {};
 
   ret['errors'] = [];
-  for (var error in output['errors']) {
-    // FIXME: parse warnings here
-    ret['errors'].push({
-      type: 'Error',
-      component: 'general',
-      severity: 'error',
-      message: output['errors'][error],
-      formattedMessage: output['errors'][error]
-    });
-  }
+  translateErrors(ret['errors'], output['errors']);
 
   ret['contracts'] = {};
   for (var contract in output['contracts']) {
@@ -60,7 +64,7 @@ function translateJsonCompiler (output) {
 
   if (output['formal']) {
     ret['why3'] = output['formal']['why3'];
-    // FIXME: map errors to the above list
+    translateErrors(ret['errors'], output['formal']['errors']);
   }
 
   return ret;
