@@ -1,3 +1,4 @@
+var translate = require('./translate.js');
 var requireFromString = require('require-from-string');
 var https = require('https');
 var MemoryStream = require('memorystream');
@@ -121,8 +122,10 @@ function setupMethods (soljson) {
     }
 
     function translateOutput (output) {
-      output = JSON.parse(output);
-      // FIXME: translate jsonCompiler output to Standard I/O
+      output = translate.translateJsonCompiler(JSON.parse(output));
+      if (output == null) {
+        return formatFatalError('Failed to process output');
+      }
       return output;
     }
 

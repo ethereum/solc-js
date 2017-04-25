@@ -25,6 +25,7 @@
     "index.js",
     "solcjs",
     "soljson.js",
+    "translate.js",
     "wrapper.js"
   ],
   "author": "chriseth",
