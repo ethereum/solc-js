@@ -65,6 +65,10 @@ for (var i = 0; i < files.length; i++) {
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
 if (!output) {
   abort('No output from compiler');
+} else if (output['errors']) {
+  for (var error in output['errors']) {
+    console.log(output['errors'][error]);
+  }
 }
 
 fs.ensureDirSync (destination);
