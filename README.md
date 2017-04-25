@@ -23,6 +23,10 @@ To see all the supported features, execute:
 solcjs --help
 ```
 
+Note: this commandline interface is not compatible with `solc` provided by the Solidity compiler package and thus cannot be
+used in combination with an Ethereum client via the `eth.compile.solidity()` RPC method. Please refer to the
+[Solidity compiler documentation](https://solidity.readthedocs.io/) for instructions to install `solc`.
+
 ### Usage in Projects
 
 It can also be included and used in other projects:
