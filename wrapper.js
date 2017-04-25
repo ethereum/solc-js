@@ -95,6 +95,10 @@ function setupMethods (soljson) {
       };
     }
 
+    if (input['language'] !== 'Solidity') {
+      return formatFatalError('Only Solidity sources are supported');
+    }
+
     if (input['sources'] == null) {
       return formatFatalError('No input specified');
     }
