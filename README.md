@@ -75,6 +75,8 @@ for (var contractName in output.contracts)
 	console.log(contractName + ': ' + output.contracts[contractName].bytecode);
 ```
 
+The `compile()` method always returns an object, which can contain `errors`, `sources` and `contracts` fields. `errors` is a list of error mesages.
+
 **Note:**
 If you are using Electron, `nodeIntegration` is on for `BrowserWindow` by default. If it is on, Electron will provide a `require` method which will not behave as expected and this may cause calls, such as `require('solc')`, to fail.
 
