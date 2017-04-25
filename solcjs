@@ -63,6 +63,10 @@ for (var i = 0; i < files.length; i++) {
 }
 
 var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
+if (!output) {
+  abort('No output from compiler');
+}
+
 fs.ensureDirSync (destination);
 for (var contractName in output.contracts) {
   if (argv.bin) {
