@@ -99,7 +99,7 @@ function setupMethods (soljson) {
         } else {
           response.pipe(mem);
           response.on('end', function () {
-            cb(null, setupMethods(requireFromString(mem.toString())));
+            cb(null, setupMethods(requireFromString(mem.toString(), 'soljson-' + versionString + '.js')));
           });
         }
       }).on('error', function (error) {
