@@ -107,6 +107,32 @@ tape('Compilation', function (t) {
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
     st.end();
   });
+  t.test('compiling standard JSON (using wrapper)', function (st) {
+    var input = {
+      'language': 'Solidity',
+      'sources': {
+        'lib.sol': {
+          'content': 'library L { function f() returns (uint) { return 7; } }'
+        },
+        'cont.sol': {
+          'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+        }
+      }
+    };
+
+    function bytecodeExists (output, fileName, contractName) {
+      try {
+        return output.contracts[fileName][contractName]['evm']['bytecode']['object'].length > 0;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    var output = solc.compileStandardWrapper(input);
+    st.ok(bytecodeExists(output, 'cont.sol', 'x'));
+    st.ok(bytecodeExists(output, 'lib.sol', 'L'));
+    st.end();
+  });
 });
 tape('Loading Legacy Versions', function (t) {
   t.test('loading remote version - development snapshot', function (st) {
