@@ -30,6 +30,13 @@ function setupMethods (soljson) {
 
     // This calls compile() with args || cb
     var runWithReadCallback = function (readCallback, compile, args) {
+      if (readCallback === undefined) {
+        readCallback = function (path) {
+          return {
+            error: 'File import callback not supported'
+          };
+        };
+      }
       var cb = soljson.Runtime.addFunction(wrapCallback(readCallback));
       var output;
       try {
