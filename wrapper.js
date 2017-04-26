@@ -78,11 +78,11 @@ function setupMethods (soljson) {
   // Expects a Standard JSON I/O but supports old compilers
   var compileStandardWrapper = function (input, readCallback) {
     if (compileStandard !== null) {
-      return JSON.parse(compileStandard(JSON.stringify(input), readCallback));
+      return compileStandard(input, readCallback);
     }
 
     function formatFatalError (message) {
-      return {
+      return JSON.stringify({
         errors: [
           {
             'type': 'SOLCError',
@@ -92,8 +92,10 @@ function setupMethods (soljson) {
             'formattedMessage': 'Error' + message
           }
         ]
-      };
+      });
     }
+
+    input = JSON.parse(input);
 
     if (input['language'] !== 'Solidity') {
       return formatFatalError('Only Solidity sources are supported');
@@ -130,7 +132,7 @@ function setupMethods (soljson) {
       if (output == null) {
         return formatFatalError('Failed to process output');
       }
-      return output;
+      return JSON.stringify(output);
     }
 
     var sources = translateSources(input);

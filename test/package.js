@@ -128,7 +128,7 @@ tape('Compilation', function (t) {
       }
     }
 
-    var output = solc.compileStandardWrapper(input);
+    var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify(input)));
     st.ok(bytecodeExists(output, 'cont.sol', 'x'));
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
     st.end();
