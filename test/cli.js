@@ -24,7 +24,6 @@ tape('CLI', function (t) {
   t.test('--bin', function (st) {
     var spt = spawn(st, './solcjs --bin test/DAO/Token.sol');
     spt.stderr.empty();
-    spt.stdout.empty();
     spt.succeeds();
     spt.end();
   });
@@ -38,7 +37,6 @@ tape('CLI', function (t) {
   t.test('--abi', function (st) {
     var spt = spawn(st, './solcjs --abi test/DAO/Token.sol');
     spt.stderr.empty();
-    spt.stdout.empty();
     spt.succeeds();
     spt.end();
   });
@@ -46,7 +44,6 @@ tape('CLI', function (t) {
   t.test('--bin --abi', function (st) {
     var spt = spawn(st, './solcjs --bin --abi test/DAO/Token.sol');
     spt.stderr.empty();
-    spt.stdout.empty();
     spt.succeeds();
     spt.end();
   });
