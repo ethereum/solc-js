@@ -11,7 +11,7 @@ function translateErrors (ret, errors) {
   }
 }
 
-function translateJsonCompiler (output) {
+function translateJsonCompilerOutput (output) {
   var ret = {};
 
   ret['errors'] = [];
@@ -71,5 +71,5 @@ function translateJsonCompiler (output) {
 }
 
 module.exports = {
-  translateJsonCompiler: translateJsonCompiler
+  translateJsonCompilerOutput: translateJsonCompilerOutput
 };
