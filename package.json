@@ -8,7 +8,7 @@
   },
   "scripts": {
     "lint": "semistandard",
-    "prepublish": "./downloadCurrentVersion.js",
+    "prepublish": "./downloadCurrentVersion.js && ./verifyVersion.js",
     "test": "tape ./test/index.js"
   },
   "repository": {
