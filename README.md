@@ -23,6 +23,10 @@ To see all the supported features, execute:
 solcjs --help
 ```
 
+Note: this commandline interface is not compatible with `solc` provided by the Solidity compiler package and thus cannot be
+used in combination with an Ethereum client via the `eth.compile.solidity()` RPC method. Please refer to the
+[Solidity compiler documentation](https://solidity.readthedocs.io/) for instructions to install `solc`.
+
 ### Usage in Projects
 
 It can also be included and used in other projects:
@@ -70,6 +74,8 @@ var output = solc.compile({sources: input}, 1, findImports);
 for (var contractName in output.contracts)
 	console.log(contractName + ': ' + output.contracts[contractName].bytecode);
 ```
+
+The `compile()` method always returns an object, which can contain `errors`, `sources` and `contracts` fields. `errors` is a list of error mesages.
 
 **Note:**
 If you are using Electron, `nodeIntegration` is on for `BrowserWindow` by default. If it is on, Electron will provide a `require` method which will not behave as expected and this may cause calls, such as `require('solc')`, to fail.
