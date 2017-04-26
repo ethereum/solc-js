@@ -17,13 +17,12 @@ tape('CLI', function (t) {
 
   t.test('no mode specified', function (st) {
     var spt = spawn(st, './solcjs test/DAO/Token.sol');
-    spt.stdout.match(/^Invalid option selected/);
+    spt.stderr.match(/^Invalid option selected/);
     spt.end();
   });
 
-  t.test('--bin', function (st) {
+  t.test('--bin -o output', function (st) {
     var spt = spawn(st, './solcjs --bin test/DAO/Token.sol');
-    spt.stderr.empty();
     spt.stdout.empty();
     spt.succeeds();
     spt.end();
@@ -31,13 +30,12 @@ tape('CLI', function (t) {
 
   t.test('invalid file specified', function (st) {
     var spt = spawn(st, './solcjs --bin test/fileNotFound.sol');
-    spt.stdout.match(/^Error reading /);
+    spt.stderr.match(/^Error reading /);
     spt.end();
   });
 
   t.test('--abi', function (st) {
     var spt = spawn(st, './solcjs --abi test/DAO/Token.sol');
-    spt.stderr.empty();
     spt.stdout.empty();
     spt.succeeds();
     spt.end();
@@ -45,7 +43,6 @@ tape('CLI', function (t) {
 
   t.test('--bin --abi', function (st) {
     var spt = spawn(st, './solcjs --bin --abi test/DAO/Token.sol');
-    spt.stderr.empty();
     spt.stdout.empty();
     spt.succeeds();
     spt.end();
