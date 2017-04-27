@@ -11,6 +11,15 @@ function translateErrors (ret, errors) {
   }
 }
 
+function translateGasEstimates (gasEstimates) {
+  var gasEstimatesTranslated = {}
+  for (var func in gasEstimates) {
+    var estimate = gasEstimates[func]
+    gasEstimatesTranslated[func] = estimate !== null ? estimate.toString() : 'infinite'
+  }
+  return gasEstimatesTranslated
+}
+
 function translateJsonCompilerOutput (output) {
   var ret = {};
 
@@ -33,6 +42,9 @@ function translateJsonCompilerOutput (output) {
     var contractName = tmp[3];
 
     var contractInput = output['contracts'][contract];
+
+    var gasEstimates = contractInput['gasEstimates'];
+
     var contractOutput = {
       'abi': contractInput['interface'],
       'metadata': contractInput['metadata'],
@@ -48,6 +60,14 @@ function translateJsonCompilerOutput (output) {
           'sourceMap': contractInput['srcmapRuntime']
         },
         'methodIdentifiers': contractInput['functionHashes'],
+        'gasEstimates': {
+          'creation': {
+            'codeDepositCost': gasEstimates['creation'][1] !== null ? gasEstimates['creation'][1].toString() : 'infinite',
+            'executionCost': gasEstimates['creation'][0] !== null ? gasEstimates['creation'][0].toString() : 'infinite'
+          },
+          'internal': translateGasEstimates(gasEstimates['internal']),
+          'external': translateGasEstimates(gasEstimates['external'])
+        }
       }
     };
 
