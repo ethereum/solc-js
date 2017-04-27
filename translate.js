@@ -47,10 +47,7 @@ function translateJsonCompilerOutput (output) {
           'object': contractInput['runtimeBytecode'],
           'sourceMap': contractInput['srcmapRuntime']
         },
-        // FIXME
-        'methodIdentifiers': contractInput['methodIdentifiers'],
-        // FIXME translate
-        'gasEstimates': contractInput['gasEstimates']
+        'methodIdentifiers': contractInput['functionHashes'],
       }
     };
 
