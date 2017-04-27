@@ -83,6 +83,19 @@ function translateJsonCompilerOutput (output) {
     translateErrors(ret['errors'], output['formal']['errors']);
   }
 
+  var sourceMap = {}
+  for (var sourceId in output['sourceList']) {
+    sourceMap[output['sourceList'][sourceId]] = sourceId;
+  }
+
+  ret['sources'] = {}
+  for (var source in output['sources']) {
+    ret['sources'][source] = {
+      id: sourceMap[source],
+      legacyAST: output['sources'][source]
+    }
+  }
+
   return ret;
 }
 
