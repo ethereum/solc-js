@@ -1,10 +1,19 @@
 function translateErrors (ret, errors) {
   for (var error in errors) {
-    // FIXME: parse warnings here
+    var type = 'error'
+    var extractType = /^(.*):(\d+):(\d+):(.*):/
+    extractType = extractType.exec(errors[error])
+    if (extractType) {
+      type = extractType[4].trim().toLowerCase()
+    } else if (errors[error].toLowerCase().indexOf(': warning:')) {
+      type = 'warning'
+    } else if (errors[error].toLowerCase().indexOf(': error:')) {
+      type = 'error'
+    }
     ret.push({
       type: 'Error',
       component: 'general',
-      severity: 'error',
+      severity: type,
       message: errors[error],
       formattedMessage: errors[error]
     });
