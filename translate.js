@@ -62,7 +62,7 @@ function translateJsonCompilerOutput (output) {
     var gasEstimates = contractInput['gasEstimates'];
 
     var contractOutput = {
-      'abi': contractInput['interface'],
+      'abi': JSON.parse(contractInput['interface']),
       'metadata': contractInput['metadata'],
       'evm': {
         'legacyAssembly': contractInput['assembly'],
