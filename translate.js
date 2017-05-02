@@ -21,10 +21,17 @@ function translateErrors (ret, errors) {
 }
 
 function translateGasEstimates (gasEstimates) {
+  if (gasEstimates === null) {
+    return 'infinite'
+  }
+
+  if (typeof gasEstimates === 'number') {
+    return gasEstimates.toString()
+  }
+
   var gasEstimatesTranslated = {}
   for (var func in gasEstimates) {
-    var estimate = gasEstimates[func]
-    gasEstimatesTranslated[func] = estimate !== null ? estimate.toString() : 'infinite'
+    gasEstimatesTranslated[func] = translateGasEstimates(gasEstimates[func])
   }
   return gasEstimatesTranslated
 }
@@ -71,8 +78,8 @@ function translateJsonCompilerOutput (output) {
         'methodIdentifiers': contractInput['functionHashes'],
         'gasEstimates': {
           'creation': {
-            'codeDepositCost': gasEstimates['creation'][1] !== null ? gasEstimates['creation'][1].toString() : 'infinite',
-            'executionCost': gasEstimates['creation'][0] !== null ? gasEstimates['creation'][0].toString() : 'infinite'
+            'codeDepositCost': translateGasEstimates(gasEstimates['creation'][1]),
+            'executionCost': translateGasEstimates(gasEstimates['creation'][0])
           },
           'internal': translateGasEstimates(gasEstimates['internal']),
           'external': translateGasEstimates(gasEstimates['external'])
