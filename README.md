@@ -29,6 +29,8 @@ used in combination with an Ethereum client via the `eth.compile.solidity()` RPC
 
 ### Usage in Projects
 
+#### From early versions
+
 It can also be included and used in other projects:
 
 ```javascript
@@ -41,6 +43,8 @@ for (var contractName in output.contracts) {
 	console.log(contractName + '; ' + JSON.parse(output.contracts[contractName].interface));
 }
 ```
+
+#### From version 0.1.6
 
 Starting from version 0.1.6, multiple files are supported with automatic import resolution by the compiler as follows:
 
@@ -56,6 +60,8 @@ for (var contractName in output.contracts)
 ```
 
 Note that all input files that are imported have to be supplied, the compiler will not load any additional files on its own.
+
+#### From version 0.2.1
 
 Starting from version 0.2.1, a callback is supported to resolve missing imports as follows:
 
