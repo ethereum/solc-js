@@ -4,16 +4,16 @@ function translateErrors (ret, errors) {
     var extractType = /^(.*):(\d+):(\d+):(.*):/
     extractType = extractType.exec(errors[error])
     if (extractType) {
-      type = extractType[4].trim().toLowerCase()
-    } else if (errors[error].toLowerCase().indexOf(': warning:')) {
-      type = 'warning'
-    } else if (errors[error].toLowerCase().indexOf(': error:')) {
-      type = 'error'
+      type = extractType[4].trim()
+    } else if (errors[error].indexOf(': Warning:')) {
+      type = 'Warning'
+    } else if (errors[error].indexOf(': Error:')) {
+      type = 'Error'
     }
     ret.push({
-      type: 'Error',
+      type: type,
       component: 'general',
-      severity: type,
+      severity: (type === 'Warning') ? 'warning' : 'error',
       message: errors[error],
       formattedMessage: errors[error]
     });
