@@ -29,6 +29,8 @@ used in combination with an Ethereum client via the `eth.compile.solidity()` RPC
 
 ### Usage in Projects
 
+#### From early versions
+
 It can also be included and used in other projects:
 
 ```javascript
@@ -41,6 +43,8 @@ for (var contractName in output.contracts) {
 	console.log(contractName + '; ' + JSON.parse(output.contracts[contractName].interface));
 }
 ```
+
+#### From version 0.1.6
 
 Starting from version 0.1.6, multiple files are supported with automatic import resolution by the compiler as follows:
 
@@ -56,6 +60,8 @@ for (var contractName in output.contracts)
 ```
 
 Note that all input files that are imported have to be supplied, the compiler will not load any additional files on its own.
+
+#### From version 0.2.1
 
 Starting from version 0.2.1, a callback is supported to resolve missing imports as follows:
 
@@ -76,6 +82,10 @@ for (var contractName in output.contracts)
 ```
 
 The `compile()` method always returns an object, which can contain `errors`, `sources` and `contracts` fields. `errors` is a list of error mesages.
+
+#### From version 0.4.11
+
+Starting from version 0.4.11 there is a new entry point named `compileStandardWrapper()` which supports Solidity's [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description). It also maps old compiler output to it.
 
 **Note:**
 If you are using Electron, `nodeIntegration` is on for `BrowserWindow` by default. If it is on, Electron will provide a `require` method which will not behave as expected and this may cause calls, such as `require('solc')`, to fail.

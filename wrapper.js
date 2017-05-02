@@ -1,3 +1,4 @@
+var translate = require('./translate.js');
 var requireFromString = require('require-from-string');
 var https = require('https');
 var MemoryStream = require('memorystream');
@@ -74,6 +75,84 @@ function setupMethods (soljson) {
     return JSON.parse(result);
   };
 
+  // Expects a Standard JSON I/O but supports old compilers
+  var compileStandardWrapper = function (input, readCallback) {
+    if (compileStandard !== null) {
+      return compileStandard(input, readCallback);
+    }
+
+    function formatFatalError (message) {
+      return JSON.stringify({
+        errors: [
+          {
+            'type': 'SOLCError',
+            'component': 'solcjs',
+            'severity': 'error',
+            'message': message,
+            'formattedMessage': 'Error' + message
+          }
+        ]
+      });
+    }
+
+    input = JSON.parse(input);
+
+    if (input['language'] !== 'Solidity') {
+      return formatFatalError('Only Solidity sources are supported');
+    }
+
+    if (input['sources'] == null) {
+      return formatFatalError('No input specified');
+    }
+
+    // Bail out early
+    if ((input['sources'].length > 1) && (compileJSONMulti === null)) {
+      return formatFatalError('Multiple sources provided, but compiler only supports single input');
+    }
+
+    function isOptimizerEnabled (input) {
+      return input['settings'] && input['settings']['optimizer'] && input['settings']['optimizer']['enabled'];
+    }
+
+    function translateSources (input) {
+      var sources = {};
+      for (var source in input['sources']) {
+        if (input['sources'][source]['content'] !== null) {
+          sources[source] = input['sources'][source]['content'];
+        } else {
+          // force failure
+          return null;
+        }
+      }
+      return sources;
+    }
+
+    function translateOutput (output) {
+      output = translate.translateJsonCompilerOutput(JSON.parse(output));
+      if (output == null) {
+        return formatFatalError('Failed to process output');
+      }
+      return JSON.stringify(output);
+    }
+
+    var sources = translateSources(input);
+    if (sources === null) {
+      return formatFatalError('Failed to process sources');
+    }
+
+    // Try to wrap around old versions
+    if (compileJSONCallback !== null) {
+      return translateOutput(compileJSONCallback(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input), readCallback));
+    }
+
+    if (compileJSONMulti !== null) {
+      return translateOutput(compileJSONMulti(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input)));
+    }
+
+    // Try our luck with an ancient compiler
+    return translateOutput(compileJSON(sources[0], isOptimizerEnabled(input)));
+  };
+
   var linkBytecode = function (bytecode, libraries) {
     for (var libraryName in libraries) {
       // truncate to 37 characters
@@ -103,6 +182,7 @@ function setupMethods (soljson) {
     version: version,
     compile: compile,
     compileStandard: compileStandard,
+    compileStandardWrapper: compileStandardWrapper,
     linkBytecode: linkBytecode,
     supportsMulti: compileJSONMulti !== null,
     supportsImportCallback: compileJSONCallback !== null,
