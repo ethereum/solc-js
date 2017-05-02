@@ -1,14 +1,14 @@
 function translateErrors (ret, errors) {
   for (var error in errors) {
-    var type = 'error'
-    var extractType = /^(.*):(\d+):(\d+):(.*):/
-    extractType = extractType.exec(errors[error])
+    var type = 'error';
+    var extractType = /^(.*):(\d+):(\d+):(.*):/;
+    extractType = extractType.exec(errors[error]);
     if (extractType) {
-      type = extractType[4].trim()
+      type = extractType[4].trim();
     } else if (errors[error].indexOf(': Warning:')) {
-      type = 'Warning'
+      type = 'Warning';
     } else if (errors[error].indexOf(': Error:')) {
-      type = 'Error'
+      type = 'Error';
     }
     ret.push({
       type: type,
@@ -22,18 +22,18 @@ function translateErrors (ret, errors) {
 
 function translateGasEstimates (gasEstimates) {
   if (gasEstimates === null) {
-    return 'infinite'
+    return 'infinite';
   }
 
   if (typeof gasEstimates === 'number') {
-    return gasEstimates.toString()
+    return gasEstimates.toString();
   }
 
-  var gasEstimatesTranslated = {}
+  var gasEstimatesTranslated = {};
   for (var func in gasEstimates) {
-    gasEstimatesTranslated[func] = translateGasEstimates(gasEstimates[func])
+    gasEstimatesTranslated[func] = translateGasEstimates(gasEstimates[func]);
   }
-  return gasEstimatesTranslated
+  return gasEstimatesTranslated;
 }
 
 function translateJsonCompilerOutput (output) {
@@ -94,17 +94,17 @@ function translateJsonCompilerOutput (output) {
     ret['contracts'][fileName][contractName] = contractOutput;
   }
 
-  var sourceMap = {}
+  var sourceMap = {};
   for (var sourceId in output['sourceList']) {
     sourceMap[output['sourceList'][sourceId]] = sourceId;
   }
 
-  ret['sources'] = {}
+  ret['sources'] = {};
   for (var source in output['sources']) {
     ret['sources'][source] = {
       id: sourceMap[source],
       legacyAST: output['sources'][source]
-    }
+    };
   }
 
   return ret;
