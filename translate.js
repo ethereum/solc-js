@@ -94,11 +94,6 @@ function translateJsonCompilerOutput (output) {
     ret['contracts'][fileName][contractName] = contractOutput;
   }
 
-  if (output['formal']) {
-    ret['why3'] = output['formal']['why3'];
-    translateErrors(ret['errors'], output['formal']['errors']);
-  }
-
   var sourceMap = {}
   for (var sourceId in output['sourceList']) {
     sourceMap[output['sourceList'][sourceId]] = sourceId;
