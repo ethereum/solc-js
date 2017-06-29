@@ -72,7 +72,7 @@ if (argv['standard-json']) {
 }
 
 if (!(argv.bin || argv.abi)) {
-  abort('Invalid option selected');
+  abort('Invalid option selected, must specify either --bin or --abi');
 }
 
 var sources = {};
