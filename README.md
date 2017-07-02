@@ -104,6 +104,19 @@ There is also a direct method, `compileStandard`, which is only present on recen
 
 Starting from version 0.4.20 a Semver compatible version number can be retrieved on every compiler release, including old ones, using the `semver()` method.
 
+#### From version 0.4.21
+
+Starting from version 0.4.21 a *standard JSON input and output* is also accepted by `compile()`:
+
+```javascript
+function findImports(path) {
+	/* Implement support for loading external files here */
+	return { error: 'File not found' }
+}
+var output = solc.compile({ /* standard JSON input */ }, findImports)
+/* output contains standard JSON output */
+```
+
 ### Using with Electron
 
 **Note:**
