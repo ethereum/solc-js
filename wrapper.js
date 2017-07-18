@@ -178,8 +178,17 @@ function setupMethods (soljson) {
 
   var version = soljson.cwrap('version', 'string', []);
 
+  var license = function () {
+    // return undefined
+  };
+
+  if ('_license' in soljson) {
+    license = soljson.cwrap('license', 'string', []);
+  }
+
   return {
     version: version,
+    license: license,
     compile: compile,
     compileStandard: compileStandard,
     compileStandardWrapper: compileStandardWrapper,

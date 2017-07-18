@@ -1,6 +1,17 @@
 const tape = require('tape');
 const solc = require('../index.js');
 
+tape('Version and license', function (t) {
+  t.test('check version', function (st) {
+    st.equal(typeof solc.version(), 'string');
+    st.end();
+  });
+  t.test('check license', function (st) {
+    st.ok(typeof solc.license() === 'undefined' || typeof solc.license() === 'string');
+    st.end();
+  });
+});
+
 tape('Compilation', function (t) {
   t.test('single files can be compiled', function (st) {
     var output = solc.compile('contract x { function g() {} }');
