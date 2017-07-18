@@ -10,6 +10,13 @@ tape('Compilation', function (t) {
     st.ok(output.contracts[':x'].bytecode.length > 0);
     st.end();
   });
+  t.test('invalid source code fails properly', function (st) {
+    var output = solc.compile('contract x { this is an invalid contract }');
+    st.ok('errors' in output);
+    st.equal(output.errors.length, 1);
+    st.notEqual(output.errors[0].indexOf('ParserError'), -1);
+    st.end();
+  });
   t.test('multiple files can be compiled', function (st) {
     var input = {
       'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
@@ -76,6 +83,21 @@ tape('Compilation', function (t) {
     var output = JSON.parse(solc.compileStandard(JSON.stringify(input)));
     st.ok(bytecodeExists(output, 'cont.sol', 'x'));
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
+    st.end();
+  });
+  t.test('invalid source code fails properly with standard JSON', function (st) {
+    var input = {
+      'language': 'Solidity',
+      'sources': {
+        'x.sol': {
+          'content': 'contract x { this is an invalid contract }'
+        }
+      }
+    };
+    var output = JSON.parse(solc.compileStandard(JSON.stringify(input)));
+    st.ok('errors' in output);
+    st.equal(output.errors.length, 1);
+    st.equal(output.errors[0].type, 'ParserError');
     st.end();
   });
   t.test('compiling standard JSON (with callback)', function (st) {
