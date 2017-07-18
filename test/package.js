@@ -12,9 +12,15 @@ tape('Compilation', function (t) {
   });
   t.test('invalid source code fails properly', function (st) {
     var output = solc.compile('contract x { this is an invalid contract }');
+    st.plan(3);
     st.ok('errors' in output);
-    st.equal(output.errors.length, 1);
-    st.notEqual(output.errors[0].indexOf('ParserError'), -1);
+    // Check if the ParserError exists, but allow others too
+    st.ok(output.errors.length >= 1);
+    for (var error in output.errors) {
+      if (output.errors[error].indexOf('ParserError') !== -1) {
+        st.ok(true);
+      }
+    }
     st.end();
   });
   t.test('multiple files can be compiled', function (st) {
@@ -95,9 +101,15 @@ tape('Compilation', function (t) {
       }
     };
     var output = JSON.parse(solc.compileStandard(JSON.stringify(input)));
+    st.plan(3);
     st.ok('errors' in output);
-    st.equal(output.errors.length, 1);
-    st.equal(output.errors[0].type, 'ParserError');
+    st.ok(output.errors.length >= 1);
+    // Check if the ParserError exists, but allow others too
+    for (var error in output.errors) {
+      if (output.errors[error].type === 'ParserError') {
+        st.ok(true);
+      }
+    }
     st.end();
   });
   t.test('compiling standard JSON (with callback)', function (st) {
