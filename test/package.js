@@ -4,7 +4,9 @@ const solc = require('../index.js');
 tape('Compilation', function (t) {
   t.test('single files can be compiled', function (st) {
     var output = solc.compile('contract x { function g() {} }');
+    st.ok('contracts' in output);
     st.ok(':x' in output.contracts);
+    st.ok('bytecode' in output.contracts[':x']);
     st.ok(output.contracts[':x'].bytecode.length > 0);
     st.end();
   });
@@ -14,8 +16,11 @@ tape('Compilation', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
     var output = solc.compile({sources: input});
+    st.ok('contracts' in output);
     st.ok('cont.sol:x' in output.contracts);
     st.ok('lib.sol:L' in output.contracts);
+    st.ok('bytecode' in output.contracts['cont.sol:x']);
+    st.ok('bytecode' in output.contracts['lib.sol:L']);
     st.ok(output.contracts['cont.sol:x'].bytecode.length > 0);
     st.ok(output.contracts['lib.sol:L'].bytecode.length > 0);
     st.end();
@@ -32,8 +37,11 @@ tape('Compilation', function (t) {
       }
     }
     var output = solc.compile({sources: input}, 0, findImports);
+    st.ok('contracts' in output);
     st.ok('cont.sol:x' in output.contracts);
     st.ok('lib.sol:L' in output.contracts);
+    st.ok('bytecode' in output.contracts['cont.sol:x']);
+    st.ok('bytecode' in output.contracts['lib.sol:L']);
     st.ok(output.contracts['cont.sol:x'].bytecode.length > 0);
     st.ok(output.contracts['lib.sol:L'].bytecode.length > 0);
     st.end();
