@@ -37,6 +37,10 @@ var yargs = require('yargs')
     describe: 'Output directory for the contracts.',
     type: 'string'
   })
+  .option('replace-colon', {
+    describe: 'Replace colon char with minus in output file names,',
+    type: 'boolean'
+  })
   .global([ 'version', 'optimize' ])
   .version(function() { return solc.version(); })
   .showHelpOnFail(false, 'Specify --help for available options')
@@ -106,6 +110,11 @@ function writeFile (file, content) {
 }
 
 for (var contractName in output.contracts) {
+  var contractFileName = contractName;
+  if (argv.replaceColon) {
+      contractFileName = contractFileName.replace(':', '-');
+  }
+
   if (argv.bin) {
     writeFile(contractName + '.bin', output.contracts[contractName].bytecode);
   }
