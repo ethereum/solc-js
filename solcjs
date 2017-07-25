@@ -106,12 +106,14 @@ function writeFile (file, content) {
 }
 
 for (var contractName in output.contracts) {
+  var contractFileName = contractName.replace(/[:./]/g, '_');
+
   if (argv.bin) {
-    writeFile(contractName + '.bin', output.contracts[contractName].bytecode);
+    writeFile(contractFileName + '.bin', output.contracts[contractName].bytecode);
   }
 
   if (argv.abi) {
-    writeFile(contractName + '.abi', output.contracts[contractName].interface);
+    writeFile(contractFileName + '.abi', output.contracts[contractName].interface);
   }
 }
 
