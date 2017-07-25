@@ -95,14 +95,27 @@ if (!output) {
 }
 
 fs.ensureDirSync (destination);
+
+function writeFile (file, content) {
+  file = path.join(destination, file);
+  fs.writeFile(file, content, function (err) {
+    if (err) {
+      console.log('Failed to write ' + file + ': ' + err);
+    }
+  });
+}
+
 for (var contractName in output.contracts) {
   if (argv.bin) {
-    fs.writeFileSync(path.join(destination, contractName + '.bin'), output.contracts[contractName].bytecode);
+    writeFile(contractName + '.bin', output.contracts[contractName].bytecode);
   }
 
   if (argv.abi) {
-    fs.writeFileSync(path.join(destination, contractName + '.abi'), output.contracts[contractName].interface);
+    writeFile(contractName + '.abi', output.contracts[contractName].interface);
   }
 }
 
-originalUncaughtExceptionListeners.forEach(function (listener) { process.addListener('uncaughtException', listener); });
+// Put back original exception handlers.
+originalUncaughtExceptionListeners.forEach(function (listener) {
+  process.addListener('uncaughtException', listener);
+});
