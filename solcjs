@@ -61,9 +61,10 @@ if (argv['standard-json']) {
     abort('Empty input was read');
   }
 
-  var input = fs.readSync(process.stdin.fd, size)[0];
+  var input = Buffer.alloc(size);
+  fs.readSync(process.stdin.fd, input, 0, size);
 
-  console.log(solc.compileStandard(input));
+  console.log(solc.compileStandard(input.toString()));
   process.exit(0);
 } else if (files.length === 0) {
   console.error('Must provide a file');
