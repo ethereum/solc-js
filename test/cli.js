@@ -62,4 +62,33 @@ tape('CLI', function (t) {
     spt.succeeds();
     spt.end();
   });
+
+  t.test('standard json', function (st) {
+    var input = {
+      'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode', 'userdoc' ]
+          }
+        }
+      },
+      'sources': {
+        'Contract.sol': {
+          'content': 'pragma solidity ^0.5.0; contract Contract { function f() pure public {} }'
+        }
+      }
+    };
+    var spt = spawn(st, './solcjs --standard-json');
+    spt.stdin.setEncoding('utf-8');
+    spt.stdin.write(JSON.stringify(input));
+    spt.stdin.end();
+    spt.stdin.on('finish', function () {
+      spt.stderr.empty();
+      spt.stdout.match(/Contract.sol/);
+      spt.stdout.match(/userdoc/);
+      spt.succeeds();
+      spt.end();
+    });
+  });
 });

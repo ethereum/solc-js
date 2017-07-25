@@ -51,15 +51,8 @@ function abort (msg) {
 }
 
 if (argv['standard-json']) {
-  var size = fs.fstatSync(process.stdin.fd).size;
-
-  if (size <= 0) {
-    abort('Empty input was read');
-  }
-
-  var input = fs.readSync(process.stdin.fd, size)[0];
-
-  console.log(solc.compileStandardWrapper(input));
+  var input = fs.readFileSync(process.stdin.fd);
+  console.log(solc.compile(input.toString('utf8')))
   process.exit(0);
 } else if (files.length === 0) {
   console.error('Must provide a file');
