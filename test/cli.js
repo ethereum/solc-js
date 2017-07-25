@@ -69,11 +69,13 @@ tape('CLI', function (t) {
     var spt = spawn(st, './solcjs --standard-json');
     spt.stdin.setEncoding('utf-8');
     spt.stdin.write(JSON.stringify(input));
-    spt.stdin.end();
-    spt.stderr.empty();
-    spt.stdout.match(/Contract.sol/);
-    spt.stdout.match(/userdoc/);
-    spt.succeeds();
-    spt.end();
+    spt.stdin.pause();
+    spt.stdin.on('finish', function () {
+      spt.stderr.empty();
+      spt.stdout.match(/Contract.sol/);
+      spt.stdout.match(/userdoc/);
+      spt.succeeds();
+      spt.end();
+    });
   });
 });
