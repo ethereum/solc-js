@@ -37,8 +37,8 @@ var yargs = require('yargs')
     describe: 'Output directory for the contracts.',
     type: 'string'
   })
-  .option('replace-colon', {
-    describe: 'Replace colon char with minus in output file names,',
+  .option('friendly-filenames', {
+    describe: 'Replace illegal filename chars with underscore in output file names,',
     type: 'boolean'
   })
   .global([ 'version', 'optimize' ])
@@ -111,16 +111,16 @@ function writeFile (file, content) {
 
 for (var contractName in output.contracts) {
   var contractFileName = contractName;
-  if (argv.replaceColon) {
-      contractFileName = contractFileName.replace(':', '-');
+  if (argv.friendlyFilenames) {
+      contractFileName = contractFileName.replace(/[:./]/g,'');
   }
 
   if (argv.bin) {
-    writeFile(contractName + '.bin', output.contracts[contractName].bytecode);
+    writeFile(contractFileName + '.bin', output.contracts[contractName].bytecode);
   }
 
   if (argv.abi) {
-    writeFile(contractName + '.abi', output.contracts[contractName].interface);
+    writeFile(contractFileName + '.abi', output.contracts[contractName].interface);
   }
 }
 
