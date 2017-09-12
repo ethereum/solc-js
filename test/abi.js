@@ -10,6 +10,21 @@ tape('ABI translator', function (t) {
     st.deepEqual(abi.update('0.1.1', []), [ { inputs: [], payable: true, type: 'constructor' }, { payable: true, type: 'fallback' } ]);
     st.end();
   });
+  t.test('0.3.6 (constructor)', function (st) {
+    var input = [ { inputs: [], type: 'constructor' } ];
+    st.deepEqual(abi.update('0.3.6', input), [ { inputs: [], payable: true, type: 'constructor' }, { payable: true, type: 'fallback' } ]);
+    st.end();
+  });
+  t.test('0.3.6 (function)', function (st) {
+    var input = [ { inputs: [], type: 'function' } ];
+    st.deepEqual(abi.update('0.3.6', input), [ { inputs: [], payable: true, type: 'function' }, { payable: true, type: 'fallback' } ]);
+    st.end();
+  });
+  t.test('0.3.6 (event)', function (st) {
+    var input = [ { inputs: [], type: 'event' } ];
+    st.deepEqual(abi.update('0.3.6', input), [ { inputs: [], type: 'event' }, { payable: true, type: 'fallback' } ]);
+    st.end();
+  });
   t.test('0.4.0 (has fallback)', function (st) {
     var input = [ { inputs: [], type: 'constructor' } ];
     st.deepEqual(abi.update('0.4.0', input), [ { inputs: [], payable: true, type: 'constructor' } ]);
