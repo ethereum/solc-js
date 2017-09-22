@@ -105,19 +105,7 @@ new BrowserWindow({
 
 ### Using a Legacy Version
 
-In order to compile contracts using a specific version of Solidity, the `solc.useVersion` method is available. This returns a new `solc` object that uses a version of the compiler specified. **Note**: version strings must match the version substring of the files available in `/bin/soljson-*.js`. See below for an example.
-
-```javascript
-var solc = require('solc')
-// by default the latest version is used
-// ie: solc.useVersion('latest')
-
-// getting a legacy version
-var solcV011 = solc.useVersion('v0.1.1-2015-08-04-6ff4cd6')
-var output = solcV011.compile('contract t { function g() {} }', 1)
-```
-
-If the version is not available locally, you can use `solc.loadRemoteVersion(version, callback)` to load it directly from GitHub.
+In order to compile contracts using a specific version of Solidity, the `solc.loadRemoteVersion(version, callback)` method is available. This returns a new `solc` object that uses a version of the compiler specified. 
 
 You can also load the "binary" manually and use `setupMethods` to create the familiar wrapper functions described above:
 `var solc = solc.setupMethods(require("/my/local/soljson.js"))`.
