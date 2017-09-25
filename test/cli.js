@@ -70,6 +70,9 @@ tape('CLI', function (t) {
     spt.stdin.setEncoding('utf-8');
     spt.stdin.write(JSON.stringify(input));
     spt.stdin.pause();
+    setTimeout(function () {
+      spt.stdin.end();
+    }, 3000);
     spt.stdin.on('finish', function () {
       spt.stderr.empty();
       spt.stdout.match(/Contract.sol/);
