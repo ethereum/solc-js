@@ -116,7 +116,7 @@ contract TokenCreation is TokenCreationInterface, Token {
             }
             return true;
         }
-        throw;
+        revert();
     }
 
     function refund() noEther {
