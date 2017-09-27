@@ -68,9 +68,7 @@ tape('CLI', function (t) {
     };
     var spt = spawn(st, './solcjs --standard-json');
     spt.stdin.setEncoding('utf-8');
-    // Write in one chunk.
-    spt.stdin.end(JSON.stringify(input));
-    spt.stdin.on('finish', function () {
+    spt.stdin.write(JSON.stringify(input), function () {
       spt.stderr.empty();
       spt.stdout.match(/Contract.sol/);
       spt.stdout.match(/userdoc/);
