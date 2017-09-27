@@ -18,8 +18,8 @@ function update (compilerVersion, abi) {
       hasFallback = true;
     }
 
-    // add 'payable' to everything
-    if (semver.lt(compilerVersion, '0.4.0')) {
+    // add 'payable' to everything except events
+    if (item.type !== 'event' && semver.lt(compilerVersion, '0.4.0')) {
       item.payable = true;
     }
   }
