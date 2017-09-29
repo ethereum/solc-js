@@ -9,6 +9,7 @@
   "scripts": {
     "lint": "semistandard",
     "prepublish": "./downloadCurrentVersion.js && ./verifyVersion.js",
+    "pretest": "npm run lint",
     "test": "tape ./test/index.js"
   },
   "repository": {
@@ -42,7 +43,7 @@
     "yargs": "^4.7.1"
   },
   "devDependencies": {
-    "semistandard": "^8.0.0",
+    "semistandard": "^11.0.0",
     "tape": "^4.5.1",
     "tape-spawn": "^1.4.2"
   },

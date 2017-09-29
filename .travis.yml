@@ -9,4 +9,4 @@ branches:
     # Pull request automation is not constrained to this set of branches.
     only:
         - master
-script: npm run lint && npm run test
+script: npm test
