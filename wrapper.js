@@ -207,7 +207,7 @@ function setupMethods (soljson) {
       var url = 'https://ethereum.github.io/solc-bin/bin/soljson-' + versionString + '.js';
       https.get(url, function (response) {
         if (response.statusCode !== 200) {
-          cb('Error retrieving binary: ' + response.statusMessage);
+          cb(new Error('Error retrieving binary: ' + response.statusMessage));
         } else {
           response.pipe(mem);
           response.on('end', function () {
