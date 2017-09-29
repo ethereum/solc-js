@@ -28,6 +28,8 @@ Which is itself based on the Ethereum standardized contract APIs:
 https://github.com/ethereum/wiki/wiki/Standardized_Contract_APIs
 */
 
+pragma solidity ^0.4.0;
+
 /// @title Standard Token Contract.
 
 contract TokenInterface {
