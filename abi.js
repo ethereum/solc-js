@@ -1,37 +1,37 @@
-var semver = require('semver');
+var semver = require('semver')
 
 function update (compilerVersion, abi) {
-  var hasConstructor = false;
-  var hasFallback = false;
+  var hasConstructor = false
+  var hasFallback = false
 
   for (var i = 0; i < abi.length; i++) {
-    var item = abi[i];
+    var item = abi[i]
 
     if (item.type === 'constructor') {
-      hasConstructor = true;
+      hasConstructor = true
 
       // <0.4.5 assumed every constructor to be payable
       if (semver.lt(compilerVersion, '0.4.5')) {
-        item.payable = true;
+        item.payable = true
       }
     } else if (item.type === 'fallback') {
-      hasFallback = true;
+      hasFallback = true
     }
 
     if (item.type !== 'event') {
       // add 'payable' to everything
       if (semver.lt(compilerVersion, '0.4.0')) {
-        item.payable = true;
+        item.payable = true
       }
 
       // add stateMutability field
       if (semver.lt(compilerVersion, '0.4.16')) {
         if (item.payable) {
-          item.stateMutability = 'payable';
+          item.stateMutability = 'payable'
         } else if (item.constant) {
-          item.stateMutability = 'view';
+          item.stateMutability = 'view'
         } else {
-          item.stateMutability = 'nonpayable';
+          item.stateMutability = 'nonpayable'
         }
       }
     }
@@ -44,7 +44,7 @@ function update (compilerVersion, abi) {
       payable: true,
       stateMutability: 'payable',
       inputs: []
-    });
+    })
   }
 
   if (!hasFallback && semver.lt(compilerVersion, '0.4.0')) {
@@ -52,12 +52,12 @@ function update (compilerVersion, abi) {
       type: 'fallback',
       payable: true,
       stateMutability: 'payable'
-    });
+    })
   }
 
-  return abi;
+  return abi
 }
 
 module.exports = {
   update: update
-};
+}

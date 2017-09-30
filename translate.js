@@ -1,14 +1,14 @@
 function translateErrors (ret, errors) {
   for (var error in errors) {
-    var type = 'error';
-    var extractType = /^(.*):(\d+):(\d+):(.*):/;
-    extractType = extractType.exec(errors[error]);
+    var type = 'error'
+    var extractType = /^(.*):(\d+):(\d+):(.*):/
+    extractType = extractType.exec(errors[error])
     if (extractType) {
-      type = extractType[4].trim();
+      type = extractType[4].trim()
     } else if (errors[error].indexOf(': Warning:')) {
-      type = 'Warning';
+      type = 'Warning'
     } else if (errors[error].indexOf(': Error:')) {
-      type = 'Error';
+      type = 'Error'
     }
     ret.push({
       type: type,
@@ -16,50 +16,50 @@ function translateErrors (ret, errors) {
       severity: (type === 'Warning') ? 'warning' : 'error',
       message: errors[error],
       formattedMessage: errors[error]
-    });
+    })
   }
 }
 
 function translateGasEstimates (gasEstimates) {
   if (gasEstimates === null) {
-    return 'infinite';
+    return 'infinite'
   }
 
   if (typeof gasEstimates === 'number') {
-    return gasEstimates.toString();
+    return gasEstimates.toString()
   }
 
-  var gasEstimatesTranslated = {};
+  var gasEstimatesTranslated = {}
   for (var func in gasEstimates) {
-    gasEstimatesTranslated[func] = translateGasEstimates(gasEstimates[func]);
+    gasEstimatesTranslated[func] = translateGasEstimates(gasEstimates[func])
   }
-  return gasEstimatesTranslated;
+  return gasEstimatesTranslated
 }
 
 function translateJsonCompilerOutput (output) {
-  var ret = {};
+  var ret = {}
 
-  ret['errors'] = [];
-  translateErrors(ret['errors'], output['errors']);
+  ret['errors'] = []
+  translateErrors(ret['errors'], output['errors'])
 
-  ret['contracts'] = {};
+  ret['contracts'] = {}
   for (var contract in output['contracts']) {
     // Split name first, can be `contract`, `:contract` or `filename:contract`
-    var tmp = contract.match(/^(([^:]*):)?([^:]+)$/);
+    var tmp = contract.match(/^(([^:]*):)?([^:]+)$/)
     if (tmp.length !== 4) {
       // Force abort
-      return null;
+      return null
     }
-    var fileName = tmp[2];
+    var fileName = tmp[2]
     if (fileName === undefined) {
       // this is the case of `contract`
-      fileName = '';
+      fileName = ''
     }
-    var contractName = tmp[3];
+    var contractName = tmp[3]
 
-    var contractInput = output['contracts'][contract];
+    var contractInput = output['contracts'][contract]
 
-    var gasEstimates = contractInput['gasEstimates'];
+    var gasEstimates = contractInput['gasEstimates']
 
     var contractOutput = {
       'abi': JSON.parse(contractInput['interface']),
@@ -85,31 +85,31 @@ function translateJsonCompilerOutput (output) {
           'external': translateGasEstimates(gasEstimates['external'])
         }
       }
-    };
-
-    if (!ret['contracts'][fileName]) {
-      ret['contracts'][fileName] = {};
     }
 
-    ret['contracts'][fileName][contractName] = contractOutput;
+    if (!ret['contracts'][fileName]) {
+      ret['contracts'][fileName] = {}
+    }
+
+    ret['contracts'][fileName][contractName] = contractOutput
   }
 
-  var sourceMap = {};
+  var sourceMap = {}
   for (var sourceId in output['sourceList']) {
-    sourceMap[output['sourceList'][sourceId]] = sourceId;
+    sourceMap[output['sourceList'][sourceId]] = sourceId
   }
 
-  ret['sources'] = {};
+  ret['sources'] = {}
   for (var source in output['sources']) {
     ret['sources'][source] = {
       id: sourceMap[source],
       legacyAST: output['sources'][source]
-    };
+    }
   }
 
-  return ret;
+  return ret
 }
 
 module.exports = {
   translateJsonCompilerOutput: translateJsonCompilerOutput
-};
+}
