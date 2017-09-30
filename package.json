@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "semistandard": "^11.0.0",
+    "standard": "^10.0.3",
     "tape": "^4.5.1",
     "tape-spawn": "^1.4.2"
   },
