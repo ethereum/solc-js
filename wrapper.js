@@ -68,6 +68,23 @@ function setupMethods (soljson) {
   }
 
   var compile = function (input, optimise, readCallback) {
+    // NOTE: horribly inefficient
+    if (typeof input === 'string') {
+      var isStandardJSON = false;
+      try {
+        input = JSON.parse(input);
+        if (typeof input['language'] === 'string') {
+          isStandardJSON = true;
+        }
+      } catch (e) {
+      }
+
+      if (isStandardJSON) {
+        // NOTE: takes second argument as "readCallback"
+        return JSON.parse(compileStandardWrapper(input, optimise));
+      }
+    }
+
     if (typeof input !== 'string' && typeof input['language'] === 'string') {
       // NOTE: takes second argument as "readCallback"
       return JSON.parse(compileStandardWrapper(JSON.stringify(input), optimise));
