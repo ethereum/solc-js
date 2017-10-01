@@ -7,7 +7,7 @@
     "solcjs": "solcjs"
   },
   "scripts": {
-    "lint": "standard",
+    "lint": "standard *.js test/*.js solcjs",
     "prepublish": "./downloadCurrentVersion.js && ./verifyVersion.js",
     "pretest": "npm run lint",
     "test": "tape ./test/index.js"
