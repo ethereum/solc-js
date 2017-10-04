@@ -24,6 +24,7 @@
   "files": [
     "abi.js",
     "index.js",
+    "linker.js",
     "solcjs",
     "soljson.js",
     "translate.js",
