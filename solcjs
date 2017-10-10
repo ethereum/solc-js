@@ -47,7 +47,7 @@ var files = argv._;
 var destination = argv['output-dir'] || '.'
 
 function abort (msg) {
-  console.log(msg || 'Error occured');
+  console.error(msg || 'Error occured');
   process.exit(1);
 }
 
@@ -90,7 +90,7 @@ if (!output) {
   abort('No output from compiler');
 } else if (output['errors']) {
   for (var error in output['errors']) {
-    console.log(output['errors'][error]);
+    console.error(output['errors'][error]);
   }
 }
 
@@ -100,7 +100,7 @@ function writeFile (file, content) {
   file = path.join(destination, file);
   fs.writeFile(file, content, function (err) {
     if (err) {
-      console.log('Failed to write ' + file + ': ' + err);
+      console.error('Failed to write ' + file + ': ' + err);
     }
   });
 }

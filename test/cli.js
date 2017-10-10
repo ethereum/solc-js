@@ -6,6 +6,7 @@ tape('CLI', function (t) {
   t.test('--version', function (st) {
     var spt = spawn(st, './solcjs --version');
     spt.stdout.match(RegExp(pkg.version + '(-[^a-zA-A0-9.+]+)?(\\+[^a-zA-Z0-9.-]+)?'));
+    spt.stderr.empty();
     spt.end();
   });
 
@@ -17,7 +18,7 @@ tape('CLI', function (t) {
 
   t.test('no mode specified', function (st) {
     var spt = spawn(st, './solcjs test/DAO/Token.sol');
-    spt.stdout.match(/^Invalid option selected/);
+    spt.stderr.match(/^Invalid option selected/);
     spt.end();
   });
 
@@ -30,7 +31,7 @@ tape('CLI', function (t) {
 
   t.test('invalid file specified', function (st) {
     var spt = spawn(st, './solcjs --bin test/fileNotFound.sol');
-    spt.stdout.match(/^Error reading /);
+    spt.stderr.match(/^Error reading /);
     spt.end();
   });
 
