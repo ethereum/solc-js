@@ -3,49 +3,60 @@
 // This is used to download the correct binary version
 // as part of the prepublish step.
 
-var pkg = require('./package.json');
-var fs = require('fs');
-var https = require('https');
-var MemoryStream = require('memorystream');
+const semver = require('semver');
+const pkg = require('./package.json');
+const fs = require('fs');
+const https = require('https');
+const wanted = semver.clean(pkg.version);
+const endpoint = {
+  list: 'https://ethereum.github.io/solc-bin/bin/list.json',
+  bin: 'https://ethereum.github.io/solc-bin/bin/'
+};
 
-function getVersionList (cb) {
-  console.log('Retrieving available version list...');
-
-  var mem = new MemoryStream(null, { readable: false });
-  https.get('https://ethereum.github.io/solc-bin/bin/list.json', function (response) {
-    if (response.statusCode !== 200) {
-      console.log('Error downloading file: ' + response.statusCode);
-      process.exit(1);
-    }
-    response.pipe(mem);
-    response.on('end', function () {
-      cb(mem.toString());
-    });
-  });
-}
-
-function downloadBinary (version) {
-  console.log('Downloading version', version);
-
-  var file = fs.createWriteStream('soljson.js');
-  https.get('https://ethereum.github.io/solc-bin/bin/' + version, function (response) {
-    if (response.statusCode !== 200) {
-      console.log('Error downloading file: ' + response.statusCode);
-      process.exit(1);
-    }
-    response.pipe(file);
-    file.on('finish', function () {
-      file.close(function () {
-        console.log('Done.');
+const getVersionList = () => {
+  return new Promise((resolve, reject) => {
+    console.log('Retrieving available version list...');
+    https.get(endpoint.list, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error('Error downloading file: ' + response.statusCode));
+      }
+      response.setEncoding('utf8');
+      var rawData = '';
+      response.on('data', (chunk) => { rawData += chunk; });
+      response.on('end', () => {
+        try {
+          const parsedData = JSON.parse(rawData);
+          resolve(parsedData.releases);
+        } catch (e) {
+          reject(e);
+        }
       });
-    });
+    }).on('error', reject);
   });
-}
+};
 
-console.log('Downloading correct solidity binary...');
+const downloadBinary = (releases) => {
+  return new Promise((resolve, reject) => {
+    const version = releases[wanted];
+    console.log('Downloading version', version);
+    const file = fs.createWriteStream('soljson.js');
+    https.get(endpoint.bin + version, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error('Error downloading file: ' + response.statusCode));
+      }
+      response.pipe(file);
+      file.on('finish', () => {
+        file.close(resolve);
+      }).on('error', reject);
+    }).on('error', reject);
+  });
+};
 
-getVersionList(function (list) {
-  list = JSON.parse(list);
-  var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
-  downloadBinary(list.releases[wanted]);
-});
+Promise.resolve(() => { console.log('Downloading the solidity binary...'); })
+  .then(getVersionList)
+  .then(downloadBinary)
+  .then(() => { console.log('Done.'); })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
