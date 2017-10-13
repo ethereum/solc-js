@@ -25,10 +25,10 @@ function getVersionList (cb) {
   });
 }
 
-function downloadBinary (version, expectedHash) {
+function downloadBinary (outputName, version, expectedHash) {
   console.log('Downloading version', version);
 
-  var file = fs.createWriteStream('soljson.js');
+  var file = fs.createWriteStream(outputName);
   https.get('https://ethereum.github.io/solc-bin/bin/' + version, function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
@@ -37,7 +37,7 @@ function downloadBinary (version, expectedHash) {
     response.pipe(file);
     file.on('finish', function () {
       file.close(function () {
-        var hash = '0x' + ethJSUtil.sha3(fs.readFileSync('soljson.js')).toString('hex');
+        var hash = '0x' + ethJSUtil.sha3(fs.readFileSync(outputName)).toString('hex');
         if (expectedHash !== hash) {
           console.log('Hash mismatch: ' + expectedHash + ' vs ' + hash);
           process.exit(1);
@@ -55,5 +55,5 @@ getVersionList(function (list) {
   var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
   var releaseFileName = list.releases[wanted];
   var expectedHash = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0].keccak256;
-  downloadBinary(releaseFileName, expectedHash);
+  downloadBinary('soljson.js', releaseFileName, expectedHash);
 });
