@@ -7,7 +7,7 @@ var pkg = require('./package.json');
 var fs = require('fs');
 var https = require('https');
 var MemoryStream = require('memorystream');
-var createHash = require('create-hash');
+var ethJSUtil = require('ethereumjs-util');
 
 function getVersionList (cb) {
   console.log('Retrieving available version list...');
@@ -37,7 +37,7 @@ function downloadBinary (version, expectedHash) {
     response.pipe(file);
     file.on('finish', function () {
       file.close(function () {
-        var hash = createHash('sha256').update(fs.readFileSync('soljson.js')).digest().toString('hex')
+        var hash = '0x' + ethJSUtil.sha3(fs.readFileSync('soljson.js')).toString('hex');
         if (expectedHash !== hash) {
           console.log('Hash mismatch: ' + expectedHash + ' vs ' + hash);
           process.exit(1);
@@ -53,5 +53,7 @@ console.log('Downloading correct solidity binary...');
 getVersionList(function (list) {
   list = JSON.parse(list);
   var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
-  downloadBinary(list.releases[wanted], pkg.solc["sha256"]);
+  var releaseFileName = list.releases[wanted];
+  var expectedHash = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0].keccak256;
+  downloadBinary(releaseFileName, expectedHash);
 });

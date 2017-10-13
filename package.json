@@ -44,7 +44,7 @@
     "yargs": "^4.7.1"
   },
   "devDependencies": {
-    "create-hash": "^1.1.3",
+    "ethereumjs-util": "^5.1.2",
     "semistandard": "^11.0.0",
     "tape": "^4.5.1",
     "tape-spawn": "^1.4.2"
@@ -53,8 +53,5 @@
     "ignore": [
       "soljson.js"
     ]
-  },
-  "solc": {
-    "sha256": "a52d6dddca6c3df5a6364cc11f93a6dd1c58e38e8c740f27e39f98e43cdaafce"
   }
 }
