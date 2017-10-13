@@ -89,8 +89,17 @@ var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
 if (!output) {
   abort('No output from compiler');
 } else if (output['errors']) {
+  function isWarning (message) {
+    return message.match(/^(.*:[0-9]*:[0-9]* )?Warning: /)
+  }
+
   for (var error in output['errors']) {
-    console.error(output['errors'][error]);
+    var message = output['errors'][error]
+    if (isWarning(message)) {
+      console.log(message)
+    } else {
+      console.error(message)
+    }
   }
 }
 
