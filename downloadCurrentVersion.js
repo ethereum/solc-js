@@ -28,7 +28,7 @@ function getVersionList (cb) {
 function downloadBinary (outputName, version, expectedHash) {
   console.log('Downloading version', version);
 
-  var file = fs.createWriteStream(outputName);
+  var file = fs.createWriteStream(outputName, { encoding: 'binary' });
   https.get('https://ethereum.github.io/solc-bin/bin/' + version, function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
@@ -37,7 +37,7 @@ function downloadBinary (outputName, version, expectedHash) {
     response.pipe(file);
     file.on('finish', function () {
       file.close(function () {
-        var hash = '0x' + ethJSUtil.sha3(fs.readFileSync(outputName)).toString('hex');
+        var hash = '0x' + ethJSUtil.sha3(fs.readFileSync(outputName, { encoding: 'binary' })).toString('hex');
         if (expectedHash !== hash) {
           console.log('Hash mismatch: ' + expectedHash + ' vs ' + hash);
           process.exit(1);
