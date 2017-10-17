@@ -33,6 +33,12 @@ function downloadBinary (outputName, version, expectedHash) {
     fs.unlinkSync(outputName);
   }
 
+  process.on('SIGINT', function () {
+    console.log('Interrupted, removing file.');
+    fs.unlinkSync(outputName);
+    process.exit(1);
+  });
+
   var file = fs.createWriteStream(outputName, { encoding: 'binary' });
   https.get('https://ethereum.github.io/solc-bin/bin/' + version, function (response) {
     if (response.statusCode !== 200) {
