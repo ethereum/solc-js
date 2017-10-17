@@ -28,6 +28,12 @@ function getVersionList (cb) {
 function downloadBinary (outputName, version, expectedHash) {
   console.log('Downloading version', version);
 
+  process.on('SIGINT', function () {
+    console.log('Interrupted, removing file.');
+    fs.unlinkSync(outputName);
+    process.exit(1);
+  });
+
   // Remove if existing
   if (fs.existsSync(outputName)) {
     fs.unlinkSync(outputName);
