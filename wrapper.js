@@ -137,7 +137,7 @@ function setupMethods (soljson) {
     }
 
     var sources = translateSources(input);
-    if (sources === null) {
+    if (sources === null || Object.keys(sources).length === 0) {
       return formatFatalError('Failed to process sources');
     }
 
@@ -151,7 +151,7 @@ function setupMethods (soljson) {
     }
 
     // Try our luck with an ancient compiler
-    return translateOutput(compileJSON(sources[0], isOptimizerEnabled(input)));
+    return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)));
   };
 
   var version = soljson.cwrap('version', 'string', []);
