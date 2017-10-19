@@ -79,6 +79,13 @@ tape('Compilation', function (t) {
 
     var input = {
       'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode' ]
+          }
+        }
+      },
       'sources': {
         'lib.sol': {
           'content': 'library L { function f() returns (uint) { return 7; } }'
@@ -105,6 +112,13 @@ tape('Compilation', function (t) {
   t.test('invalid source code fails properly with standard JSON', function (st) {
     var input = {
       'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode' ]
+          }
+        }
+      },
       'sources': {
         'x.sol': {
           'content': 'contract x { this is an invalid contract }'
@@ -132,6 +146,13 @@ tape('Compilation', function (t) {
 
     var input = {
       'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode' ]
+          }
+        }
+      },
       'sources': {
         'cont.sol': {
           'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
@@ -163,6 +184,13 @@ tape('Compilation', function (t) {
   t.test('compiling standard JSON (using wrapper)', function (st) {
     var input = {
       'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode' ]
+          }
+        }
+      },
       'sources': {
         'lib.sol': {
           'content': 'library L { function f() returns (uint) { return 7; } }'
