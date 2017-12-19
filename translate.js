@@ -60,6 +60,16 @@ function translateJsonCompilerOutput (output) {
     var contractInput = output['contracts'][contract];
 
     var gasEstimates = contractInput['gasEstimates'];
+    // FIXME: support undefined or a nicer way in translateGasEstimates
+    if (!gasEstimates['creation']) {
+      gasEstimates['creation'] = [ null, null ];
+    }
+    if (!gasEstimates['internal']) {
+      gasEstimates['internal'] = null;
+    }
+    if (!gasEstimates['external']) {
+      gasEstimates['external'] = null;
+    }
 
     var contractOutput = {
       'abi': JSON.parse(contractInput['interface']),
