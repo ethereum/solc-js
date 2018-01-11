@@ -103,7 +103,7 @@ function translateJsonCompilerOutput (output) {
   for (var source in output['sources']) {
     ret['sources'][source] = {
       id: sourceMap[source],
-      legacyAST: output['sources'][source]
+      legacyAST: output['sources'][source].AST
     };
   }
 
