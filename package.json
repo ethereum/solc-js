@@ -10,7 +10,9 @@
     "lint": "semistandard",
     "prepublish": "./downloadCurrentVersion.js && ./verifyVersion.js",
     "pretest": "npm run lint",
-    "test": "tape ./test/index.js"
+    "test": "tape ./test/index.js",
+    "coverage": "istanbul cover node_modules/tape/bin/tape ./test/index.js",
+    "coveralls": "npm run coverage && coveralls <coverage/lcov.info"
   },
   "repository": {
     "type": "git",
@@ -44,7 +46,9 @@
     "yargs": "^4.7.1"
   },
   "devDependencies": {
+    "coveralls": "^3.0.0",
     "ethereumjs-util": "^5.1.4",
+    "istanbul": "^0.4.5",
     "semistandard": "^11.0.0",
     "tape": "^4.5.1",
     "tape-spawn": "^1.4.2"
