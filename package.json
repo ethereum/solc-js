@@ -44,7 +44,7 @@
     "yargs": "^4.7.1"
   },
   "devDependencies": {
-    "ethereumjs-util": "^5.1.2",
+    "ethereumjs-util": "^5.1.4",
     "semistandard": "^11.0.0",
     "tape": "^4.5.1",
     "tape-spawn": "^1.4.2"

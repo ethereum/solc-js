@@ -1,8 +1,7 @@
 language: node_js
 node_js:
-  - '7'
+  - '8'
   - '6'
-  - '5'
   - '4'
 branches:
     # We need to whitelist the branches which we want to have "push" automation.
