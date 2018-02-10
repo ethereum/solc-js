@@ -60,9 +60,16 @@ tape('CLI', function (t) {
   t.test('standard json', function (st) {
     var input = {
       'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode', 'userdoc' ]
+          }
+        }
+      },
       'sources': {
         'Contract.sol': {
-          'content': 'pragma solidity ^0.4.0; contract Contract { function f() {} }'
+          'content': 'pragma solidity ^0.4.0; contract Contract { function f() pure public {} }'
         }
       }
     };
