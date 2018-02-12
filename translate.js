@@ -1,3 +1,4 @@
+var abi = require('./abi.js');
 var linker = require('./linker.js');
 
 /// Translate old style version numbers to semver.
@@ -59,7 +60,7 @@ function translateGasEstimates (gasEstimates) {
   return gasEstimatesTranslated;
 }
 
-function translateJsonCompilerOutput (output) {
+function translateJsonCompilerOutput (compilerVersion, output) {
   var ret = {};
 
   ret['errors'] = [];
@@ -105,7 +106,7 @@ function translateJsonCompilerOutput (output) {
     }
 
     var contractOutput = {
-      'abi': JSON.parse(contractInput['interface']),
+      'abi': abi.update(compilerVersion, JSON.parse(contractInput['interface'])),
       'metadata': contractInput['metadata'],
       'evm': {
         'legacyAssembly': contractInput['assembly'],
