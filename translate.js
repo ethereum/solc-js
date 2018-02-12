@@ -60,15 +60,19 @@ function translateJsonCompilerOutput (output) {
     var contractInput = output['contracts'][contract];
 
     var gasEstimates = contractInput['gasEstimates'];
-    // FIXME: support undefined or a nicer way in translateGasEstimates
-    if (!gasEstimates['creation']) {
-      gasEstimates['creation'] = [ null, null ];
+    var translatedGasEstimates = {};
+
+    if (gasEstimates['creation']) {
+      translatedGasEstimates['creation'] = {
+        'codeDepositCost': translateGasEstimates(gasEstimates['creation'][1]),
+        'executionCost': translateGasEstimates(gasEstimates['creation'][0])
+      };
     }
-    if (!gasEstimates['internal']) {
-      gasEstimates['internal'] = null;
+    if (gasEstimates['internal']) {
+      translatedGasEstimates['internal'] = translateGasEstimates(gasEstimates['internal']);
     }
-    if (!gasEstimates['external']) {
-      gasEstimates['external'] = null;
+    if (gasEstimates['external']) {
+      translatedGasEstimates['external'] = translateGasEstimates(gasEstimates['external']);
     }
 
     var contractOutput = {
@@ -86,14 +90,7 @@ function translateJsonCompilerOutput (output) {
           'sourceMap': contractInput['srcmapRuntime']
         },
         'methodIdentifiers': contractInput['functionHashes'],
-        'gasEstimates': {
-          'creation': {
-            'codeDepositCost': translateGasEstimates(gasEstimates['creation'][1]),
-            'executionCost': translateGasEstimates(gasEstimates['creation'][0])
-          },
-          'internal': translateGasEstimates(gasEstimates['internal']),
-          'external': translateGasEstimates(gasEstimates['external'])
-        }
+        'gasEstimates': translatedGasEstimates
       }
     };
 
