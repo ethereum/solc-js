@@ -1,3 +1,5 @@
+var linker = require('./linker.js');
+
 /// Translate old style version numbers to semver.
 /// Old style: 0.3.6-3fc68da5/Release-Emscripten/clang
 ///            0.3.5-371690f0/Release-Emscripten/clang/Interpreter
@@ -110,11 +112,13 @@ function translateJsonCompilerOutput (output) {
         'bytecode': {
           'object': contractInput['bytecode'],
           'opcodes': contractInput['opcodes'],
-          'sourceMap': contractInput['srcmap']
+          'sourceMap': contractInput['srcmap'],
+          'linkReferences': linker.findLinkReferences(contractInput['bytecode'])
         },
         'deployedBytecode': {
           'object': contractInput['runtimeBytecode'],
-          'sourceMap': contractInput['srcmapRuntime']
+          'sourceMap': contractInput['srcmapRuntime'],
+          'linkReferences': linker.findLinkReferences(contractInput['runtimeBytecode'])
         },
         'methodIdentifiers': contractInput['functionHashes'],
         'gasEstimates': translatedGasEstimates
