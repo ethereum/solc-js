@@ -72,6 +72,61 @@ tape('Compilation', function (t) {
     st.ok(output.contracts['lib.sol:L'].bytecode.length > 0);
     st.end();
   });
+
+  t.test('lazy-loading callback works (with file not found)', function (st) {
+    var input = {
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+    };
+    function findImports (path) {
+      return { error: 'File not found' };
+    }
+    var output = solc.compile({sources: input}, 0, findImports);
+    st.plan(3);
+    st.ok('errors' in output);
+    // Check if the ParserError exists, but allow others too
+    st.ok(output.errors.length >= 1);
+    for (var error in output.errors) {
+      // Error should be something like:
+      //   cont.sol:1:1: ParserError: Source "lib.sol" not found: File not found
+      if (output.errors[error].indexOf('ParserError') !== -1 && output.errors[error].indexOf('File not found') !== -1) {
+        st.ok(true);
+      }
+    }
+    st.end();
+  });
+
+  t.test('lazy-loading callback works (with exception)', function (st) {
+    var input = {
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+    };
+    function findImports (path) {
+      throw new Error('Could not implement this interface properly...');
+    }
+    st.throws(function () {
+      solc.compile({sources: input}, 0, findImports);
+    }, /^Error: Could not implement this interface properly.../);
+    st.end();
+  });
+
+  t.test('file import without lazy-loading callback fails properly', function (st) {
+    var input = {
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+    };
+    var output = solc.compile({sources: input}, 0);
+    st.plan(3);
+    st.ok('errors' in output);
+    // Check if the ParserError exists, but allow others too
+    st.ok(output.errors.length >= 1);
+    for (var error in output.errors) {
+      // Error should be something like:
+      //   cont.sol:1:1: ParserError: Source "lib.sol" not found: File not supplied initially.
+      if (output.errors[error].indexOf('ParserError') !== -1 && output.errors[error].indexOf('File not supplied initially.') !== -1) {
+        st.ok(true);
+      }
+    }
+    st.end();
+  });
+
   t.test('compiling standard JSON', function (st) {
     if (!solc.supportsStandard) {
       st.skip('Not supported by solc');
