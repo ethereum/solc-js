@@ -167,6 +167,12 @@ tape('Compilation', function (t) {
     st.end();
   });
   t.test('invalid source code fails properly with standard JSON', function (st) {
+    if (!solc.supportsStandard) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
+
     var input = {
       'language': 'Solidity',
       'settings': {
