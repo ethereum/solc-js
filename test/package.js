@@ -167,6 +167,12 @@ tape('Compilation', function (t) {
     st.end();
   });
   t.test('invalid source code fails properly with standard JSON', function (st) {
+    if (!solc.supportsStandard) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
+
     var input = {
       'language': 'Solidity',
       'settings': {
@@ -293,6 +299,9 @@ tape('Linking', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
     var output = solc.compile({sources: input});
+    st.ok('contracts' in output);
+    st.ok('cont.sol:x' in output.contracts);
+    st.ok('bytecode' in output.contracts['cont.sol:x']);
     var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L': '0x123456' });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
@@ -304,6 +313,9 @@ tape('Linking', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
     var output = solc.compile({sources: input});
+    st.ok('contracts' in output);
+    st.ok('cont.sol:x' in output.contracts);
+    st.ok('bytecode' in output.contracts['cont.sol:x']);
     var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { });
     st.ok(bytecode.indexOf('_') >= 0);
     st.end();
@@ -315,6 +327,9 @@ tape('Linking', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
     var output = solc.compile({sources: input});
+    st.ok('contracts' in output);
+    st.ok('cont.sol:x' in output.contracts);
+    st.ok('bytecode' in output.contracts['cont.sol:x']);
     st.throws(function () {
       solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L': '' });
     });
@@ -327,6 +342,9 @@ tape('Linking', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L1234567890123456789012345678901234567890.f(); } }'
     };
     var output = solc.compile({sources: input});
+    st.ok('contracts' in output);
+    st.ok('cont.sol:x' in output.contracts);
+    st.ok('bytecode' in output.contracts['cont.sol:x']);
     var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L1234567890123456789012345678901234567890': '0x123456' });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
