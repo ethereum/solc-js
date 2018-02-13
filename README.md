@@ -89,6 +89,10 @@ The `compile()` method always returns an object, which can contain `errors`, `so
 
 Starting from version 0.4.11 there is a new entry point named `compileStandardWrapper()` which supports Solidity's [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description). It also maps old compiler output to it.
 
+#### From version 0.4.20
+
+Starting from version 0.4.20 a Semver compatible version number can be retrieved on every compiler release, including old ones, using the `semver()` method.
+
 ### Using with Electron
 
 **Note:**
