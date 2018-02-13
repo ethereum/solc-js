@@ -56,7 +56,13 @@ function translateJsonCompilerOutput (output) {
   var ret = {};
 
   ret['errors'] = [];
-  translateErrors(ret['errors'], output['errors']);
+  var errors;
+  if (output['error']) {
+    errors = [ output['error'] ];
+  } else {
+    errors = output['errors'];
+  }
+  translateErrors(ret['errors'], errors);
 
   ret['contracts'] = {};
   for (var contract in output['contracts']) {

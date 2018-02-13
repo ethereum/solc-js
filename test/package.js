@@ -56,13 +56,25 @@ tape('Compilation', function (t) {
   });
   t.test('invalid source code fails properly', function (st) {
     var output = solc.compile('contract x { this is an invalid contract }');
+    if (semver.lt(solc.semver(), '0.1.4')) {
+      st.ok(output.error.indexOf('Parser error: Expected identifier') !== -1);
+      st.end();
+      return;
+    }
     st.plan(3);
     st.ok('errors' in output);
     // Check if the ParserError exists, but allow others too
     st.ok(output.errors.length >= 1);
     for (var error in output.errors) {
-      // In early versions it was only displaying "Error: Expected identifier" as opposed to "ParserError"
-      if (output.errors[error].indexOf('ParserError') !== -1 || output.errors[error].indexOf('Error: Expected identifier') !== -1) {
+      // Error should be something like:
+      //   ParserError
+      //   Error: Expected identifier
+      //   Parser error: Expected identifier
+      if (
+        output.errors[error].indexOf('ParserError') !== -1 ||
+        output.errors[error].indexOf('Error: Expected identifier') !== -1 ||
+        output.errors[error].indexOf('Parser error: Expected identifier') !== -1
+      ) {
         st.ok(true);
       }
     }
@@ -309,6 +321,14 @@ tape('Compilation', function (t) {
     st.end();
   });
   t.test('compiling standard JSON (using wrapper)', function (st) {
+    // Example needs support for compileJSONMulti
+    // FIXME: add test for wrapper without multiple files
+    if (semver.lt(solc.semver(), '0.1.6')) {
+      st.skip('Not supported by solc <0.1.6');
+      st.end();
+      return;
+    }
+
     var input = {
       'language': 'Solidity',
       'settings': {
@@ -353,6 +373,14 @@ tape('Loading Legacy Versions', function (t) {
 });
 
 tape('Linking', function (t) {
+  // FIXME: all the linking tests require compileJSONMulti support,
+  //        create test cases which have all files in a single source and could run with 0.1.3
+  if (semver.lt(solc.semver(), '0.1.6')) {
+    t.skip('Not supported by solc <0.1.6');
+    t.end();
+    return;
+  }
+
   t.test('link properly', function (st) {
     var input = {
       'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
