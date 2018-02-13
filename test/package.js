@@ -1,4 +1,5 @@
 const tape = require('tape');
+const semver = require('semver');
 const solc = require('../index.js');
 
 tape('Version and license', function (t) {
@@ -40,6 +41,12 @@ tape('Compilation', function (t) {
   });
 
   t.test('multiple files can be compiled', function (st) {
+    if (semver.lt(solc.semver(), '0.1.6')) {
+      st.skip('Not supported by solc <0.1.6');
+      st.end();
+      return;
+    }
+
     var input = {
       'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
@@ -56,6 +63,12 @@ tape('Compilation', function (t) {
   });
 
   t.test('lazy-loading callback works', function (st) {
+    if (semver.lt(solc.semver(), '0.2.1')) {
+      st.skip('Not supported by solc <0.2.1');
+      st.end();
+      return;
+    }
+
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
@@ -78,6 +91,12 @@ tape('Compilation', function (t) {
   });
 
   t.test('lazy-loading callback works (with file not found)', function (st) {
+    if (semver.lt(solc.semver(), '0.2.1')) {
+      st.skip('Not supported by solc <0.2.1');
+      st.end();
+      return;
+    }
+
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
@@ -100,6 +119,12 @@ tape('Compilation', function (t) {
   });
 
   t.test('lazy-loading callback works (with exception)', function (st) {
+    if (semver.lt(solc.semver(), '0.2.1')) {
+      st.skip('Not supported by solc <0.2.1');
+      st.end();
+      return;
+    }
+
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
@@ -113,6 +138,12 @@ tape('Compilation', function (t) {
   });
 
   t.test('file import without lazy-loading callback fails properly', function (st) {
+    if (semver.lt(solc.semver(), '0.2.1')) {
+      st.skip('Not supported by solc <0.2.1');
+      st.end();
+      return;
+    }
+
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
     };
