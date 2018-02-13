@@ -19,6 +19,10 @@ tape('Version string to Semver translator', function (t) {
     st.equal(versionToSemver('0.1.1-6ff4cd6b/RelWithDebInfo-Emscripten/clang/int'), '0.1.1+commit.6ff4cd6b');
     st.end();
   });
+  t.test('Broken 0.1.3', function (st) {
+    st.equal(versionToSemver('0.1.3-0/.-/clang/int linked to libethereum-0.9.92-0/.-/clang/int'), '0.1.3');
+    st.end();
+  });
   t.test('Old style 0.2.0', function (st) {
     st.equal(
       versionToSemver('0.2.0-e7098958/.-Emscripten/clang/int linked to libethereum-1.1.1-bbb80ab0/.-Emscripten/clang/int'),
