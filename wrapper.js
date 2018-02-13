@@ -157,6 +157,10 @@ function setupMethods (soljson) {
 
   var version = soljson.cwrap('version', 'string', []);
 
+  var versionToSemver = function () {
+    return translate.versionToSemver(version());
+  };
+
   var license = function () {
     // return undefined
   };
@@ -167,6 +171,7 @@ function setupMethods (soljson) {
 
   return {
     version: version,
+    semver: versionToSemver,
     license: license,
     compile: compile,
     compileStandard: compileStandard,

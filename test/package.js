@@ -6,6 +6,10 @@ tape('Version and license', function (t) {
     st.equal(typeof solc.version(), 'string');
     st.end();
   });
+  t.test('check semver', function (st) {
+    st.equal(typeof solc.semver(), 'string');
+    st.end();
+  });
   t.test('check license', function (st) {
     st.ok(typeof solc.license() === 'undefined' || typeof solc.license() === 'string');
     st.end();
