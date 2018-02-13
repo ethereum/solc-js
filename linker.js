@@ -1,11 +1,21 @@
 var linkBytecode = function (bytecode, libraries) {
+  // NOTE: for backwards compatibility support old compiler which didn't use file names
+  var librariesComplete = {};
   for (var libraryName in libraries) {
+    var parsed = libraryName.match(/^([^:]*):?(.*)$/);
+    if (parsed) {
+      librariesComplete[parsed[2]] = libraries[libraryName];
+    }
+    librariesComplete[libraryName] = libraries[libraryName];
+  }
+
+  for (libraryName in librariesComplete) {
     // truncate to 37 characters
     var internalName = libraryName.slice(0, 36);
     // prefix and suffix with __
     var libLabel = '__' + internalName + Array(37 - internalName.length).join('_') + '__';
 
-    var hexAddress = libraries[libraryName];
+    var hexAddress = librariesComplete[libraryName];
     if (hexAddress.slice(0, 2) !== '0x' || hexAddress.length > 42) {
       throw new Error('Invalid address specified for ' + libraryName);
     }
