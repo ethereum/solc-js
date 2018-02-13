@@ -306,6 +306,7 @@ tape('Linking', function (t) {
     st.ok('contracts' in output);
     st.ok('cont.sol:x' in output.contracts);
     st.ok('bytecode' in output.contracts['cont.sol:x']);
+    st.ok(output.contracts['cont.sol:x'].bytecode.length > 0);
     var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L': '0x123456' });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
@@ -320,6 +321,7 @@ tape('Linking', function (t) {
     st.ok('contracts' in output);
     st.ok('cont.sol:x' in output.contracts);
     st.ok('bytecode' in output.contracts['cont.sol:x']);
+    st.ok(output.contracts['cont.sol:x'].bytecode.length > 0);
     var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { });
     st.ok(bytecode.indexOf('_') >= 0);
     st.end();
@@ -334,6 +336,7 @@ tape('Linking', function (t) {
     st.ok('contracts' in output);
     st.ok('cont.sol:x' in output.contracts);
     st.ok('bytecode' in output.contracts['cont.sol:x']);
+    st.ok(output.contracts['cont.sol:x'].bytecode.length > 0);
     st.throws(function () {
       solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L': '' });
     });
@@ -349,6 +352,7 @@ tape('Linking', function (t) {
     st.ok('contracts' in output);
     st.ok('cont.sol:x' in output.contracts);
     st.ok('bytecode' in output.contracts['cont.sol:x']);
+    st.ok(output.contracts['cont.sol:x'].bytecode.length > 0);
     var bytecode = solc.linkBytecode(output.contracts['cont.sol:x'].bytecode, { 'lib.sol:L1234567890123456789012345678901234567890': '0x123456' });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
