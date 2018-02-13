@@ -31,6 +31,40 @@ var linkBytecode = function (bytecode, libraries) {
   return bytecode;
 };
 
+var findLinkReferences = function (bytecode) {
+  // find 40 bytes in the pattern of __...<36 digits>...__
+  // e.g. __Lib.sol:L_____________________________
+  var linkReferences = {};
+  var offset = 0;
+  while (true) {
+    var found = bytecode.match(/__(.{36})__/);
+    if (!found) {
+      break;
+    }
+
+    var start = found.index;
+    // trim trailing underscores
+    // NOTE: this has no way of knowing if the trailing underscore was part of the name
+    var libraryName = found[1].replace(/_+$/gm, '');
+
+    if (!linkReferences[libraryName]) {
+      linkReferences[libraryName] = [];
+    }
+
+    linkReferences[libraryName].push({
+      // offsets are in bytes in binary representation (and not hex)
+      start: (offset + start) / 2,
+      length: 20
+    });
+
+    offset += start + 20;
+
+    bytecode = bytecode.slice(start + 20);
+  }
+  return linkReferences;
+};
+
 module.exports = {
-  linkBytecode: linkBytecode
+  linkBytecode: linkBytecode,
+  findLinkReferences: findLinkReferences
 };
