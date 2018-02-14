@@ -152,7 +152,9 @@ The `linkBytecode` method provides a simple helper for linking:
 bytecode = solc.linkBytecode(bytecode, { 'MyLibrary': '0x123456...' })
 ```
 
-Note: in future versions of Solidity a more sophisticated linker architecture will be introduced.  Once that changes, this method will still be usable for output created by old versions of Solidity.
+As of Solidity 0.4.11 the compiler supports [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description) which outputs a *link references* map. This gives a map of library names to offsets in the bytecode to replace the addresses at.
+
+There is a method available in the `linker` module (`require('solc/linker')`) called `findLinkReferences` which can find such link references in bytecode produced by an older compiler.
 
 ### Updating the ABI
 
