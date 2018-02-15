@@ -146,13 +146,27 @@ solc.loadRemoteVersion('latest', function (err, solcSnapshot) {
 
 When using libraries, the resulting bytecode will contain placeholders for the real addresses of the referenced libraries. These have to be updated, via a process called linking, before deploying the contract.
 
+The `linker` module (`require('solc/linker')`) offers helpers to accomplish this.
+
 The `linkBytecode` method provides a simple helper for linking:
 
 ```javascript
-bytecode = solc.linkBytecode(bytecode, { 'MyLibrary': '0x123456...' })
+var linker = require('solc/linker')
+
+bytecode = linker.linkBytecode(bytecode, { 'MyLibrary': '0x123456...' })
 ```
 
-Note: in future versions of Solidity a more sophisticated linker architecture will be introduced.  Once that changes, this method will still be usable for output created by old versions of Solidity.
+(Note: `linkBytecode` is also exposed via `solc` as `solc.linkBytecode`, but this usage is deprecated.)
+
+As of Solidity 0.4.11 the compiler supports [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description) which outputs a *link references* map. This gives a map of library names to offsets in the bytecode to replace the addresses at. It also doesn't have the limitation on library file and contract name lengths.
+
+There is a method available in the `linker` module called `findLinkReferences` which can find such link references in bytecode produced by an older compiler:
+
+```javascript
+var linker = require('solc/linker')
+
+var linkReferences = linker.findLinkReferences(bytecode)
+```
 
 ### Updating the ABI
 
