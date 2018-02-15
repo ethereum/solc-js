@@ -89,6 +89,17 @@ The `compile()` method always returns an object, which can contain `errors`, `so
 
 Starting from version 0.4.11 there is a new entry point named `compileStandardWrapper()` which supports Solidity's [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description). It also maps old compiler output to it.
 
+```javascript
+var solc = require('solc')
+
+// 'input' is a JSON string corresponding to the "standard JSON input" as described in the link above
+// 'findImports' works as described above
+var output = solc.compileStandardWrapper(input, findImports)
+// Ouput is a JSON string corresponding to the "standard JSON output"
+```
+
+There is also a direct method, `compileStandard`, which is only present on recent compilers and works the same way. `compileStandardWrapper` is preferred however because it provides the same interface for old compilers.
+
 #### From version 0.4.20
 
 Starting from version 0.4.20 a Semver compatible version number can be retrieved on every compiler release, including old ones, using the `semver()` method.
