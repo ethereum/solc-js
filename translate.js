@@ -150,7 +150,7 @@ function translateJsonCompilerOutput (output) {
 
 function formatAssemblyText (asm, prefix, source) {
   if (typeof asm === typeof '' || asm === null || asm === undefined) {
-    return prefix + asm + '\n';
+    return prefix + (asm || '') + '\n';
   }
   var text = prefix + '.code\n';
   asm['.code'].forEach(function (item, i) {
