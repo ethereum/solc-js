@@ -1,3 +1,4 @@
+var assert = require('assert');
 var translate = require('./translate.js');
 var linker = require('./linker.js');
 var requireFromString = require('require-from-string');
@@ -20,6 +21,7 @@ function setupMethods (soljson) {
       soljson.setValue(ptr, buffer, '*');
     };
     var wrapCallback = function (callback) {
+      assert(typeof callback === 'function', 'Invalid callback specified.');
       return function (path, contents, error) {
         var result = callback(soljson.Pointer_stringify(path));
         if (typeof result.contents === 'string') {
