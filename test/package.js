@@ -177,6 +177,22 @@ tape('Compilation', function (t) {
     st.end();
   });
 
+  t.test('lazy-loading callback fails properly (with invalid callback)', function (st) {
+    if (semver.lt(solc.semver(), '0.2.1')) {
+      st.skip('Not supported by solc <0.2.1');
+      st.end();
+      return;
+    }
+
+    var input = {
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+    };
+    st.throws(function () {
+      solc.compile({sources: input}, 0, "this isn't a callback");
+    }, /Invalid callback specified./);
+    st.end();
+  });
+
   t.test('file import without lazy-loading callback fails properly', function (st) {
     if (semver.lt(solc.semver(), '0.2.1')) {
       st.skip('Not supported by solc <0.2.1');
