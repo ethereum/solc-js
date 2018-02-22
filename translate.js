@@ -148,6 +148,13 @@ function translateJsonCompilerOutput (output) {
   return ret;
 }
 
+function escapeString (text) {
+  return text
+    .replace('\n', '\\n', 'g')
+    .replace('\r', '\\r', 'g')
+    .replace('\t', '\\t', 'g');
+}
+
 function formatAssemblyText (asm, prefix, source) {
   if (typeof asm === typeof '' || asm === null || asm === undefined) {
     return prefix + (asm || '') + '\n';
@@ -157,7 +164,7 @@ function formatAssemblyText (asm, prefix, source) {
     var v = item.value === undefined ? '' : item.value;
     var src = '';
     if (source !== undefined && item.begin !== undefined && item.end !== undefined) {
-      src = source.slice(item.begin, item.end).replace('\n', '\\n', 'g');
+      src = escapeString(source.slice(item.begin, item.end));
     }
     if (src.length > 30) {
       src = src.slice(0, 30) + '...';
