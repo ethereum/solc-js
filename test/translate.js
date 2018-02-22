@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const tape = require('tape');
 const translate = require('../translate.js');
 const versionToSemver = translate.versionToSemver;
@@ -40,6 +42,16 @@ tape('Version string to Semver translator', function (t) {
   });
   t.test('Old style 0.3.6', function (st) {
     st.equal(versionToSemver('0.3.6-3fc68da5/Release-Emscripten/clang'), '0.3.6+commit.3fc68da5');
+    st.end();
+  });
+});
+
+tape('prettyPrintLegacyAssemblyJSON', function (t) {
+  t.test('Works properly', function (st) {
+    var fixtureAsmJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtureAsmJson.json')).toString());
+    var fixtureAsmJsonSource = fs.readFileSync(path.resolve(__dirname, 'fixtureAsmJson.sol')).toString();
+    var fixtureAsmJsonOutput = fs.readFileSync(path.resolve(__dirname, 'fixtureAsmJson.output')).toString();
+    st.equal(translate.prettyPrintLegacyAssemblyJSON(fixtureAsmJson, fixtureAsmJsonSource), fixtureAsmJsonOutput);
     st.end();
   });
 });
