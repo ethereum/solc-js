@@ -93,7 +93,7 @@ function setupMethods (soljson) {
             'component': 'solcjs',
             'severity': 'error',
             'message': message,
-            'formattedMessage': 'Error' + message
+            'formattedMessage': 'Error: ' + message
           }
         ]
       });
