@@ -99,7 +99,7 @@ function setupMethods (soljson) {
       });
     }
 
-    if (readCallback !== null && typeof readCallback !== 'function') {
+    if (readCallback !== undefined && typeof readCallback !== 'function') {
       return formatFatalError('Invalid import callback supplied');
     }
 
