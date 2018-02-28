@@ -1,6 +1,7 @@
 const tape = require('tape');
 const semver = require('semver');
 const solc = require('../index.js');
+const linker = require('../linker.js');
 
 function getBytecode (output, fileName, contractName) {
   try {
@@ -368,6 +369,50 @@ tape('Compilation', function (t) {
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
     st.ok(x);
     st.ok(x.length > 0);
+    var L = getBytecodeStandard(output, 'lib.sol', 'L');
+    st.ok(L);
+    st.ok(L.length > 0);
+    st.end();
+  });
+
+  t.test('compiling standard JSON (using wrapper and libraries)', function (st) {
+    // Example needs support for compileJSONMulti
+    // FIXME: add test for wrapper without multiple files
+    if (semver.lt(solc.semver(), '0.1.6')) {
+      st.skip('Not supported by solc <0.1.6');
+      st.end();
+      return;
+    }
+
+    var input = {
+      'language': 'Solidity',
+      'settings': {
+        'libraries': {
+          'lib.sol': {
+            'L': '4200000000000000000000000000000000000001'
+          }
+        },
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode' ]
+          }
+        }
+      },
+      'sources': {
+        'lib.sol': {
+          'content': 'library L { function f() returns (uint) { return 7; } }'
+        },
+        'cont.sol': {
+          'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+        }
+      }
+    };
+
+    var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify(input)));
+    var x = getBytecodeStandard(output, 'cont.sol', 'x');
+    st.ok(x);
+    st.ok(x.length > 0);
+    st.ok(Object.keys(linker.findLinkReferences(x)).length === 0);
     var L = getBytecodeStandard(output, 'lib.sol', 'L');
     st.ok(L);
     st.ok(L.length > 0);

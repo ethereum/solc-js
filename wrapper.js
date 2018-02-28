@@ -93,13 +93,13 @@ function setupMethods (soljson) {
             'component': 'solcjs',
             'severity': 'error',
             'message': message,
-            'formattedMessage': 'Error' + message
+            'formattedMessage': 'Error: ' + message
           }
         ]
       });
     }
 
-    if (readCallback !== null && typeof readCallback !== 'function') {
+    if (readCallback !== undefined && typeof readCallback !== 'function') {
       return formatFatalError('Invalid import callback supplied');
     }
 
