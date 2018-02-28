@@ -2,11 +2,20 @@ var linkBytecode = function (bytecode, libraries) {
   // NOTE: for backwards compatibility support old compiler which didn't use file names
   var librariesComplete = {};
   for (var libraryName in libraries) {
-    var parsed = libraryName.match(/^([^:]*):?(.*)$/);
-    if (parsed) {
-      librariesComplete[parsed[2]] = libraries[libraryName];
+    if (typeof libraryName === 'object') {
+      // API compatible with the standard JSON i/o
+      for (var lib in libraries[libraryName]) {
+        librariesComplete[lib] = libraries[libraryName][lib];
+        librariesComplete[libraryName + ':' + lib] = libraries[libraryName][lib];
+      }
+    } else {
+      // backwards compatible API for early solc-js verisons
+      var parsed = libraryName.match(/^([^:]*):?(.*)$/);
+      if (parsed) {
+        librariesComplete[parsed[2]] = libraries[libraryName];
+      }
+      librariesComplete[libraryName] = libraries[libraryName];
     }
-    librariesComplete[libraryName] = libraries[libraryName];
   }
 
   for (libraryName in librariesComplete) {
