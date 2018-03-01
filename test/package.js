@@ -389,7 +389,7 @@ tape('Compilation', function (t) {
       'settings': {
         'libraries': {
           'lib.sol': {
-            'L': '4200000000000000000000000000000000000001'
+            'L': '0x4200000000000000000000000000000000000001'
           }
         },
         'outputSelection': {
