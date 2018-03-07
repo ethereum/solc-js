@@ -136,7 +136,7 @@ function setupMethods (soljson) {
     }
 
     function translateOutput (output) {
-      output = translate.translateJsonCompilerOutput(JSON.parse(output));
+      output = translate.translateJsonCompilerOutput(versionToSemver(), JSON.parse(output));
       if (output == null) {
         return formatFatalError('Failed to process output');
       }
