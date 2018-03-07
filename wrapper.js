@@ -135,6 +135,12 @@ function setupMethods (soljson) {
       return sources;
     }
 
+    function librariesSupplied (input) {
+      if (input['settings'] !== null) {
+        return input['settings']['libraries'];
+      }
+    }
+
     function translateOutput (output) {
       output = translate.translateJsonCompilerOutput(JSON.parse(output));
       if (output == null) {
@@ -148,17 +154,20 @@ function setupMethods (soljson) {
       return formatFatalError('Failed to process sources');
     }
 
+    // Try linking if libraries were supplied
+    var libraries = librariesSupplied(input);
+
     // Try to wrap around old versions
     if (compileJSONCallback !== null) {
-      return translateOutput(compileJSONCallback(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input), readCallback));
+      return translateOutput(compileJSONCallback(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input), readCallback), libraries);
     }
 
     if (compileJSONMulti !== null) {
-      return translateOutput(compileJSONMulti(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input)));
+      return translateOutput(compileJSONMulti(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input)), libraries);
     }
 
     // Try our luck with an ancient compiler
-    return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)));
+    return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
   };
 
   var version = soljson.cwrap('version', 'string', []);

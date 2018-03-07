@@ -59,7 +59,7 @@ function translateGasEstimates (gasEstimates) {
   return gasEstimatesTranslated;
 }
 
-function translateJsonCompilerOutput (output) {
+function translateJsonCompilerOutput (output, libraries) {
   var ret = {};
 
   ret['errors'] = [];
@@ -110,13 +110,13 @@ function translateJsonCompilerOutput (output) {
       'evm': {
         'legacyAssembly': contractInput['assembly'],
         'bytecode': {
-          'object': contractInput['bytecode'],
+          'object': linker.linkBytecode(contractInput['bytecode'], libraries),
           'opcodes': contractInput['opcodes'],
           'sourceMap': contractInput['srcmap'],
           'linkReferences': linker.findLinkReferences(contractInput['bytecode'])
         },
         'deployedBytecode': {
-          'object': contractInput['runtimeBytecode'],
+          'object': linker.linkBytecode(contractInput['runtimeBytecode'], libraries),
           'sourceMap': contractInput['srcmapRuntime'],
           'linkReferences': linker.findLinkReferences(contractInput['runtimeBytecode'])
         },
