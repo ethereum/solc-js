@@ -12,7 +12,7 @@
     "prepublish": "./solcjs-get",
     "pretest": "npm run lint",
     "test": "tape ./test/index.js",
-    "clean": "rm -rf *.abi *.bin output"
+    "clean": "rm -rf *.abi *.bin output",
     "coverage": "istanbul cover node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && coveralls <coverage/lcov.info"
   },
