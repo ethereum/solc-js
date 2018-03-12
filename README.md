@@ -102,6 +102,21 @@ The `compile()` method always returns an object, which can contain `errors`, `so
 
 Starting from version 0.4.11 there is a new entry point named `compileStandardWrapper()` which supports Solidity's [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description). It also maps old compiler output to it.
 
+```javascript
+var solc = require('solc')
+
+// 'input' is a JSON string corresponding to the "standard JSON input" as described in the link above
+// 'findImports' works as described above
+var output = solc.compileStandardWrapper(input, findImports)
+// Ouput is a JSON string corresponding to the "standard JSON output"
+```
+
+There is also a direct method, `compileStandard`, which is only present on recent compilers and works the same way. `compileStandardWrapper` is preferred however because it provides the same interface for old compilers.
+
+#### From version 0.4.20
+
+Starting from version 0.4.20 a Semver compatible version number can be retrieved on every compiler release, including old ones, using the `semver()` method.
+
 ### Using with Electron
 
 **Note:**
@@ -144,13 +159,27 @@ solc.loadRemoteVersion('latest', function (err, solcSnapshot) {
 
 When using libraries, the resulting bytecode will contain placeholders for the real addresses of the referenced libraries. These have to be updated, via a process called linking, before deploying the contract.
 
+The `linker` module (`require('solc/linker')`) offers helpers to accomplish this.
+
 The `linkBytecode` method provides a simple helper for linking:
 
 ```javascript
-bytecode = solc.linkBytecode(bytecode, { 'MyLibrary': '0x123456...' })
+var linker = require('solc/linker')
+
+bytecode = linker.linkBytecode(bytecode, { 'MyLibrary': '0x123456...' })
 ```
 
-Note: in future versions of Solidity a more sophisticated linker architecture will be introduced.  Once that changes, this method will still be usable for output created by old versions of Solidity.
+(Note: `linkBytecode` is also exposed via `solc` as `solc.linkBytecode`, but this usage is deprecated.)
+
+As of Solidity 0.4.11 the compiler supports [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description) which outputs a *link references* map. This gives a map of library names to offsets in the bytecode to replace the addresses at. It also doesn't have the limitation on library file and contract name lengths.
+
+There is a method available in the `linker` module called `findLinkReferences` which can find such link references in bytecode produced by an older compiler:
+
+```javascript
+var linker = require('solc/linker')
+
+var linkReferences = linker.findLinkReferences(bytecode)
+```
 
 ### Updating the ABI
 
@@ -164,4 +193,15 @@ var inputABI = [{"constant":false,"inputs":[],"name":"hello","outputs":[{"name":
 var outputABI = abi.update('0.3.6', inputABI)
 // Output contains: [{"constant":false,"inputs":[],"name":"hello","outputs":[{"name":"","type":"string"}],"payable":true,"type":"function"},{"type":"fallback","payable":true}]
 
+```
+
+### Formatting old JSON assembly output
+
+There is a helper available to format old JSON assembly output into a text familiar to earlier users of Remix IDE.
+
+```
+var translate = require('solc/translate')
+
+// assemblyJSON refers to the JSON of the given assembly and sourceCode is the source of which the assembly was generated from
+var output = translate.prettyPrintLegacyAssemblyJSON(assemblyJSON, sourceCode)
 ```

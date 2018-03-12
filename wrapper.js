@@ -1,3 +1,4 @@
+var assert = require('assert');
 var translate = require('./translate.js');
 var linker = require('./linker.js');
 var requireFromString = require('require-from-string');
@@ -14,11 +15,13 @@ function setupMethods (soljson) {
   var compileStandard = null;
   if (('_compileJSONCallback' in soljson) || ('_compileStandard' in soljson)) {
     var copyString = function (str, ptr) {
-      var buffer = soljson._malloc(str.length + 1);
-      soljson.writeStringToMemory(str, buffer);
+      var length = soljson.lengthBytesUTF8(str);
+      var buffer = soljson._malloc(length + 1);
+      soljson.stringToUTF8(str, buffer, length + 1);
       soljson.setValue(ptr, buffer, '*');
     };
     var wrapCallback = function (callback) {
+      assert(typeof callback === 'function', 'Invalid callback specified.');
       return function (path, contents, error) {
         var result = callback(soljson.Pointer_stringify(path));
         if (typeof result.contents === 'string') {
@@ -108,10 +111,14 @@ function setupMethods (soljson) {
             'component': 'solcjs',
             'severity': 'error',
             'message': message,
-            'formattedMessage': 'Error' + message
+            'formattedMessage': 'Error: ' + message
           }
         ]
       });
+    }
+
+    if (readCallback !== undefined && typeof readCallback !== 'function') {
+      return formatFatalError('Invalid import callback supplied');
     }
 
     input = JSON.parse(input);
@@ -146,6 +153,12 @@ function setupMethods (soljson) {
       return sources;
     }
 
+    function librariesSupplied (input) {
+      if (input['settings'] !== null) {
+        return input['settings']['libraries'];
+      }
+    }
+
     function translateOutput (output) {
       output = translate.translateJsonCompilerOutput(JSON.parse(output));
       if (output == null) {
@@ -159,20 +172,27 @@ function setupMethods (soljson) {
       return formatFatalError('Failed to process sources');
     }
 
+    // Try linking if libraries were supplied
+    var libraries = librariesSupplied(input);
+
     // Try to wrap around old versions
     if (compileJSONCallback !== null) {
-      return translateOutput(compileJSONCallback(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input), readCallback));
+      return translateOutput(compileJSONCallback(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input), readCallback), libraries);
     }
 
     if (compileJSONMulti !== null) {
-      return translateOutput(compileJSONMulti(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input)));
+      return translateOutput(compileJSONMulti(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input)), libraries);
     }
 
     // Try our luck with an ancient compiler
-    return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)));
+    return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
   };
 
   var version = soljson.cwrap('version', 'string', []);
+
+  var versionToSemver = function () {
+    return translate.versionToSemver(version());
+  };
 
   var license = function () {
     // return undefined
@@ -184,6 +204,7 @@ function setupMethods (soljson) {
 
   return {
     version: version,
+    semver: versionToSemver,
     license: license,
     compile: compile,
     compileStandard: compileStandard,
