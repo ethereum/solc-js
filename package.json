@@ -8,7 +8,7 @@
   },
   "scripts": {
     "lint": "semistandard",
-    "prepublish": "./downloadCurrentVersion.js && ./verifyVersion.js",
+    "prepublish": "node downloadCurrentVersion.js && node verifyVersion.js",
     "pretest": "npm run lint",
     "test": "tape ./test/index.js",
     "coverage": "istanbul cover node_modules/tape/bin/tape ./test/index.js",
