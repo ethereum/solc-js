@@ -456,6 +456,20 @@ tape('Linking', function (t) {
     st.end();
   });
 
+  t.test('link properly with two-level configuration (from standard JSON)', function (st) {
+    var input = {
+      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+    };
+    var output = solc.compile({sources: input});
+    var bytecode = getBytecode(output, 'cont.sol', 'x');
+    st.ok(bytecode);
+    st.ok(bytecode.length > 0);
+    bytecode = solc.linkBytecode(bytecode, { 'lib.sol': { 'L': '0x123456' } });
+    st.ok(bytecode.indexOf('_') < 0);
+    st.end();
+  });
+
   t.test('linker to fail with missing library', function (st) {
     var input = {
       'lib.sol': 'library L { function f() returns (uint) { return 7; } }',

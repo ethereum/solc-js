@@ -2,7 +2,7 @@ var linkBytecode = function (bytecode, libraries) {
   // NOTE: for backwards compatibility support old compiler which didn't use file names
   var librariesComplete = {};
   for (var libraryName in libraries) {
-    if (typeof libraryName === 'object') {
+    if (typeof libraries[libraryName] === 'object') {
       // API compatible with the standard JSON i/o
       for (var lib in libraries[libraryName]) {
         librariesComplete[lib] = libraries[libraryName][lib];
