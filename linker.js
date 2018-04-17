@@ -20,7 +20,7 @@ var linkBytecode = function (bytecode, libraries) {
 
   for (libraryName in librariesComplete) {
     // truncate to 37 characters
-    var internalName = libraryName.slice(0, 36);
+    var internalName = libraryName.slice(-36);
     // prefix and suffix with __
     var libLabel = '__' + internalName + Array(37 - internalName.length).join('_') + '__';
 
