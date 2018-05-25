@@ -37,8 +37,7 @@ var yargs = require('yargs')
     describe: 'Output directory for the contracts.',
     type: 'string'
   })
-  .global([ 'version', 'optimize' ])
-  .version(function() { return solc.version(); })
+  .version(solc.version())
   .showHelpOnFail(false, 'Specify --help for available options')
   .help()
 
