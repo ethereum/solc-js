@@ -353,7 +353,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
     // Modifier that allows only shareholders to vote and create new proposals
     modifier onlyTokenholders {
-        if (balanceOf(msg.sender) == 0) revert();
+        if (balanceOf(msg.sender) == 0x0000000000000000000000000000000000000000) revert();
             _;
     }
 
@@ -380,9 +380,9 @@ contract DAO is DAOInterface, Token, TokenCreation {
         proposalDeposit = _proposalDeposit;
         rewardAccount = new ManagedAccount(address(this), false);
         DAOrewardAccount = new ManagedAccount(address(this), false);
-        if (address(rewardAccount) == 0)
+        if (address(rewardAccount) == 0x0000000000000000000000000000000000000000)
             revert();
-        if (address(DAOrewardAccount) == 0)
+        if (address(DAOrewardAccount) == 0x0000000000000000000000000000000000000000)
             revert();
         lastTimeMinQuorumMet = now;
         minQuorumDivisor = 5; // sets the minimal quorum to 20%
@@ -647,10 +647,10 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
         // If the new DAO doesn't exist yet, create the new DAO and store the
         // current split data
-        if (address(p.splitData[0].newDAO) == 0) {
+        if (address(p.splitData[0].newDAO) == 0x0000000000000000000000000000000000000000) {
             p.splitData[0].newDAO = createNewDAO(_newCurator);
             // Call depth limit reached, etc.
-            if (address(p.splitData[0].newDAO) == 0)
+            if (address(p.splitData[0].newDAO) == 0x0000000000000000000000000000000000000000)
                 revert();
             // should never happen
             if (this.balance < sumOfProposalDeposits)
