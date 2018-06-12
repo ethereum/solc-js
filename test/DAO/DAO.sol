@@ -353,7 +353,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
     // Modifier that allows only shareholders to vote and create new proposals
     modifier onlyTokenholders {
-        if (balanceOf(msg.sender) == 0x0000000000000000000000000000000000000000) revert();
+        if (balanceOf(msg.sender) == 0) revert();
             _;
     }
 
@@ -688,7 +688,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         DAOpaidOut[address(this)] -= paidOutToBeMoved;
 
         // Burn DAO Tokens
-        Transfer(msg.sender, 0, balances[msg.sender]);
+        Transfer(msg.sender, 0x0000000000000000000000000000000000000000, balances[msg.sender]);
         withdrawRewardFor(msg.sender); // be nice, and get his rewards
         totalSupply -= balances[msg.sender];
         balances[msg.sender] = 0;
