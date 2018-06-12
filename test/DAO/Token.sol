@@ -47,7 +47,7 @@ contract TokenInterface {
 
     /// @param _owner The address from which the balance will be retrieved
     /// @return The balance
-    function balanceOf(address _owner) public constant returns (uint256 balance);
+    function balanceOf(address _owner) public view returns (uint256 balance);
 
     /// @notice Send `_amount` tokens to `_to` from `msg.sender`
     /// @param _to The address of the recipient
@@ -77,7 +77,7 @@ contract TokenInterface {
     function allowance(
         address _owner,
         address _spender
-    ) public constant returns (uint256 remaining);
+    ) public view returns (uint256 remaining);
 
     event Transfer(address indexed _from, address indexed _to, uint256 _amount);
     event Approval(
@@ -96,7 +96,7 @@ contract Token is TokenInterface {
     // inadvertently also transferred ether
     modifier noEther() {if (msg.value > 0) revert(); _; }
 
-    function balanceOf(address _owner) public constant returns (uint256 balance) {
+    function balanceOf(address _owner) public view returns (uint256 balance) {
         return balances[_owner];
     }
 
@@ -146,7 +146,7 @@ contract Token is TokenInterface {
         return true;
     }
 
-    function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
+    function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
         return allowed[_owner][_spender];
     }
 }

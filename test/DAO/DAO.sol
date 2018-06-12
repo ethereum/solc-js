@@ -221,7 +221,7 @@ contract DAOInterface {
         address _recipient,
         uint _amount,
         bytes _transactionData
-    ) constant returns (bool _codeChecksOut);
+    ) view returns (bool _codeChecksOut);
 
     /// @notice Vote on proposal `_proposalID` with `_supportsProposal`
     /// @param _proposalID The proposal ID
@@ -320,11 +320,11 @@ contract DAOInterface {
     function halveMinQuorum() returns (bool _success);
 
     /// @return total number of proposals ever created
-    function numberOfProposals() constant returns (uint _numberOfProposals);
+    function numberOfProposals() view returns (uint _numberOfProposals);
 
     /// @param _proposalID Id of the new curator proposal
     /// @return Address of the new DAO
-    function getNewDAOAddress(uint _proposalID) constant returns (address _newDAO);
+    function getNewDAOAddress(uint _proposalID) view returns (address _newDAO);
 
     /// @param _account The address of the account which is checked.
     /// @return Whether the account is blocked (not allowed to transfer tokens) or not.
@@ -482,7 +482,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         address _recipient,
         uint _amount,
         bytes _transactionData
-    ) noEther constant returns (bool _codeChecksOut) {
+    ) noEther view returns (bool _codeChecksOut) {
         Proposal p = proposals[_proposalID];
         return p.proposalHash == sha3(_recipient, _amount, _transactionData);
     }
@@ -851,12 +851,12 @@ contract DAO is DAOInterface, Token, TokenCreation {
             return false;
     }
 
-    function actualBalance() constant returns (uint _actualBalance) {
+    function actualBalance() view returns (uint _actualBalance) {
         return this.balance - sumOfProposalDeposits;
     }
 
 
-    function minQuorum(uint _value) internal constant returns (uint _minQuorum) {
+    function minQuorum(uint _value) internal view returns (uint _minQuorum) {
         // minimum of 20% and maximum of 53.33%
         return totalSupply / minQuorumDivisor +
             (_value * totalSupply) / (3 * (actualBalance() + rewardToken[address(this)]));
@@ -892,12 +892,12 @@ contract DAO is DAOInterface, Token, TokenCreation {
         );
     }
 
-    function numberOfProposals() constant returns (uint _numberOfProposals) {
+    function numberOfProposals() view returns (uint _numberOfProposals) {
         // Don't count index 0. It's used by isBlocked() and exists from start
         return proposals.length - 1;
     }
 
-    function getNewDAOAddress(uint _proposalID) constant returns (address _newDAO) {
+    function getNewDAOAddress(uint _proposalID) view returns (address _newDAO) {
         return proposals[_proposalID].splitData[0].newDAO;
     }
 

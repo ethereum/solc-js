@@ -73,7 +73,7 @@ contract TokenCreationInterface {
 
     /// @return The divisor used to calculate the token creation rate during
     /// the creation phase
-    function divisor() constant returns (uint divisor);
+    function divisor() view returns (uint divisor);
 
     event FuelingToDate(uint value);
     event CreatedToken(address indexed to, uint amount);
@@ -135,7 +135,7 @@ contract TokenCreation is TokenCreationInterface, Token {
         }
     }
 
-    function divisor() constant returns (uint divisor) {
+    function divisor() view returns (uint divisor) {
         // The number of (base unit) tokens per wei is calculated
         // as `msg.value` * 20 / `divisor`
         // The fueling period starts with a 1:1 ratio
