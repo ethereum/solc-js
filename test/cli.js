@@ -1,6 +1,14 @@
 const tape = require('tape');
 const spawn = require('tape-spawn');
 const pkg = require('../package.json');
+const semver = require('semver');
+
+var daodir;
+if (semver.lt(pkg.version, '0.5.0')) {
+  daodir = 'DAO040';
+} else {
+  daodir = 'DAO';
+}
 
 tape('CLI', function (t) {
   t.test('--version', function (st) {
@@ -17,13 +25,13 @@ tape('CLI', function (t) {
   });
 
   t.test('no mode specified', function (st) {
-    var spt = spawn(st, './solcjs test/DAO/Token.sol');
+    var spt = spawn(st, './solcjs test/' + daodir + '/Token.sol');
     spt.stderr.match(/^Invalid option selected/);
     spt.end();
   });
 
   t.test('--bin', function (st) {
-    var spt = spawn(st, './solcjs --bin test/DAO/Token.sol');
+    var spt = spawn(st, './solcjs --bin test/' + daodir + '/Token.sol');
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
@@ -36,14 +44,14 @@ tape('CLI', function (t) {
   });
 
   t.test('--abi', function (st) {
-    var spt = spawn(st, './solcjs --abi test/DAO/Token.sol');
+    var spt = spawn(st, './solcjs --abi test/' + daodir + '/Token.sol');
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
   });
 
   t.test('--bin --abi', function (st) {
-    var spt = spawn(st, './solcjs --bin --abi test/DAO/Token.sol');
+    var spt = spawn(st, './solcjs --bin --abi test/' + daodir + '/Token.sol');
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
