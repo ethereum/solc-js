@@ -455,7 +455,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         p.recipient = _recipient;
         p.amount = _amount;
         p.description = _description;
-        p.proposalHash = keccak256(_recipient, _amount, _transactionData);
+        p.proposalHash = keccak256(abi.encodePacked(_recipient, _amount, _transactionData));
         p.votingDeadline = now + _debatingPeriod;
         p.open = true;
         //p.proposalPassed = False; // that's default
@@ -484,7 +484,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         bytes _transactionData
     ) noEther view returns (bool _codeChecksOut) {
         Proposal p = proposals[_proposalID];
-        return p.proposalHash == keccak256(_recipient, _amount, _transactionData);
+        return p.proposalHash == keccak256(abi.encodePacked(_recipient, _amount, _transactionData));
     }
 
 
@@ -543,7 +543,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
             || !p.open
             || p.proposalPassed // anyone trying to call us recursively?
             // Does the transaction code match the proposal?
-            || p.proposalHash != keccak256(p.recipient, p.amount, _transactionData)) {
+            || p.proposalHash != keccak256(abi.encodePacked(p.recipient, p.amount, _transactionData))) {
 
             revert();
         }
@@ -699,7 +699,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     function newContract(address _newContract){
         if (msg.sender != address(this) || !allowedRecipients[_newContract]) return;
         // move all ether
-        if (!_newContract.call.value(address(this).balance)()) {
+        if (!_newContract.call.value(address(this).balance)("")) {
             revert();
         }
 
