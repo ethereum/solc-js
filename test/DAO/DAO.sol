@@ -357,7 +357,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
             _;
     }
 
-    function DAO(
+    constructor(
         address _curator,
         DAO_Creator _daoCreator,
         uint _proposalDeposit,
