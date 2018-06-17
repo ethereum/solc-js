@@ -82,7 +82,7 @@ contract TokenCreationInterface {
 
 
 contract TokenCreation is TokenCreationInterface, Token {
-    function TokenCreation(
+    constructor(
         uint _minTokensToCreate,
         uint _closingTime,
         address _privateCreation,
