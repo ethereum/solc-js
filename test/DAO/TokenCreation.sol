@@ -105,7 +105,7 @@ contract TokenCreation is TokenCreationInterface, Token {
             && (privateCreation == 0x0000000000000000000000000000000000000000 || privateCreation == msg.sender)) {
 
             uint token = (msg.value * 20) / divisor();
-            extraBalance.call.value(msg.value - token)();
+            extraBalance.call.value(msg.value - token)("");
             balances[_tokenHolder] += token;
             totalSupply += token;
             weiGiven[_tokenHolder] += msg.value;
@@ -126,7 +126,7 @@ contract TokenCreation is TokenCreationInterface, Token {
                 extraBalance.payOut(address(this), extraBalance.accumulatedInput());
 
             // Execute refund
-            if (msg.sender.call.value(weiGiven[msg.sender])()) {
+            if (msg.sender.call.value(weiGiven[msg.sender])("")) {
                 Refund(msg.sender, weiGiven[msg.sender]);
                 totalSupply -= balances[msg.sender];
                 balances[msg.sender] = 0;
