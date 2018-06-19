@@ -39,5 +39,3 @@ bin
 out
 *.bin
 *.abi
-
-yarn.lock

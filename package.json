@@ -9,7 +9,7 @@
   },
   "scripts": {
     "lint": "semistandard",
-    "prepublish": "node downloadCurrentVersion.js && node verifyVersion.js",
+    "prepublish": "./solcjs-get",
     "pretest": "npm run lint",
     "test": "tape ./test/index.js",
     "clean": "rm -rf *.abi *.bin output",
