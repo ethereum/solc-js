@@ -73,7 +73,7 @@ contract TokenCreationInterface {
 
     /// @return The divisor used to calculate the token creation rate during
     /// the creation phase
-    function divisor() view returns (uint divisor);
+    function divisor() constant returns (uint divisor);
 
     event FuelingToDate(uint value);
     event CreatedToken(address indexed to, uint amount);
@@ -82,7 +82,7 @@ contract TokenCreationInterface {
 
 
 contract TokenCreation is TokenCreationInterface, Token {
-    constructor(
+    function TokenCreation(
         uint _minTokensToCreate,
         uint _closingTime,
         address _privateCreation,
@@ -102,10 +102,10 @@ contract TokenCreation is TokenCreationInterface, Token {
 
     function createTokenProxy(address _tokenHolder) payable returns (bool success) {
         if (now < closingTime && msg.value > 0
-            && (privateCreation == 0x0000000000000000000000000000000000000000 || privateCreation == msg.sender)) {
+            && (privateCreation == 0 || privateCreation == msg.sender)) {
 
             uint token = (msg.value * 20) / divisor();
-            extraBalance.call.value(msg.value - token)("");
+            extraBalance.call.value(msg.value - token)();
             balances[_tokenHolder] += token;
             totalSupply += token;
             weiGiven[_tokenHolder] += msg.value;
@@ -126,7 +126,7 @@ contract TokenCreation is TokenCreationInterface, Token {
                 extraBalance.payOut(address(this), extraBalance.accumulatedInput());
 
             // Execute refund
-            if (msg.sender.call.value(weiGiven[msg.sender])("")) {
+            if (msg.sender.call.value(weiGiven[msg.sender])()) {
                 Refund(msg.sender, weiGiven[msg.sender]);
                 totalSupply -= balances[msg.sender];
                 balances[msg.sender] = 0;
@@ -135,7 +135,7 @@ contract TokenCreation is TokenCreationInterface, Token {
         }
     }
 
-    function divisor() view returns (uint divisor) {
+    function divisor() constant returns (uint divisor) {
         // The number of (base unit) tokens per wei is calculated
         // as `msg.value` * 20 / `divisor`
         // The fueling period starts with a 1:1 ratio

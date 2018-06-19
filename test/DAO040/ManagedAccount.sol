@@ -42,7 +42,7 @@ contract ManagedAccountInterface {
 contract ManagedAccount is ManagedAccountInterface{
 
     // The constructor sets the owner of the account
-    constructor(address _owner, bool _payOwnerOnly) {
+    function ManagedAccount(address _owner, bool _payOwnerOnly) {
         owner = _owner;
         payOwnerOnly = _payOwnerOnly;
     }
@@ -57,7 +57,7 @@ contract ManagedAccount is ManagedAccountInterface{
     function payOut(address _recipient, uint _amount) returns (bool) {
         if (msg.sender != owner || msg.value > 0 || (payOwnerOnly && _recipient != owner))
             revert();
-        if (_recipient.call.value(_amount)("")) {
+        if (_recipient.call.value(_amount)()) {
             PayOut(_recipient, _amount);
             return true;
         } else {

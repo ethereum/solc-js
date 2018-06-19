@@ -1,16 +1,23 @@
 const tape = require('tape');
 const fs = require('fs');
 const solc = require('../index.js');
+const semver = require('semver');
 
 tape('Deterministic Compilation', function (t) {
   t.test('DAO', function (st) {
     var input = {};
     var prevBytecode = null;
+    var testdir;
+    if (semver.lt(solc.semver(), '0.5.0')) {
+      testdir = 'test/DAO040/';
+    } else {
+      testdir = 'test/DAO/';
+    }
     var files = ['DAO.sol', 'Token.sol', 'TokenCreation.sol', 'ManagedAccount.sol'];
     var i;
     for (i in files) {
       var file = files[i];
-      input[file] = fs.readFileSync('test/DAO/' + file, 'utf8');
+      input[file] = fs.readFileSync(testdir + file, 'utf8');
     }
     for (i = 0; i < 10; i++) {
       var output = solc.compile({sources: input}, 1);
