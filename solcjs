@@ -43,7 +43,6 @@ var yargs = require('yargs')
     type: 'string'
   })
   .global([ 'version', 'optimize' ])
-  .version(solc.version())
   .showHelpOnFail(false, 'Specify --help for available options')
   .help()
 
@@ -95,7 +94,7 @@ if (argv['standard-json']) {
   console.log(solc.compileStandard(input));
   process.exit(0);
 } else if (files.length === 0) {
-  console.error('Must provide a file');
+  console.error('You must provide at least one file to compile.');
   process.exit(1);
 }
 
