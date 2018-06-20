@@ -55,7 +55,7 @@ if (argv['standard-json']) {
     abort('Compiler does not support Standard JSON I/O!');
   }
 
-  var size = fs.fstatSync(process.stdin.fd).size;
+  /*var size = fs.fstatSync(process.stdin.fd).size;
 
   if (size <= 0) {
     abort('Empty input was read');
@@ -63,8 +63,9 @@ if (argv['standard-json']) {
 
   var input = Buffer.alloc(size);
   fs.readSync(process.stdin.fd, input, 0, size);
-
-  console.log(solc.compileStandard(input.toString()));
+*/
+  var stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
+  console.log(solc.compileStandard(stdinBuffer.toString()));
   process.exit(0);
 } else if (files.length === 0) {
   console.error('Must provide a file');
