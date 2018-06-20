@@ -3,11 +3,11 @@ node_js:
   - '8'
   - '6'
   - '4'
-branches:
+#branches:
     # We need to whitelist the branches which we want to have "push" automation.
     # Pull request automation is not constrained to this set of branches.
-    only:
-        - master
+#    only:
+#        - master
 matrix:
   fast_finish: true
   include:
