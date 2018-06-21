@@ -86,8 +86,8 @@ contract TokenCreation is TokenCreationInterface, Token {
         uint _minTokensToCreate,
         uint _closingTime,
         address _privateCreation,
-        string _tokenName,
-        string _tokenSymbol,
+        string memory _tokenName,
+        string memory _tokenSymbol,
         uint8 _decimalPlaces) {
 
         closingTime = _closingTime;

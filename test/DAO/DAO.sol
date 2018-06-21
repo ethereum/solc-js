@@ -202,8 +202,8 @@ contract DAOInterface {
     function newProposal(
         address _recipient,
         uint _amount,
-        string _description,
-        bytes _transactionData,
+        string memory _description,
+        bytes memory _transactionData,
         uint _debatingPeriod,
         bool _newCurator
     ) onlyTokenholders returns (uint _proposalID);
@@ -220,7 +220,7 @@ contract DAOInterface {
         uint _proposalID,
         address _recipient,
         uint _amount,
-        bytes _transactionData
+        bytes memory _transactionData
     ) view returns (bool _codeChecksOut);
 
     /// @notice Vote on proposal `_proposalID` with `_supportsProposal`
@@ -240,7 +240,7 @@ contract DAOInterface {
     /// @return Whether the proposed transaction has been executed or not
     function executeProposal(
         uint _proposalID,
-        bytes _transactionData
+        bytes memory _transactionData
     ) returns (bool _success);
 
     /// @notice ATTENTION! I confirm to move my remaining ether to a new DAO
@@ -364,8 +364,8 @@ contract DAO is DAOInterface, Token, TokenCreation {
         uint _minTokensToCreate,
         uint _closingTime,
         address _privateCreation,
-        string _tokenName, 
-        string _tokenSymbol,
+        string memory _tokenName,
+        string memory _tokenSymbol,
         uint8 _decimalPlaces
     ) TokenCreation(
         _minTokensToCreate, 
@@ -408,8 +408,8 @@ contract DAO is DAOInterface, Token, TokenCreation {
     function newProposal(
         address _recipient,
         uint _amount,
-        string _description,
-        bytes _transactionData,
+        string memory _description,
+        bytes memory _transactionData,
         uint _debatingPeriod,
         bool _newCurator
     ) onlyTokenholders returns (uint _proposalID) {
@@ -481,7 +481,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         uint _proposalID,
         address _recipient,
         uint _amount,
-        bytes _transactionData
+        bytes memory _transactionData
     ) noEther view returns (bool _codeChecksOut) {
         Proposal p = proposals[_proposalID];
         return p.proposalHash == keccak256(abi.encodePacked(_recipient, _amount, _transactionData));
@@ -523,7 +523,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
     function executeProposal(
         uint _proposalID,
-        bytes _transactionData
+        bytes memory _transactionData
     ) noEther returns (bool _success) {
 
         Proposal p = proposals[_proposalID];
@@ -924,8 +924,8 @@ contract DAO_Creator {
         uint _proposalDeposit,
         uint _minTokensToCreate,
         uint _closingTime,
-        string _tokenName, 
-        string _tokenSymbol,
+        string memory _tokenName,
+        string memory _tokenSymbol,
         uint8 _decimalPlaces
     ) returns (DAO _newDAO) {
 
