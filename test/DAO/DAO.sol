@@ -467,7 +467,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
         sumOfProposalDeposits += msg.value;
 
-        ProposalAdded(
+        emit ProposalAdded(
             _proposalID,
             _recipient,
             _amount,
@@ -517,7 +517,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
             blocked[msg.sender] = _proposalID;
         }
 
-        Voted(_proposalID, _supportsProposal, msg.sender);
+        emit Voted(_proposalID, _supportsProposal, msg.sender);
     }
 
 
@@ -610,7 +610,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         closeProposal(_proposalID);
 
         // Initiate event
-        ProposalTallied(_proposalID, _success, quorum);
+        emit ProposalTallied(_proposalID, _success, quorum);
     }
 
 
@@ -835,7 +835,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         if (msg.sender != curator)
             revert();
         allowedRecipients[_recipient] = _allowed;
-        AllowedRecipientChanged(_recipient, _allowed);
+        emit AllowedRecipientChanged(_recipient, _allowed);
         return true;
     }
 
@@ -880,7 +880,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     }
 
     function createNewDAO(address _newCurator) internal returns (DAO _newDAO) {
-        NewCurator(_newCurator);
+        emit NewCurator(_newCurator);
         return daoCreator.createDAO(
             _newCurator,
             0,

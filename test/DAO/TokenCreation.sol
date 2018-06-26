@@ -109,10 +109,10 @@ contract TokenCreation is TokenCreationInterface, Token {
             balances[_tokenHolder] += token;
             totalSupply += token;
             weiGiven[_tokenHolder] += msg.value;
-            CreatedToken(_tokenHolder, token);
+            emit CreatedToken(_tokenHolder, token);
             if (totalSupply >= minTokensToCreate && !isFueled) {
                 isFueled = true;
-                FuelingToDate(totalSupply);
+                emit FuelingToDate(totalSupply);
             }
             return true;
         }
@@ -127,7 +127,7 @@ contract TokenCreation is TokenCreationInterface, Token {
 
             // Execute refund
             if (msg.sender.call.value(weiGiven[msg.sender])("")) {
-                Refund(msg.sender, weiGiven[msg.sender]);
+                emit Refund(msg.sender, weiGiven[msg.sender]);
                 totalSupply -= balances[msg.sender];
                 balances[msg.sender] = 0;
                 weiGiven[msg.sender] = 0;

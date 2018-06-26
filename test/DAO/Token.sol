@@ -104,7 +104,7 @@ contract Token is TokenInterface {
         if (balances[msg.sender] >= _amount && _amount > 0) {
             balances[msg.sender] -= _amount;
             balances[_to] += _amount;
-            Transfer(msg.sender, _to, _amount);
+            emit Transfer(msg.sender, _to, _amount);
             return true;
         } else {
            return false;
@@ -124,7 +124,7 @@ contract Token is TokenInterface {
             balances[_to] += _amount;
             balances[_from] -= _amount;
             allowed[_from][msg.sender] -= _amount;
-            Transfer(_from, _to, _amount);
+            emit Transfer(_from, _to, _amount);
             return true;
         } else {
             return false;
@@ -133,7 +133,7 @@ contract Token is TokenInterface {
 
     function approve(address _spender, uint256 _amount) public returns (bool success) {
         allowed[msg.sender][_spender] = _amount;
-        Approval(msg.sender, _spender, _amount);
+        emit Approval(msg.sender, _spender, _amount);
         return true;
     }
     

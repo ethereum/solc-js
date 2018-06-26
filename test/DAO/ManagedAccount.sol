@@ -58,7 +58,7 @@ contract ManagedAccount is ManagedAccountInterface{
         if (msg.sender != owner || msg.value > 0 || (payOwnerOnly && _recipient != owner))
             revert();
         if (_recipient.call.value(_amount)("")) {
-            PayOut(_recipient, _amount);
+            emit PayOut(_recipient, _amount);
             return true;
         } else {
             return false;
