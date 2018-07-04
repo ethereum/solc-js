@@ -88,7 +88,7 @@ contract TokenInterface {
 }
 
 contract tokenRecipient { 
-    function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) public; 
+    function receiveApproval(address _from, uint256 _value, address _token, bytes memory _extraData) public;
 }
 
 contract Token is TokenInterface {
@@ -138,7 +138,7 @@ contract Token is TokenInterface {
     }
     
     /// Allow another contract to spend some tokens in your behalf 
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData)
+    function approveAndCall(address _spender, uint256 _value, bytes memory _extraData)
         public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         tokenRecipient spender = tokenRecipient(_spender);
