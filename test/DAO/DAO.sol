@@ -451,7 +451,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
             lastTimeMinQuorumMet = now;
 
         _proposalID = proposals.length++;
-        Proposal p = proposals[_proposalID];
+        Proposal storage p = proposals[_proposalID];
         p.recipient = _recipient;
         p.amount = _amount;
         p.description = _description;
@@ -483,7 +483,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         uint _amount,
         bytes memory _transactionData
     ) noEther view returns (bool _codeChecksOut) {
-        Proposal p = proposals[_proposalID];
+        Proposal storage p = proposals[_proposalID];
         return p.proposalHash == keccak256(abi.encodePacked(_recipient, _amount, _transactionData));
     }
 
@@ -493,7 +493,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         bool _supportsProposal
     ) onlyTokenholders noEther returns (uint _voteID) {
 
-        Proposal p = proposals[_proposalID];
+        Proposal storage p = proposals[_proposalID];
         if (p.votedYes[msg.sender]
             || p.votedNo[msg.sender]
             || now >= p.votingDeadline) {
@@ -526,7 +526,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         bytes memory _transactionData
     ) noEther returns (bool _success) {
 
-        Proposal p = proposals[_proposalID];
+        Proposal storage p = proposals[_proposalID];
 
         uint waitPeriod = p.newCurator
             ? splitExecutionPeriod
@@ -615,7 +615,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
 
     function closeProposal(uint _proposalID) internal {
-        Proposal p = proposals[_proposalID];
+        Proposal storage p = proposals[_proposalID];
         if (p.open)
             sumOfProposalDeposits -= p.proposalDeposit;
         p.open = false;
@@ -626,7 +626,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         address _newCurator
     ) noEther onlyTokenholders returns (bool _success) {
 
-        Proposal p = proposals[_proposalID];
+        Proposal storage p = proposals[_proposalID];
 
         // Sanity check
 
@@ -904,7 +904,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     function isBlocked(address _account) internal returns (bool) {
         if (blocked[_account] == 0)
             return false;
-        Proposal p = proposals[blocked[_account]];
+        Proposal storage p = proposals[blocked[_account]];
         if (now > p.votingDeadline) {
             blocked[_account] = 0;
             return false;
