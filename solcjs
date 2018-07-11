@@ -61,8 +61,8 @@ if (argv['standard-json']) {
     abort('Empty input was read');
   }
 
-  var input = Buffer.alloc(size);
-  fs.readSync(process.stdin.fd, input, 0, size);
+  // This accepts integer as a parameter, where 0 corresponds to stdin_fileno
+  var input = fs.readFileSync(0);
 
   console.log(solc.compileStandard(input.toString()));
   process.exit(0);
