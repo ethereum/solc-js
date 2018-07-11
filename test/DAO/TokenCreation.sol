@@ -65,15 +65,15 @@ contract TokenCreationInterface {
     /// @notice Create Token with `_tokenHolder` as the initial owner of the Token
     /// @param _tokenHolder The address of the Tokens's recipient
     /// @return Whether the token creation was successful
-    function createTokenProxy(address _tokenHolder) payable returns (bool success);
+    function createTokenProxy(address _tokenHolder) payable public returns (bool success);
 
     /// @notice Refund `msg.sender` in the case the Token Creation did
     /// not reach its minimum fueling goal
-    function refund();
+    function refund() public;
 
     /// @return The divisor used to calculate the token creation rate during
     /// the creation phase
-    function divisor() view returns (uint divisor);
+    function divisor() public view returns (uint divisor);
 
     event FuelingToDate(uint value);
     event CreatedToken(address indexed to, uint amount);
@@ -88,7 +88,7 @@ contract TokenCreation is TokenCreationInterface, Token {
         address _privateCreation,
         string memory _tokenName,
         string memory _tokenSymbol,
-        uint8 _decimalPlaces) {
+        uint8 _decimalPlaces) public {
 
         closingTime = _closingTime;
         minTokensToCreate = _minTokensToCreate;
@@ -97,10 +97,10 @@ contract TokenCreation is TokenCreationInterface, Token {
         name = _tokenName;
         symbol = _tokenSymbol;
         decimals = _decimalPlaces;
-        
+
     }
 
-    function createTokenProxy(address _tokenHolder) payable returns (bool success) {
+    function createTokenProxy(address _tokenHolder) payable public returns (bool success) {
         if (now < closingTime && msg.value > 0
             && (privateCreation == 0x0000000000000000000000000000000000000000 || privateCreation == msg.sender)) {
 
@@ -119,7 +119,7 @@ contract TokenCreation is TokenCreationInterface, Token {
         revert();
     }
 
-    function refund() noEther {
+    function refund() noEther public {
         if (now > closingTime && !isFueled) {
             // Get extraBalance - will only succeed when called for the first time
             if (extraBalance.balance >= extraBalance.accumulatedInput())
@@ -135,7 +135,7 @@ contract TokenCreation is TokenCreationInterface, Token {
         }
     }
 
-    function divisor() view returns (uint divisor) {
+    function divisor() public view returns (uint divisor) {
         // The number of (base unit) tokens per wei is calculated
         // as `msg.value` * 20 / `divisor`
         // The fueling period starts with a 1:1 ratio
