@@ -653,7 +653,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
             if (address(p.splitData[0].newDAO) == 0x0000000000000000000000000000000000000000)
                 revert();
             // should never happen
-            if (this.balance < sumOfProposalDeposits)
+            if (address(this).balance < sumOfProposalDeposits)
                 revert();
             p.splitData[0].splitBalance = actualBalance();
             p.splitData[0].rewardToken = rewardToken[address(this)];
@@ -722,7 +722,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
             (rewardToken[msg.sender] * DAOrewardAccount.accumulatedInput()) /
             totalRewardToken - DAOpaidOut[msg.sender];
 
-        reward = DAOrewardAccount.balance < reward ? DAOrewardAccount.balance : reward;
+        reward = address(DAOrewardAccount).balance < reward ? address(DAOrewardAccount).balance : reward;
 
         if(_toMembers) {
             if (!DAOrewardAccount.payOut(dao.rewardAccount(), reward))
@@ -748,7 +748,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         uint reward =
             (balanceOf(_account) * rewardAccount.accumulatedInput()) / totalSupply - paidOut[_account];
 
-        reward = rewardAccount.balance < reward ? rewardAccount.balance : reward;
+        reward = address(rewardAccount).balance < reward ? address(rewardAccount).balance : reward;
 
         if (!rewardAccount.payOut(_account, reward))
             revert();
@@ -852,7 +852,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     }
 
     function actualBalance() public view returns (uint _actualBalance) {
-        return this.balance - sumOfProposalDeposits;
+        return address(this).balance - sumOfProposalDeposits;
     }
 
 
