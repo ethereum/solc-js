@@ -142,7 +142,7 @@ contract Token is TokenInterface {
         public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         tokenRecipient spender = tokenRecipient(_spender);
-        spender.receiveApproval(msg.sender, _value, this, _extraData);
+        spender.receiveApproval(msg.sender, _value, address(this), _extraData);
         return true;
     }
 

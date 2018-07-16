@@ -725,11 +725,11 @@ contract DAO is DAOInterface, Token, TokenCreation {
         reward = address(DAOrewardAccount).balance < reward ? address(DAOrewardAccount).balance : reward;
 
         if(_toMembers) {
-            if (!DAOrewardAccount.payOut(dao.rewardAccount(), reward))
+            if (!DAOrewardAccount.payOut(address(dao.rewardAccount()), reward))
                 revert();
             }
         else {
-            if (!DAOrewardAccount.payOut(dao, reward))
+            if (!DAOrewardAccount.payOut(address(dao), reward))
                 revert();
         }
         DAOpaidOut[msg.sender] += reward;
@@ -898,7 +898,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     }
 
     function getNewDAOAddress(uint _proposalID) public view returns (address _newDAO) {
-        return proposals[_proposalID].splitData[0].newDAO;
+        return address(proposals[_proposalID].splitData[0].newDAO);
     }
 
     function isBlocked(address _account) internal returns (bool) {
