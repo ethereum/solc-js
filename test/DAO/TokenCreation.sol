@@ -105,7 +105,7 @@ contract TokenCreation is TokenCreationInterface, Token {
             && (privateCreation == 0x0000000000000000000000000000000000000000 || privateCreation == msg.sender)) {
 
             uint token = (msg.value * 20) / divisor();
-            extraBalance.call.value(msg.value - token)("");
+            address(extraBalance).call.value(msg.value - token)("");
             balances[_tokenHolder] += token;
             totalSupply += token;
             weiGiven[_tokenHolder] += msg.value;
@@ -122,7 +122,7 @@ contract TokenCreation is TokenCreationInterface, Token {
     function refund() noEther public {
         if (now > closingTime && !isFueled) {
             // Get extraBalance - will only succeed when called for the first time
-            if (extraBalance.balance >= extraBalance.accumulatedInput())
+            if (address(extraBalance).balance >= extraBalance.accumulatedInput())
                 extraBalance.payOut(address(this), extraBalance.accumulatedInput());
 
             // Execute refund
