@@ -48,7 +48,7 @@ tape('Version and license', function (t) {
 
 tape('Compilation', function (t) {
   t.test('single files can be compiled', function (st) {
-    var output = solc.compile('contract x { function g() {} }');
+    var output = solc.compile('contract x { function g() public {} }');
     st.ok('contracts' in output);
     var bytecode = getBytecode(output, '', 'x');
     st.ok(bytecode);
@@ -90,8 +90,8 @@ tape('Compilation', function (t) {
     }
 
     var input = {
-      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     var output = solc.compile({sources: input});
     var x = getBytecode(output, 'cont.sol', 'x');
@@ -111,11 +111,11 @@ tape('Compilation', function (t) {
     }
 
     var input = {
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     function findImports (path) {
       if (path === 'lib.sol') {
-        return { contents: 'library L { function f() returns (uint) { return 7; } }' };
+        return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
       } else {
         return { error: 'File not found' };
       }
@@ -138,7 +138,7 @@ tape('Compilation', function (t) {
     }
 
     var input = {
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     function findImports (path) {
       return { error: 'File not found' };
@@ -167,7 +167,7 @@ tape('Compilation', function (t) {
     }
 
     var input = {
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     function findImports (path) {
       throw new Error('Could not implement this interface properly...');
@@ -186,7 +186,7 @@ tape('Compilation', function (t) {
     }
 
     var input = {
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     st.throws(function () {
       solc.compile({sources: input}, 0, "this isn't a callback");
@@ -202,7 +202,7 @@ tape('Compilation', function (t) {
     }
 
     var input = {
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     var output = solc.compile({sources: input}, 0);
     st.plan(3);
@@ -238,10 +238,10 @@ tape('Compilation', function (t) {
       },
       'sources': {
         'lib.sol': {
-          'content': 'library L { function f() returns (uint) { return 7; } }'
+          'content': 'library L { function f() public returns (uint) { return 7; } }'
         },
         'cont.sol': {
-          'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+          'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
         }
       }
     };
@@ -311,14 +311,14 @@ tape('Compilation', function (t) {
       },
       'sources': {
         'cont.sol': {
-          'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+          'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
         }
       }
     };
 
     function findImports (path) {
       if (path === 'lib.sol') {
-        return { contents: 'library L { function f() returns (uint) { return 7; } }' };
+        return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
       } else {
         return { error: 'File not found' };
       }
@@ -357,10 +357,10 @@ tape('Compilation', function (t) {
       },
       'sources': {
         'lib.sol': {
-          'content': 'library L { function f() returns (uint) { return 7; } }'
+          'content': 'library L { function f() public returns (uint) { return 7; } }'
         },
         'cont.sol': {
-          'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+          'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
         }
       }
     };
@@ -400,10 +400,10 @@ tape('Compilation', function (t) {
       },
       'sources': {
         'lib.sol': {
-          'content': 'library L { function f() returns (uint) { return 7; } }'
+          'content': 'library L { function f() public returns (uint) { return 7; } }'
         },
         'cont.sol': {
-          'content': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+          'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
         }
       }
     };
@@ -426,7 +426,7 @@ tape('Loading Legacy Versions', function (t) {
     st.plan(3);
     solc.loadRemoteVersion('latest', function (err, solcSnapshot) {
       st.notOk(err);
-      var output = solcSnapshot.compile('contract x { function g() {} }');
+      var output = solcSnapshot.compile('contract x { function g() public {} }');
       st.ok(':x' in output.contracts);
       st.ok(output.contracts[':x'].bytecode.length > 0);
     });
@@ -444,8 +444,8 @@ tape('Linking', function (t) {
 
   t.test('link properly', function (st) {
     var input = {
-      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     var output = solc.compile({sources: input});
     var bytecode = getBytecode(output, 'cont.sol', 'x');
@@ -458,8 +458,8 @@ tape('Linking', function (t) {
 
   t.test('link properly with two-level configuration (from standard JSON)', function (st) {
     var input = {
-      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     var output = solc.compile({sources: input});
     var bytecode = getBytecode(output, 'cont.sol', 'x');
@@ -472,8 +472,8 @@ tape('Linking', function (t) {
 
   t.test('linker to fail with missing library', function (st) {
     var input = {
-      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     var output = solc.compile({sources: input});
     var bytecode = getBytecode(output, 'cont.sol', 'x');
@@ -486,8 +486,8 @@ tape('Linking', function (t) {
 
   t.test('linker to fail with invalid address', function (st) {
     var input = {
-      'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+      'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     var output = solc.compile({sources: input});
     var bytecode = getBytecode(output, 'cont.sol', 'x');
@@ -501,8 +501,8 @@ tape('Linking', function (t) {
 
   t.test('linker properly with truncated library name', function (st) {
     var input = {
-      'lib.sol': 'library L1234567890123456789012345678901234567890 { function f() returns (uint) { return 7; } }',
-      'cont.sol': 'import "lib.sol"; contract x { function g() { L1234567890123456789012345678901234567890.f(); } }'
+      'lib.sol': 'library L1234567890123456789012345678901234567890 { function f() public returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L1234567890123456789012345678901234567890.f(); } }'
     };
     var output = solc.compile({sources: input});
     var bytecode = getBytecode(output, 'cont.sol', 'x');
