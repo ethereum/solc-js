@@ -145,9 +145,6 @@ contract DAOInterface {
         DAO newDAO;
     }
 
-    // Used to restrict access to certain functions to only DAO Token Holders
-    modifier onlyTokenholders { _; }
-
     /// @dev Constructor setting the Curator and the address
     /// for the contract able to create another DAO as well as the parameters
     /// for the DAO Token Creation
@@ -206,7 +203,7 @@ contract DAOInterface {
         bytes memory _transactionData,
         uint _debatingPeriod,
         bool _newCurator
-    ) onlyTokenholders public returns (uint _proposalID);
+    ) public returns (uint _proposalID);
 
     /// @notice Check that the proposal with the ID `_proposalID` matches the
     /// transaction which sends `_amount` with data `_transactionData`
@@ -230,7 +227,7 @@ contract DAOInterface {
     function vote(
         uint _proposalID,
         bool _supportsProposal
-    ) onlyTokenholders public returns (uint _voteID);
+    ) public returns (uint _voteID);
 
     /// @notice Checks whether proposal `_proposalID` with transaction data
     /// `_transactionData` has been voted for or rejected, and executes the
