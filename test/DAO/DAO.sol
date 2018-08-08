@@ -531,7 +531,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         // If we are over deadline and waiting period, assert proposal is closed
         if (p.open && now > p.votingDeadline + waitPeriod) {
             closeProposal(_proposalID);
-            return;
+            return false;
         }
 
         // Check if the proposal can be executed
@@ -550,7 +550,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         if (!isRecipientAllowed(p.recipient)) {
             closeProposal(_proposalID);
             p.creator.send(p.proposalDeposit);
-            return;
+            return false;
         }
 
         bool proposalCheck = true;
