@@ -203,7 +203,7 @@ contract DAOInterface {
         bytes memory _transactionData,
         uint _debatingPeriod,
         bool _newCurator
-    ) public returns (uint _proposalID);
+    ) public payable returns (uint _proposalID);
 
     /// @notice Check that the proposal with the ID `_proposalID` matches the
     /// transaction which sends `_amount` with data `_transactionData`
@@ -409,7 +409,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         bytes memory _transactionData,
         uint _debatingPeriod,
         bool _newCurator
-    ) onlyTokenholders public returns (uint _proposalID) {
+    ) onlyTokenholders public payable returns (uint _proposalID) {
 
         // Sanity check
         if (_newCurator && (
@@ -479,7 +479,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         address _recipient,
         uint _amount,
         bytes memory _transactionData
-    ) noEther public view returns (bool _codeChecksOut) {
+    ) public view returns (bool _codeChecksOut) {
         Proposal storage p = proposals[_proposalID];
         return p.proposalHash == keccak256(abi.encodePacked(_recipient, _amount, _transactionData));
     }
@@ -488,7 +488,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     function vote(
         uint _proposalID,
         bool _supportsProposal
-    ) onlyTokenholders noEther public returns (uint _voteID) {
+    ) onlyTokenholders public returns (uint _voteID) {
 
         Proposal storage p = proposals[_proposalID];
         if (p.votedYes[msg.sender]
@@ -521,7 +521,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     function executeProposal(
         uint _proposalID,
         bytes memory _transactionData
-    ) noEther public returns (bool _success) {
+    ) public returns (bool _success) {
 
         Proposal storage p = proposals[_proposalID];
 
@@ -621,7 +621,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     function splitDAO(
         uint _proposalID,
         address _newCurator
-    ) noEther onlyTokenholders public returns (bool _success) {
+    ) onlyTokenholders public returns (bool _success) {
 
         Proposal storage p = proposals[_proposalID];
 
@@ -708,7 +708,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     }
 
 
-    function retrieveDAOReward(bool _toMembers) external noEther returns (bool _success) {
+    function retrieveDAOReward(bool _toMembers) external returns (bool _success) {
         DAO dao = DAO(msg.sender);
 
         if ((rewardToken[msg.sender] * DAOrewardAccount.accumulatedInput()) /
@@ -733,7 +733,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         return true;
     }
 
-    function getMyReward() noEther public returns (bool _success) {
+    function getMyReward() public returns (bool _success) {
         return withdrawRewardFor(msg.sender);
     }
 
@@ -818,7 +818,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     }
 
 
-    function changeProposalDeposit(uint _proposalDeposit) noEther external {
+    function changeProposalDeposit(uint _proposalDeposit) external {
         if (msg.sender != address(this) || _proposalDeposit > (actualBalance() + rewardToken[address(this)])
             / maxDepositDivisor) {
 
@@ -828,7 +828,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     }
 
 
-    function changeAllowedRecipients(address _recipient, bool _allowed) noEther external returns (bool _success) {
+    function changeAllowedRecipients(address _recipient, bool _allowed) external returns (bool _success) {
         if (msg.sender != curator)
             revert();
         allowedRecipients[_recipient] = _allowed;

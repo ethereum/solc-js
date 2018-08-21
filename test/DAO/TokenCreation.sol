@@ -119,7 +119,7 @@ contract TokenCreation is TokenCreationInterface, Token {
         revert();
     }
 
-    function refund() noEther public {
+    function refund() public {
         if (now > closingTime && !isFueled) {
             // Get extraBalance - will only succeed when called for the first time
             if (address(extraBalance).balance >= extraBalance.accumulatedInput())
