@@ -56,4 +56,11 @@ tape('CLI', function (t) {
     spt.succeeds();
     spt.end();
   });
+
+  t.test('--standard-json', function (st) {
+    var spt = spawn(st, './solcjs --standard-json < test/inputStandardJson.json');
+    spt.stderr.empty();
+    spt.succeeds();
+    spt.end();
+  });
 });

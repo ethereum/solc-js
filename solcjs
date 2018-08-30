@@ -61,7 +61,14 @@ if (argv['standard-json']) {
     abort('Empty input was read');
   }
 
-  var input = fs.readSync(process.stdin.fd, size)[0];
+  var buffer = new Buffer(size);
+
+  var nread = fs.readSync(process.stdin.fd, buffer, 0, size, 0);
+  if (nread < size) {
+    abort('Error reading standard json');
+  }
+
+  var input = buffer.toString('utf8');
 
   console.log(solc.compileStandard(input));
   process.exit(0);

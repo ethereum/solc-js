@@ -1,0 +1,15 @@
+{
+   "language": "Solidity",
+   "sources": {
+      "Contract.sol": {
+         "content": "pragma solidity ^0.4.0; contract Contract { function f() pure public {} }"
+      }
+   },
+   "settings": {
+      "outputSelection": {
+         "*": {
+            "*": ["abi", "evm.bytecode"]
+         }
+      }
+   }
+}
