@@ -587,7 +587,8 @@ contract DAO is DAOInterface, Token, TokenCreation {
             // multiple times out of the DAO
             p.proposalPassed = true;
 
-            if (!p.recipient.call.value(p.amount)(_transactionData))
+            (bool success,) = p.recipient.call.value(p.amount)(_transactionData);
+            if (!success)
                 revert();
 
             _success = true;
@@ -696,7 +697,8 @@ contract DAO is DAOInterface, Token, TokenCreation {
     function newContract(address _newContract) public {
         if (msg.sender != address(this) || !allowedRecipients[_newContract]) return;
         // move all ether
-        if (!_newContract.call.value(address(this).balance)("")) {
+        (bool success,) = _newContract.call.value(address(this).balance)("");
+        if (!success) {
             revert();
         }
 

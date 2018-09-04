@@ -57,7 +57,8 @@ contract ManagedAccount is ManagedAccountInterface{
     function payOut(address _recipient, uint _amount) public returns (bool) {
         if (msg.sender != owner || (payOwnerOnly && _recipient != owner))
             revert();
-        if (_recipient.call.value(_amount)("")) {
+        (bool success,) = _recipient.call.value(_amount)("");
+        if (success) {
             emit PayOut(_recipient, _amount);
             return true;
         } else {

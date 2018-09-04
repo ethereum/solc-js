@@ -126,7 +126,8 @@ contract TokenCreation is TokenCreationInterface, Token {
                 extraBalance.payOut(address(this), extraBalance.accumulatedInput());
 
             // Execute refund
-            if (msg.sender.call.value(weiGiven[msg.sender])("")) {
+            (bool success,) = msg.sender.call.value(weiGiven[msg.sender])("");
+            if (success) {
                 emit Refund(msg.sender, weiGiven[msg.sender]);
                 totalSupply -= balances[msg.sender];
                 balances[msg.sender] = 0;
