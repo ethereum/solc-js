@@ -13,7 +13,7 @@ function setupMethods (soljson) {
   }
   var compileJSONCallback = null;
   var compileStandard = null;
-  if (('_compileJSONCallback' in soljson) || ('_compileStandard' in soljson)) {
+  if (('_compileJSONCallback' in soljson) || ('_compileStandard' in soljson) || ('_solidity_compile' in soljson)) {
     var copyString = function (str, ptr) {
       var length = soljson.lengthBytesUTF8(str);
       var buffer = soljson._malloc(length + 1);
@@ -63,6 +63,12 @@ function setupMethods (soljson) {
       var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
       compileStandard = function (input, readCallback) {
         return runWithReadCallback(readCallback, compileStandardInternal, [ input ]);
+      };
+    }
+    if ('_solidity_compile' in soljson) {
+      var solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
+      compileStandard = function (input, readCallback) {
+        return runWithReadCallback(readCallback, solidityCompile, [ input ]);
       };
     }
   }
@@ -170,18 +176,27 @@ function setupMethods (soljson) {
     return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
   };
 
-  var version = soljson.cwrap('version', 'string', []);
+  var version;
+  if ('_solidity_version' in soljson) {
+    version = soljson.cwrap('solidity_version', 'string', []);
+  } else {
+    version = soljson.cwrap('version', 'string', []);
+  }
 
   var versionToSemver = function () {
     return translate.versionToSemver(version());
   };
 
-  var license = function () {
-    // return undefined
-  };
-
-  if ('_license' in soljson) {
+  var license;
+  if ('_solidity_license' in soljson) {
+    license = soljson.cwrap('solidity_license', 'string', []);
+  } else if ('_license' in soljson) {
     license = soljson.cwrap('license', 'string', []);
+  } else {
+    // pre 0.4.14
+    license = function () {
+      // return undefined
+    };
   }
 
   return {
