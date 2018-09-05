@@ -187,14 +187,16 @@ function setupMethods (soljson) {
     return translate.versionToSemver(version());
   };
 
-  var license = function () {
-    // return undefined
-  };
-
+  var license;
   if ('_solidity_license' in soljson) {
     license = soljson.cwrap('solidity_license', 'string', []);
   } else if ('_license' in soljson) {
     license = soljson.cwrap('license', 'string', []);
+  } else {
+    // pre 0.4.14
+    license = function () {
+      // return undefined
+    };
   }
 
   return {
