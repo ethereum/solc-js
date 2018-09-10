@@ -88,7 +88,7 @@ contract TokenInterface {
 }
 
 contract tokenRecipient { 
-    function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) public; 
+    function receiveApproval(address _from, uint256 _value, address _token, bytes memory _extraData) public;
 }
 
 contract Token is TokenInterface {
@@ -100,11 +100,11 @@ contract Token is TokenInterface {
         return balances[_owner];
     }
 
-    function transfer(address _to, uint256 _amount) noEther public returns (bool success) {
+    function transfer(address _to, uint256 _amount) public returns (bool success) {
         if (balances[msg.sender] >= _amount && _amount > 0) {
             balances[msg.sender] -= _amount;
             balances[_to] += _amount;
-            Transfer(msg.sender, _to, _amount);
+            emit Transfer(msg.sender, _to, _amount);
             return true;
         } else {
            return false;
@@ -115,7 +115,7 @@ contract Token is TokenInterface {
         address _from,
         address _to,
         uint256 _amount
-    ) noEther public returns (bool success) {
+    ) public returns (bool success) {
 
         if (balances[_from] >= _amount
             && allowed[_from][msg.sender] >= _amount
@@ -124,7 +124,7 @@ contract Token is TokenInterface {
             balances[_to] += _amount;
             balances[_from] -= _amount;
             allowed[_from][msg.sender] -= _amount;
-            Transfer(_from, _to, _amount);
+            emit Transfer(_from, _to, _amount);
             return true;
         } else {
             return false;
@@ -133,16 +133,16 @@ contract Token is TokenInterface {
 
     function approve(address _spender, uint256 _amount) public returns (bool success) {
         allowed[msg.sender][_spender] = _amount;
-        Approval(msg.sender, _spender, _amount);
+        emit Approval(msg.sender, _spender, _amount);
         return true;
     }
     
     /// Allow another contract to spend some tokens in your behalf 
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData)
+    function approveAndCall(address _spender, uint256 _value, bytes memory _extraData)
         public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         tokenRecipient spender = tokenRecipient(_spender);
-        spender.receiveApproval(msg.sender, _value, this, _extraData);
+        spender.receiveApproval(msg.sender, _value, address(this), _extraData);
         return true;
     }
 
