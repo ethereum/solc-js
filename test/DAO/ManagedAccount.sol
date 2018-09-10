@@ -33,7 +33,7 @@ contract ManagedAccountInterface {
     /// @param _amount The amount of wei to send to `_recipient`
     /// @param _recipient The address to receive `_amount` of wei
     /// @return True if the send completed
-    function payOut(address _recipient, uint _amount) public returns (bool);
+    function payOut(address payable _recipient, uint _amount) public returns (bool);
 
     event PayOut(address indexed _recipient, uint _amount);
 }
@@ -54,7 +54,7 @@ contract ManagedAccount is ManagedAccountInterface{
         accumulatedInput += msg.value;
     }
 
-    function payOut(address _recipient, uint _amount) public returns (bool) {
+    function payOut(address payable _recipient, uint _amount) public returns (bool) {
         if (msg.sender != owner || (payOwnerOnly && _recipient != owner))
             revert();
         (bool success,) = _recipient.call.value(_amount)("");
