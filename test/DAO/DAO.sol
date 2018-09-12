@@ -53,7 +53,7 @@ contract DAOInterface {
     uint public lastTimeMinQuorumMet;
 
     // Address of the curator
-    address public curator;
+    address payable public curator;
     // The whitelist: List of addresses the DAO is allowed to send ether to
     mapping (address => bool) public allowedRecipients;
 
@@ -100,7 +100,7 @@ contract DAOInterface {
         // The address where the `amount` will go to if the proposal is accepted
         // or if `newCurator` is true, the proposed Curator of
         // the new DAO).
-        address recipient;
+        address payable recipient;
         // The amount to transfer to `recipient` if the proposal is accepted.
         uint amount;
         // A plain text description of the proposal
@@ -130,7 +130,7 @@ contract DAOInterface {
         // Simple mapping to check if a shareholder has voted against it
         mapping (address => bool) votedNo;
         // Address of the shareholder who created the proposal
-        address creator;
+        address payable creator;
     }
 
     // Used only in the case of a newCurator proposal.
@@ -162,7 +162,7 @@ contract DAOInterface {
     ///        counted from.
     // This is the constructor: it can not be overloaded so it is commented out
     //  function DAO(
-        //  address _curator,
+        //  address payable _curator,
         //  DAO_Creator _daoCreator,
         //  uint _proposalDeposit,
         //  uint _minTokensToCreate,
@@ -174,7 +174,7 @@ contract DAOInterface {
     //  );
 
     /// @notice Create Token with `msg.sender` as the beneficiary
-    function () external;
+    function () external payable;
 
 
     /// @dev This function is used to send ether back
@@ -197,7 +197,7 @@ contract DAOInterface {
     /// a new Curator or not
     /// @return The proposal ID. Needed for voting on the proposal
     function newProposal(
-        address _recipient,
+        address payable _recipient,
         uint _amount,
         string memory _description,
         bytes memory _transactionData,
@@ -215,7 +215,7 @@ contract DAOInterface {
     /// @return Whether the proposal ID matches the transaction data or not
     function checkProposalCode(
         uint _proposalID,
-        address _recipient,
+        address payable _recipient,
         uint _amount,
         bytes memory _transactionData
     ) public view returns (bool _codeChecksOut);
@@ -253,14 +253,14 @@ contract DAOInterface {
     /// of the sender.
     function splitDAO(
         uint _proposalID,
-        address _newCurator
+        address payable _newCurator
     ) public returns (bool _success);
 
     /// @dev can only be called by the DAO itself through a proposal
     /// updates the contract of the DAO by sending all ether and rewardTokens
     /// to the new DAO. The new DAO needs to be approved by the Curator
     /// @param _newContract the address of the new contract
-    function newContract(address _newContract) public;
+    function newContract(address payable _newContract) public;
 
 
     /// @notice Add a new possible recipient `_recipient` to the whitelist so
@@ -290,7 +290,7 @@ contract DAOInterface {
     /// @notice Withdraw `_account`'s portion of the reward from `rewardAccount`
     /// to `_account`'s balance
     /// @return Whether the call was successful
-    function withdrawRewardFor(address _account) internal returns (bool _success);
+    function withdrawRewardFor(address payable _account) internal returns (bool _success);
 
     /// @notice Send `_amount` tokens to `_to` from `msg.sender`. Prior to this
     /// getMyReward() is called.
@@ -306,7 +306,7 @@ contract DAOInterface {
     /// @param _amount The amount of tokens to be transfered
     /// @return Whether the transfer was successful or not
     function transferFromWithoutReward(
-        address _from,
+        address payable _from,
         address _to,
         uint256 _amount
     ) public returns (bool success);
@@ -355,7 +355,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     }
 
     constructor(
-        address _curator,
+        address payable _curator,
         DAO_Creator _daoCreator,
         uint _proposalDeposit,
         uint _minTokensToCreate,
@@ -389,7 +389,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         allowedRecipients[curator] = true;
     }
 
-    function () external {
+    function () external payable {
         if (now < closingTime + creationGracePeriod && msg.sender != address(extraBalance))
             createTokenProxy(msg.sender);
         else
@@ -403,7 +403,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
 
     function newProposal(
-        address _recipient,
+        address payable _recipient,
         uint _amount,
         string memory _description,
         bytes memory _transactionData,
@@ -476,7 +476,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
     function checkProposalCode(
         uint _proposalID,
-        address _recipient,
+        address payable _recipient,
         uint _amount,
         bytes memory _transactionData
     ) public view returns (bool _codeChecksOut) {
@@ -621,7 +621,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
     function splitDAO(
         uint _proposalID,
-        address _newCurator
+        address payable _newCurator
     ) onlyTokenholders public returns (bool _success) {
 
         Proposal storage p = proposals[_proposalID];
@@ -694,7 +694,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         return true;
     }
 
-    function newContract(address _newContract) public {
+    function newContract(address payable _newContract) public {
         if (msg.sender != address(this) || !allowedRecipients[_newContract]) return;
         // move all ether
         (bool success,) = _newContract.call.value(address(this).balance)("");
@@ -740,7 +740,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
     }
 
 
-    function withdrawRewardFor(address _account) noEther internal returns (bool _success) {
+    function withdrawRewardFor(address payable _account) noEther internal returns (bool _success) {
         if ((balanceOf(_account) * rewardAccount.accumulatedInput()) / totalSupply < paidOut[_account])
             revert();
 
@@ -794,7 +794,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
 
     function transferFromWithoutReward(
-        address _from,
+        address payable _from,
         address _to,
         uint256 _value
     ) public returns (bool success) {
@@ -878,7 +878,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         }
     }
 
-    function createNewDAO(address _newCurator) internal returns (DAO _newDAO) {
+    function createNewDAO(address payable _newCurator) internal returns (DAO _newDAO) {
         emit NewCurator(_newCurator);
         return daoCreator.createDAO(
             _newCurator,
@@ -919,7 +919,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
 contract DAO_Creator {
     function createDAO(
-        address _curator,
+        address payable _curator,
         uint _proposalDeposit,
         uint _minTokensToCreate,
         uint _closingTime,

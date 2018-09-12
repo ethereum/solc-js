@@ -65,7 +65,7 @@ contract TokenCreationInterface {
     /// @notice Create Token with `_tokenHolder` as the initial owner of the Token
     /// @param _tokenHolder The address of the Tokens's recipient
     /// @return Whether the token creation was successful
-    function createTokenProxy(address _tokenHolder) payable public returns (bool success);
+    function createTokenProxy(address payable _tokenHolder) payable public returns (bool success);
 
     /// @notice Refund `msg.sender` in the case the Token Creation did
     /// not reach its minimum fueling goal
@@ -100,7 +100,7 @@ contract TokenCreation is TokenCreationInterface, Token {
 
     }
 
-    function createTokenProxy(address _tokenHolder) payable public returns (bool success) {
+    function createTokenProxy(address payable _tokenHolder) payable public returns (bool success) {
         if (now < closingTime && msg.value > 0
             && (privateCreation == 0x0000000000000000000000000000000000000000 || privateCreation == msg.sender)) {
 
@@ -149,5 +149,7 @@ contract TokenCreation is TokenCreationInterface, Token {
         } else {
             return 30;
         }
+    }
+    function() external payable {
     }
 }
