@@ -65,6 +65,11 @@ getVersionList(function (list) {
   list = JSON.parse(list);
   var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
   var releaseFileName = list.releases[wanted];
-  var expectedHash = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0].keccak256;
+  var expectedFile = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0];
+  if (!expectedFile) {
+    console.log('Version list is invalid or corrupted?');
+    process.exit(1);
+  }
+  var expectedHash = expectedFile.keccak256;
   downloadBinary('soljson.js', releaseFileName, expectedHash);
 });
