@@ -47,7 +47,7 @@ contract TokenInterface {
 
     /// @param _owner The address from which the balance will be retrieved
     /// @return The balance
-    function balanceOf(address _owner) public view returns (uint256 balance);
+    function balanceOf(address _owner) public constant returns (uint256 balance);
 
     /// @notice Send `_amount` tokens to `_to` from `msg.sender`
     /// @param _to The address of the recipient
@@ -77,7 +77,7 @@ contract TokenInterface {
     function allowance(
         address _owner,
         address _spender
-    ) public view returns (uint256 remaining);
+    ) public constant returns (uint256 remaining);
 
     event Transfer(address indexed _from, address indexed _to, uint256 _amount);
     event Approval(
@@ -96,15 +96,15 @@ contract Token is TokenInterface {
     // inadvertently also transferred ether
     modifier noEther() {if (msg.value > 0) revert(); _; }
 
-    function balanceOf(address _owner) public view returns (uint256 balance) {
+    function balanceOf(address _owner) public constant returns (uint256 balance) {
         return balances[_owner];
     }
 
-    function transfer(address _to, uint256 _amount) public returns (bool success) {
+    function transfer(address _to, uint256 _amount) noEther public returns (bool success) {
         if (balances[msg.sender] >= _amount && _amount > 0) {
             balances[msg.sender] -= _amount;
             balances[_to] += _amount;
-            emit Transfer(msg.sender, _to, _amount);
+            Transfer(msg.sender, _to, _amount);
             return true;
         } else {
            return false;
@@ -115,7 +115,7 @@ contract Token is TokenInterface {
         address _from,
         address _to,
         uint256 _amount
-    ) public returns (bool success) {
+    ) noEther public returns (bool success) {
 
         if (balances[_from] >= _amount
             && allowed[_from][msg.sender] >= _amount
@@ -124,7 +124,7 @@ contract Token is TokenInterface {
             balances[_to] += _amount;
             balances[_from] -= _amount;
             allowed[_from][msg.sender] -= _amount;
-            emit Transfer(_from, _to, _amount);
+            Transfer(_from, _to, _amount);
             return true;
         } else {
             return false;
@@ -133,7 +133,7 @@ contract Token is TokenInterface {
 
     function approve(address _spender, uint256 _amount) public returns (bool success) {
         allowed[msg.sender][_spender] = _amount;
-        emit Approval(msg.sender, _spender, _amount);
+        Approval(msg.sender, _spender, _amount);
         return true;
     }
     
@@ -142,11 +142,11 @@ contract Token is TokenInterface {
         public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         tokenRecipient spender = tokenRecipient(_spender);
-        spender.receiveApproval(msg.sender, _value, address(this), _extraData);
+        spender.receiveApproval(msg.sender, _value, this, _extraData);
         return true;
     }
 
-    function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
+    function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
         return allowed[_owner][_spender];
     }
 }

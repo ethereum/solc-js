@@ -65,15 +65,15 @@ contract TokenCreationInterface {
     /// @notice Create Token with `_tokenHolder` as the initial owner of the Token
     /// @param _tokenHolder The address of the Tokens's recipient
     /// @return Whether the token creation was successful
-    function createTokenProxy(address payable _tokenHolder) payable public returns (bool success);
+    function createTokenProxy(address _tokenHolder) payable returns (bool success);
 
     /// @notice Refund `msg.sender` in the case the Token Creation did
     /// not reach its minimum fueling goal
-    function refund() public;
+    function refund();
 
     /// @return The divisor used to calculate the token creation rate during
     /// the creation phase
-    function divisor() public view returns (uint divisor);
+    function divisor() constant returns (uint divisor);
 
     event FuelingToDate(uint value);
     event CreatedToken(address indexed to, uint amount);
@@ -82,13 +82,13 @@ contract TokenCreationInterface {
 
 
 contract TokenCreation is TokenCreationInterface, Token {
-    constructor(
+    function TokenCreation(
         uint _minTokensToCreate,
         uint _closingTime,
         address _privateCreation,
         string memory _tokenName,
         string memory _tokenSymbol,
-        uint8 _decimalPlaces) public {
+        uint8 _decimalPlaces) {
 
         closingTime = _closingTime;
         minTokensToCreate = _minTokensToCreate;
@@ -97,38 +97,37 @@ contract TokenCreation is TokenCreationInterface, Token {
         name = _tokenName;
         symbol = _tokenSymbol;
         decimals = _decimalPlaces;
-
+        
     }
 
-    function createTokenProxy(address payable _tokenHolder) payable public returns (bool success) {
+    function createTokenProxy(address _tokenHolder) payable returns (bool success) {
         if (now < closingTime && msg.value > 0
-            && (privateCreation == 0x0000000000000000000000000000000000000000 || privateCreation == msg.sender)) {
+            && (privateCreation == 0 || privateCreation == msg.sender)) {
 
             uint token = (msg.value * 20) / divisor();
-            address(extraBalance).call.value(msg.value - token)("");
+            extraBalance.call.value(msg.value - token)();
             balances[_tokenHolder] += token;
             totalSupply += token;
             weiGiven[_tokenHolder] += msg.value;
-            emit CreatedToken(_tokenHolder, token);
+            CreatedToken(_tokenHolder, token);
             if (totalSupply >= minTokensToCreate && !isFueled) {
                 isFueled = true;
-                emit FuelingToDate(totalSupply);
+                FuelingToDate(totalSupply);
             }
             return true;
         }
         revert();
     }
 
-    function refund() public {
+    function refund() noEther {
         if (now > closingTime && !isFueled) {
             // Get extraBalance - will only succeed when called for the first time
-            if (address(extraBalance).balance >= extraBalance.accumulatedInput())
+            if (extraBalance.balance >= extraBalance.accumulatedInput())
                 extraBalance.payOut(address(this), extraBalance.accumulatedInput());
 
             // Execute refund
-            (bool success,) = msg.sender.call.value(weiGiven[msg.sender])("");
-            if (success) {
-                emit Refund(msg.sender, weiGiven[msg.sender]);
+            if (msg.sender.call.value(weiGiven[msg.sender])()) {
+                Refund(msg.sender, weiGiven[msg.sender]);
                 totalSupply -= balances[msg.sender];
                 balances[msg.sender] = 0;
                 weiGiven[msg.sender] = 0;
@@ -136,7 +135,7 @@ contract TokenCreation is TokenCreationInterface, Token {
         }
     }
 
-    function divisor() public view returns (uint divisor) {
+    function divisor() constant returns (uint divisor) {
         // The number of (base unit) tokens per wei is calculated
         // as `msg.value` * 20 / `divisor`
         // The fueling period starts with a 1:1 ratio
@@ -149,7 +148,5 @@ contract TokenCreation is TokenCreationInterface, Token {
         } else {
             return 30;
         }
-    }
-    function() external payable {
     }
 }
