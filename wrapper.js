@@ -48,7 +48,10 @@ function setupMethods (soljson) {
     return output;
   };
 
-  var compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
+  var compileJSON = null;
+  if ('_compileJSON' in soljson) {
+    compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
+  }
   var compileJSONMulti = null;
   if ('_compileJSONMulti' in soljson) {
     compileJSONMulti = soljson.cwrap('compileJSONMulti', 'string', ['string', 'number']);
