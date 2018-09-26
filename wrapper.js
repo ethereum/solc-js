@@ -155,7 +155,12 @@ function setupMethods (soljson) {
     }
 
     function translateOutput (output) {
-      output = translate.translateJsonCompilerOutput(JSON.parse(output));
+      try {
+        output = JSON.parse(output);
+      } catch (e) {
+        return formatFatalError('Compiler returned invalid JSON: ' + e.message);
+      }
+      output = translate.translateJsonCompilerOutput(output);
       if (output == null) {
         return formatFatalError('Failed to process output');
       }
