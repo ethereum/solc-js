@@ -116,7 +116,11 @@ function setupMethods (soljson) {
       return formatFatalError('Invalid import callback supplied');
     }
 
-    input = JSON.parse(input);
+    try {
+      input = JSON.parse(input);
+    } catch (e) {
+      return formatFatalError('Invalid JSON supplied: ' + e.message);
+    }
 
     if (input['language'] !== 'Solidity') {
       return formatFatalError('Only Solidity sources are supported');
