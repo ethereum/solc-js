@@ -79,20 +79,6 @@ function setupMethods (soljson) {
     };
   }
 
-  var compile = function (input, optimise, readCallback) {
-    var result = '';
-    if (readCallback !== undefined && compileJSONCallback !== null) {
-      result = compileJSONCallback(JSON.stringify(input), optimise, readCallback);
-    } else if (typeof input !== 'string' && compileJSONMulti !== null) {
-      result = compileJSONMulti(JSON.stringify(input), optimise);
-    } else if (compileJSON !== null) {
-      result = compileJSON(input, optimise);
-    } else {
-      return { errors: 'No suitable compiler interface found.' };
-    }
-    return JSON.parse(result);
-  };
-
   // Expects a Standard JSON I/O but supports old compilers
   var compileStandardWrapper = function (input, readCallback) {
     if (compileStandard !== null) {
@@ -237,13 +223,7 @@ function setupMethods (soljson) {
       importCallback: compileJSONCallback !== null || compileStandard !== null,
       nativeStandardJSON: compileStandard !== null
     },
-    compile: compile,
-    compileStandard: compileStandard,
-    compileStandardWrapper: compileStandardWrapper,
-    supportsSingle: compileJSON !== null,
-    supportsMulti: compileJSONMulti !== null,
-    supportsImportCallback: compileJSONCallback !== null,
-    supportsStandard: compileStandard !== null,
+    compile: compileStandardWrapper,
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
     loadRemoteVersion: function (versionString, cb) {

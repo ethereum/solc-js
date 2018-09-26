@@ -386,7 +386,7 @@ tape('Compilation', function (t) {
       }
     };
 
-    var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify(input)));
+    var output = JSON.parse(solc.compile(JSON.stringify(input)));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
     st.ok(x);
     st.ok(x.length > 0);
@@ -428,7 +428,7 @@ tape('Compilation', function (t) {
       }
     };
 
-    var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify(input)));
+    var output = JSON.parse(solc.compile(JSON.stringify(input)));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
     st.ok(x);
     st.ok(x.length > 0);
@@ -508,7 +508,7 @@ tape('Loading Legacy Versions', function (t) {
           }
         }
       };
-      var output = JSON.parse(solcSnapshot.compileStandardWrapper(JSON.stringify(input)));
+      var output = JSON.parse(solcSnapshot.compile(JSON.stringify(input)));
       var x = getBytecodeStandard(output, 'cont.sol', 'x');
       st.ok(x);
       st.ok(x.length > 0);
