@@ -52,29 +52,32 @@ function setupMethods (soljson) {
   if ('_compileJSON' in soljson) {
     compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
   }
+
   var compileJSONMulti = null;
   if ('_compileJSONMulti' in soljson) {
     compileJSONMulti = soljson.cwrap('compileJSONMulti', 'string', ['string', 'number']);
   }
+
   var compileJSONCallback = null;
-  var compileStandard = null;
-  if (('_compileJSONCallback' in soljson) || ('_compileStandard' in soljson) || ('_solidity_compile' in soljson)) {
+  if ('_compileJSONCallback' in soljson) {
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
       return runWithReadCallback(readCallback, compileInternal, [ input, optimize ]);
     };
-    if ('_compileStandard' in soljson) {
-      var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
-      compileStandard = function (input, readCallback) {
-        return runWithReadCallback(readCallback, compileStandardInternal, [ input ]);
-      };
-    }
-    if ('_solidity_compile' in soljson) {
-      var solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
-      compileStandard = function (input, readCallback) {
-        return runWithReadCallback(readCallback, solidityCompile, [ input ]);
-      };
-    }
+  }
+
+  var compileStandard = null;
+  if ('_compileStandard' in soljson) {
+    var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
+    compileStandard = function (input, readCallback) {
+      return runWithReadCallback(readCallback, compileStandardInternal, [ input ]);
+    };
+  }
+  if ('_solidity_compile' in soljson) {
+    var solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
+    compileStandard = function (input, readCallback) {
+      return runWithReadCallback(readCallback, solidityCompile, [ input ]);
+    };
   }
 
   var compile = function (input, optimise, readCallback) {
