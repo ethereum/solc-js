@@ -6,6 +6,48 @@ var https = require('https');
 var MemoryStream = require('memorystream');
 
 function setupMethods (soljson) {
+  var copyString = function (str, ptr) {
+    var length = soljson.lengthBytesUTF8(str);
+    var buffer = soljson._malloc(length + 1);
+    soljson.stringToUTF8(str, buffer, length + 1);
+    soljson.setValue(ptr, buffer, '*');
+  };
+
+  var wrapCallback = function (callback) {
+    assert(typeof callback === 'function', 'Invalid callback specified.');
+    return function (path, contents, error) {
+      var result = callback(soljson.Pointer_stringify(path));
+      if (typeof result.contents === 'string') {
+        copyString(result.contents, contents);
+      }
+      if (typeof result.error === 'string') {
+        copyString(result.error, error);
+      }
+    };
+  };
+
+  // This calls compile() with args || cb
+  var runWithReadCallback = function (readCallback, compile, args) {
+    if (readCallback === undefined) {
+      readCallback = function (path) {
+        return {
+          error: 'File import callback not supported'
+        };
+      };
+    }
+    var cb = soljson.Runtime.addFunction(wrapCallback(readCallback));
+    var output;
+    try {
+      args.push(cb);
+      output = compile.apply(undefined, args);
+    } catch (e) {
+      soljson.Runtime.removeFunction(cb);
+      throw e;
+    }
+    soljson.Runtime.removeFunction(cb);
+    return output;
+  };
+
   var compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
   var compileJSONMulti = null;
   if ('_compileJSONMulti' in soljson) {
@@ -14,47 +56,6 @@ function setupMethods (soljson) {
   var compileJSONCallback = null;
   var compileStandard = null;
   if (('_compileJSONCallback' in soljson) || ('_compileStandard' in soljson) || ('_solidity_compile' in soljson)) {
-    var copyString = function (str, ptr) {
-      var length = soljson.lengthBytesUTF8(str);
-      var buffer = soljson._malloc(length + 1);
-      soljson.stringToUTF8(str, buffer, length + 1);
-      soljson.setValue(ptr, buffer, '*');
-    };
-    var wrapCallback = function (callback) {
-      assert(typeof callback === 'function', 'Invalid callback specified.');
-      return function (path, contents, error) {
-        var result = callback(soljson.Pointer_stringify(path));
-        if (typeof result.contents === 'string') {
-          copyString(result.contents, contents);
-        }
-        if (typeof result.error === 'string') {
-          copyString(result.error, error);
-        }
-      };
-    };
-
-    // This calls compile() with args || cb
-    var runWithReadCallback = function (readCallback, compile, args) {
-      if (readCallback === undefined) {
-        readCallback = function (path) {
-          return {
-            error: 'File import callback not supported'
-          };
-        };
-      }
-      var cb = soljson.Runtime.addFunction(wrapCallback(readCallback));
-      var output;
-      try {
-        args.push(cb);
-        output = compile.apply(undefined, args);
-      } catch (e) {
-        soljson.Runtime.removeFunction(cb);
-        throw e;
-      }
-      soljson.Runtime.removeFunction(cb);
-      return output;
-    };
-
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
       return runWithReadCallback(readCallback, compileInternal, [ input, optimize ]);
