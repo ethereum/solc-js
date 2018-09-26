@@ -105,6 +105,26 @@ There is also a direct method, `compileStandard`, which is only present on recen
 
 Starting from version 0.4.20 a Semver compatible version number can be retrieved on every compiler release, including old ones, using the `semver()` method.
 
+#### From version 0.5.0
+
+Starting from version 0.5.0 the low-level functions are also exposed:
+- `solc.lowlevel.compileSingle`: the original entry point, supports only a single file
+- `solc.lowlevel.compileMulti`: this supports multiple files, introduced in 0.1.6
+- `solc.lowlevel.compileCallback`: this supports callbacks, introduced in 0.2.1
+- `solc.lowlevel.compileStandard`: this supports the Standard JSON input and output interface, introduced in 0.4.11
+
+Example:
+```javascript
+var solc = require('solc')
+var input = {
+	'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
+	'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
+}
+var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({ sources: input }), 1))
+for (var contractName in output.contracts)
+	console.log(contractName + ': ' + output.contracts[contractName].bytecode)
+```
+
 ### Using with Electron
 
 **Note:**

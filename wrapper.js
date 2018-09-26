@@ -223,6 +223,12 @@ function setupMethods (soljson) {
     version: version,
     semver: versionToSemver,
     license: license,
+    lowlevel: {
+      compileSingle: compileJSON,
+      compileMulti: compileJSONMulti,
+      compileCallback: compileJSONCallback,
+      compileStandard: compileStandard
+    },
     compile: compile,
     compileStandard: compileStandard,
     compileStandardWrapper: compileStandardWrapper,
