@@ -180,7 +180,11 @@ function setupMethods (soljson) {
     }
 
     // Try our luck with an ancient compiler
-    return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
+    if (compileJSON !== null) {
+      return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
+    }
+
+    return formatFatalError('Compiler does not support any known interface.');
   };
 
   var version;
