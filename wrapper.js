@@ -1,6 +1,5 @@
 var assert = require('assert');
 var translate = require('./translate.js');
-var linker = require('./linker.js');
 var requireFromString = require('require-from-string');
 var https = require('https');
 var MemoryStream = require('memorystream');
@@ -232,7 +231,6 @@ function setupMethods (soljson) {
     compile: compile,
     compileStandard: compileStandard,
     compileStandardWrapper: compileStandardWrapper,
-    linkBytecode: linker.linkBytecode,
     supportsMulti: compileJSONMulti !== null,
     supportsImportCallback: compileJSONCallback !== null,
     supportsStandard: compileStandard !== null,
