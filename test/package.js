@@ -48,6 +48,11 @@ tape('Version and license', function (t) {
 
 tape('Compilation', function (t) {
   t.test('single files can be compiled', function (st) {
+    if (!solc.supportsSingle) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
     var output = solc.compile('contract x { function g() public {} }');
     st.ok('contracts' in output);
     var bytecode = getBytecode(output, '', 'x');
@@ -71,6 +76,11 @@ tape('Compilation', function (t) {
   });
 
   t.test('invalid source code fails properly', function (st) {
+    if (!solc.supportsSingle) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
     var output = solc.compile('contract x { this is an invalid contract }');
     if (semver.lt(solc.semver(), '0.1.4')) {
       st.ok(output.error.indexOf('Parser error: Expected identifier') !== -1);
@@ -100,6 +110,12 @@ tape('Compilation', function (t) {
   t.test('multiple files can be compiled', function (st) {
     if (semver.lt(solc.semver(), '0.1.6')) {
       st.skip('Not supported by solc <0.1.6');
+      st.end();
+      return;
+    }
+
+    if (!solc.supportsMulti) {
+      st.skip('Not supported by solc');
       st.end();
       return;
     }
@@ -142,6 +158,12 @@ tape('Compilation', function (t) {
   t.test('lazy-loading callback works', function (st) {
     if (semver.lt(solc.semver(), '0.2.1')) {
       st.skip('Not supported by solc <0.2.1');
+      st.end();
+      return;
+    }
+
+    if (!solc.supportsImportCallback) {
+      st.skip('Not supported by solc');
       st.end();
       return;
     }
@@ -200,6 +222,12 @@ tape('Compilation', function (t) {
       return;
     }
 
+    if (!solc.supportsImportCallback) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
+
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
@@ -229,6 +257,12 @@ tape('Compilation', function (t) {
       return;
     }
 
+    if (!solc.supportsImportCallback) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
+
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
@@ -248,6 +282,12 @@ tape('Compilation', function (t) {
       return;
     }
 
+    if (!solc.supportsImportCallback) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
+
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
@@ -260,6 +300,12 @@ tape('Compilation', function (t) {
   t.test('file import without lazy-loading callback fails properly', function (st) {
     if (semver.lt(solc.semver(), '0.2.1')) {
       st.skip('Not supported by solc <0.2.1');
+      st.end();
+      return;
+    }
+
+    if (!solc.supportsImportCallback) {
+      st.skip('Not supported by solc');
       st.end();
       return;
     }
@@ -536,6 +582,11 @@ tape('Loading Legacy Versions', function (t) {
       if (err) {
         st.plan(1);
         st.skip('Network error - skipping remote loading test');
+        st.end();
+        return;
+      }
+      if (!solcSnapshot.supportsSingle) {
+        st.skip('Not supported by solc');
         st.end();
         return;
       }

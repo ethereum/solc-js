@@ -233,6 +233,7 @@ function setupMethods (soljson) {
     compile: compile,
     compileStandard: compileStandard,
     compileStandardWrapper: compileStandardWrapper,
+    supportsSingle: compileJSON !== null,
     supportsMulti: compileJSONMulti !== null,
     supportsImportCallback: compileJSONCallback !== null,
     supportsStandard: compileStandard !== null,
