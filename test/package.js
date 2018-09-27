@@ -559,7 +559,7 @@ tape('Linking', function (t) {
     var bytecode = getBytecode(output, 'cont.sol', 'x');
     st.ok(bytecode);
     st.ok(bytecode.length > 0);
-    bytecode = solc.linkBytecode(bytecode, { 'lib.sol:L': '0x123456' });
+    bytecode = linker.linkBytecode(bytecode, { 'lib.sol:L': '0x123456' });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
   });
@@ -573,7 +573,7 @@ tape('Linking', function (t) {
     var bytecode = getBytecode(output, 'cont.sol', 'x');
     st.ok(bytecode);
     st.ok(bytecode.length > 0);
-    bytecode = solc.linkBytecode(bytecode, { 'lib.sol': { 'L': '0x123456' } });
+    bytecode = linker.linkBytecode(bytecode, { 'lib.sol': { 'L': '0x123456' } });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
   });
@@ -587,7 +587,7 @@ tape('Linking', function (t) {
     var bytecode = getBytecode(output, 'cont.sol', 'x');
     st.ok(bytecode);
     st.ok(bytecode.length > 0);
-    bytecode = solc.linkBytecode(bytecode, { });
+    bytecode = linker.linkBytecode(bytecode, { });
     st.ok(bytecode.indexOf('_') >= 0);
     st.end();
   });
@@ -602,7 +602,7 @@ tape('Linking', function (t) {
     st.ok(bytecode);
     st.ok(bytecode.length > 0);
     st.throws(function () {
-      solc.linkBytecode(bytecode, { 'lib.sol:L': '' });
+      linker.linkBytecode(bytecode, { 'lib.sol:L': '' });
     });
     st.end();
   });
@@ -616,7 +616,7 @@ tape('Linking', function (t) {
     var bytecode = getBytecode(output, 'cont.sol', 'x');
     st.ok(bytecode);
     st.ok(bytecode.length > 0);
-    bytecode = solc.linkBytecode(bytecode, { 'lib.sol:L1234567890123456789012345678901234567890': '0x123456' });
+    bytecode = linker.linkBytecode(bytecode, { 'lib.sol:L1234567890123456789012345678901234567890': '0x123456' });
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
   });
