@@ -85,8 +85,10 @@ function setupMethods (soljson) {
       result = compileJSONCallback(JSON.stringify(input), optimise, readCallback);
     } else if (typeof input !== 'string' && compileJSONMulti !== null) {
       result = compileJSONMulti(JSON.stringify(input), optimise);
-    } else {
+    } else if (compileJSON !== null) {
       result = compileJSON(input, optimise);
+    } else {
+      return { errors: 'No suitable compiler interface found.' };
     }
     return JSON.parse(result);
   };
