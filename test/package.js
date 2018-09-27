@@ -55,6 +55,21 @@ tape('Compilation', function (t) {
     st.ok(bytecode.length > 0);
     st.end();
   });
+
+  t.test('single files can be compiled (using lowlevel API)', function (st) {
+    if (typeof solc.lowlevel.compileSingle !== 'function') {
+      st.skip('Low-level compileSingle interface not implemented by this compiler version.');
+      st.end();
+      return;
+    }
+    var output = JSON.parse(solc.lowlevel.compileSingle('contract x { function g() public {} }'));
+    st.ok('contracts' in output);
+    var bytecode = getBytecode(output, '', 'x');
+    st.ok(bytecode);
+    st.ok(bytecode.length > 0);
+    st.end();
+  });
+
   t.test('invalid source code fails properly', function (st) {
     var output = solc.compile('contract x { this is an invalid contract }');
     if (semver.lt(solc.semver(), '0.1.4')) {
@@ -103,6 +118,27 @@ tape('Compilation', function (t) {
     st.end();
   });
 
+  t.test('multiple files can be compiled (using lowlevel API)', function (st) {
+    if (typeof solc.lowlevel.compileMulti !== 'function') {
+      st.skip('Low-level compileMulti interface not implemented by this compiler version.');
+      st.end();
+      return;
+    }
+
+    var input = {
+      'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+    };
+    var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({sources: input})));
+    var x = getBytecode(output, 'cont.sol', 'x');
+    st.ok(x);
+    st.ok(x.length > 0);
+    var L = getBytecode(output, 'lib.sol', 'L');
+    st.ok(L);
+    st.ok(L.length > 0);
+    st.end();
+  });
+
   t.test('lazy-loading callback works', function (st) {
     if (semver.lt(solc.semver(), '0.2.1')) {
       st.skip('Not supported by solc <0.2.1');
@@ -121,6 +157,33 @@ tape('Compilation', function (t) {
       }
     }
     var output = solc.compile({sources: input}, 0, findImports);
+    var x = getBytecode(output, 'cont.sol', 'x');
+    var L = getBytecode(output, 'lib.sol', 'L');
+    st.ok(x);
+    st.ok(x.length > 0);
+    st.ok(L);
+    st.ok(L.length > 0);
+    st.end();
+  });
+
+  t.test('lazy-loading callback works (using lowlevel API)', function (st) {
+    if (typeof solc.lowlevel.compileCallback !== 'function') {
+      st.skip('Low-level compileCallback interface not implemented by this compiler version.');
+      st.end();
+      return;
+    }
+
+    var input = {
+      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+    };
+    function findImports (path) {
+      if (path === 'lib.sol') {
+        return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
+      } else {
+        return { error: 'File not found' };
+      }
+    }
+    var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports));
     var x = getBytecode(output, 'cont.sol', 'x');
     var L = getBytecode(output, 'lib.sol', 'L');
     st.ok(x);
@@ -259,6 +322,7 @@ tape('Compilation', function (t) {
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
     st.end();
   });
+
   t.test('invalid source code fails properly with standard JSON', function (st) {
     if (!solc.supportsStandard) {
       st.skip('Not supported by solc');
@@ -293,6 +357,7 @@ tape('Compilation', function (t) {
     }
     st.end();
   });
+
   t.test('compiling standard JSON (with callback)', function (st) {
     if (!solc.supportsStandard) {
       st.skip('Not supported by solc');
@@ -337,6 +402,7 @@ tape('Compilation', function (t) {
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
     st.end();
   });
+
   t.test('compiling standard JSON (using wrapper)', function (st) {
     // Example needs support for compileJSONMulti
     // FIXME: add test for wrapper without multiple files
@@ -409,6 +475,48 @@ tape('Compilation', function (t) {
     };
 
     var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify(input)));
+    var x = getBytecodeStandard(output, 'cont.sol', 'x');
+    st.ok(x);
+    st.ok(x.length > 0);
+    st.ok(Object.keys(linker.findLinkReferences(x)).length === 0);
+    var L = getBytecodeStandard(output, 'lib.sol', 'L');
+    st.ok(L);
+    st.ok(L.length > 0);
+    st.end();
+  });
+
+  t.test('compiling standard JSON (using lowlevel API)', function (st) {
+    if (typeof solc.lowlevel.compileStandard !== 'function') {
+      st.skip('Low-level compileStandard interface not implemented by this compiler version.');
+      st.end();
+      return;
+    }
+
+    var input = {
+      'language': 'Solidity',
+      'settings': {
+        'libraries': {
+          'lib.sol': {
+            'L': '0x4200000000000000000000000000000000000001'
+          }
+        },
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode' ]
+          }
+        }
+      },
+      'sources': {
+        'lib.sol': {
+          'content': 'library L { function f() public returns (uint) { return 7; } }'
+        },
+        'cont.sol': {
+          'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+        }
+      }
+    };
+
+    var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
     st.ok(x);
     st.ok(x.length > 0);
