@@ -116,7 +116,11 @@ function setupMethods (soljson) {
       return formatFatalError('Invalid import callback supplied');
     }
 
-    input = JSON.parse(input);
+    try {
+      input = JSON.parse(input);
+    } catch (e) {
+      return formatFatalError('Invalid JSON supplied: ' + e.message);
+    }
 
     if (input['language'] !== 'Solidity') {
       return formatFatalError('Only Solidity sources are supported');
@@ -155,7 +159,12 @@ function setupMethods (soljson) {
     }
 
     function translateOutput (output) {
-      output = translate.translateJsonCompilerOutput(JSON.parse(output));
+      try {
+        output = JSON.parse(output);
+      } catch (e) {
+        return formatFatalError('Compiler returned invalid JSON: ' + e.message);
+      }
+      output = translate.translateJsonCompilerOutput(output);
       if (output == null) {
         return formatFatalError('Failed to process output');
       }
@@ -180,7 +189,11 @@ function setupMethods (soljson) {
     }
 
     // Try our luck with an ancient compiler
-    return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
+    if (compileJSON !== null) {
+      return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
+    }
+
+    return formatFatalError('Compiler does not support any known interface.');
   };
 
   var version;
