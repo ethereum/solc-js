@@ -18,13 +18,18 @@ workflows:
           filters:
             branches:
               only: master
+          run_coveralls: true
 
-version: 2
+version: 2.1
 jobs:
   node-base: &node-base
     working_directory: ~/solc-js
     docker:
       - image: circleci/node
+    parameters:
+      run_coveralls:
+        type: boolean
+        default: false
     steps:
       - run:
           name: Versions
@@ -38,9 +43,12 @@ jobs:
       - run:
           name: test
           command: npm run test
-      - run:
-          name: coveralls
-          command: npm run coveralls
+      - when:
+          condition: <<parameters.run_coveralls>>
+          steps:
+            - run:
+                name: coveralls
+                command: npm run coveralls
       - save_cache:
           key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
           paths:
