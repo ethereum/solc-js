@@ -114,7 +114,7 @@ function writeFile (file, content) {
 }
 
 for (var contractName in output.contracts) {
-  var contractFileName = contractName.replace(/[:./]/g, '_');
+  var contractFileName = contractName.replace(/(.*):/, '');
 
   if (argv.bin) {
     writeFile(contractFileName + '.bin', output.contracts[contractName].bytecode);
