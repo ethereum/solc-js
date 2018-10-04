@@ -74,26 +74,36 @@ var sources = {};
 
 for (var i = 0; i < files.length; i++) {
   try {
-    sources[ files[i] ] = fs.readFileSync(files[i]).toString();
+    sources[ files[i] ] = { content: fs.readFileSync(files[i]).toString() };
   } catch (e) {
     abort('Error reading ' + files[i] + ': ' + e);
   }
 }
 
-var output = solc.compile({ sources: sources }, argv.optimize ? 1 : 0);
+var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify({
+  language: 'Solidity',
+  settings: {
+    optimizer: {
+      enabled: argv.optimize
+    },
+    outputSelection: {
+      '*': {
+        '*': [ 'abi', 'evm.bytecode' ]
+      }
+    }
+  },
+  sources: sources
+})));
+
 if (!output) {
   abort('No output from compiler');
 } else if (output['errors']) {
-  function isWarning (message) {
-    return message.match(/^(.*:[0-9]*:[0-9]* )?Warning: /)
-  }
-
   for (var error in output['errors']) {
     var message = output['errors'][error]
-    if (isWarning(message)) {
-      console.log(message)
+    if (message.severity === 'warning') {
+      console.log(message.formattedMessage)
     } else {
-      console.error(message)
+      console.error(message.formattedMessage)
     }
   }
 }
@@ -109,15 +119,18 @@ function writeFile (file, content) {
   });
 }
 
-for (var contractName in output.contracts) {
-  var contractFileName = contractName.replace(/[:./]/g, '_');
+for (var fileName in output.contracts) {
+  for (var contractName in output.contracts[fileName]) {
+    var contractFileName = fileName + ':' + contractName;
+    contractFileName = contractFileName.replace(/[:./]/g, '_');
 
-  if (argv.bin) {
-    writeFile(contractFileName + '.bin', output.contracts[contractName].bytecode);
-  }
+    if (argv.bin) {
+      writeFile(contractFileName + '.bin', output.contracts[fileName][contractName].evm.bytecode.object);
+    }
 
-  if (argv.abi) {
-    writeFile(contractFileName + '.abi', output.contracts[contractName].interface);
+    if (argv.abi) {
+      writeFile(contractFileName + '.abi', JSON.stringify(output.contracts[fileName][contractName].abi));
+    }
   }
 }
 
