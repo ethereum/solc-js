@@ -48,17 +48,17 @@ function setupMethods (soljson) {
   };
 
   var compileJSON = null;
-  if ('_compileJSON' in soljson) {
+  if ('x_compileJSON' in soljson) {
     compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
   }
 
   var compileJSONMulti = null;
-  if ('_compileJSONMulti' in soljson) {
+  if ('x_compileJSONMulti' in soljson) {
     compileJSONMulti = soljson.cwrap('compileJSONMulti', 'string', ['string', 'number']);
   }
 
   var compileJSONCallback = null;
-  if ('_compileJSONCallback' in soljson) {
+  if ('x_compileJSONCallback' in soljson) {
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
       return runWithReadCallback(readCallback, compileInternal, [ input, optimize ]);
@@ -66,7 +66,7 @@ function setupMethods (soljson) {
   }
 
   var compileStandard = null;
-  if ('_compileStandard' in soljson) {
+  if ('x_compileStandard' in soljson) {
     var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
     compileStandard = function (input, readCallback) {
       return runWithReadCallback(readCallback, compileStandardInternal, [ input ]);
@@ -217,6 +217,10 @@ function setupMethods (soljson) {
       compileStandard: compileStandard
     },
     compile: compileStandardWrapper,
+
+    compileStandard: compileStandardWrapper,
+    compileStandardWrapper: compileStandardWrapper,
+
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
     loadRemoteVersion: function (versionString, cb) {
