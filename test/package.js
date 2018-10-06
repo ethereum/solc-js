@@ -598,14 +598,6 @@ tape('Loading Legacy Versions', function (t) {
 });
 
 tape('Linking', function (t) {
-  // FIXME: all the linking tests require compileJSONMulti support,
-  //        create test cases which have all files in a single source and could run with 0.1.3
-  if (semver.lt(solc.semver(), '0.1.6')) {
-    t.skip('Not supported by solc <0.1.6');
-    t.end();
-    return;
-  }
-
   t.test('link properly', function (st) {
     /*
       'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
