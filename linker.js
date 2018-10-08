@@ -4,6 +4,10 @@ function keccak256 (input) {
   return keccak('keccak256').update(input).digest();
 }
 
+function libraryHashPlaceholder (input) {
+  return '$' + keccak256(input).toString('hex').slice(0, 34) + '$';
+}
+
 var linkBytecode = function (bytecode, libraries) {
   // NOTE: for backwards compatibility support old compiler which didn't use file names
   var librariesComplete = {};
@@ -45,7 +49,7 @@ var linkBytecode = function (bytecode, libraries) {
     };
 
     replace(libraryName);
-    replace(keccak256(libraryName).toString('hex'));
+    replace(libraryHashPlaceholder(libraryName));
   }
 
   return bytecode;
