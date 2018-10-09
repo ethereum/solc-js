@@ -10,6 +10,13 @@ var solc = require('./index.js');
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
 
+function cleanup () {
+  // Put back original exception handlers.
+  originalUncaughtExceptionListeners.forEach(function (listener) {
+    process.addListener('uncaughtException', listener);
+  });
+}
+
 var yargs = require('yargs')
   .usage('Usage: $0 [options] [input_file...]')
   .option('version', {
@@ -50,7 +57,7 @@ function abort (msg) {
   process.exit(1);
 }
 
-if (argv['standard-json']) {
+function runStandard () {
   var size = fs.fstatSync(process.stdin.fd).size;
 
   if (size <= 0) {
@@ -60,16 +67,11 @@ if (argv['standard-json']) {
   var input = fs.readSync(process.stdin.fd, size)[0];
 
   console.log(solc.compileStandardWrapper(input));
+  cleanup();
   process.exit(0);
-} else if (files.length === 0) {
-  console.error('Must provide a file');
-  process.exit(1);
 }
 
-if (!(argv.bin || argv.abi)) {
-  abort('Invalid option selected, must specify either --bin or --abi');
-}
-
+function runCLI () {
 var sources = {};
 
 for (var i = 0; i < files.length; i++) {
@@ -133,8 +135,16 @@ for (var fileName in output.contracts) {
     }
   }
 }
+}
 
-// Put back original exception handlers.
-originalUncaughtExceptionListeners.forEach(function (listener) {
-  process.addListener('uncaughtException', listener);
-});
+if (argv['standard-json']) {
+  runStandard();
+} else if (files.length === 0) {
+  console.error('Must provide a file');
+  cleanup();
+  process.exit(1);
+}
+
+if (!(argv.bin || argv.abi)) {
+  abort('Invalid option selected, must specify either --bin or --abi');
+}
