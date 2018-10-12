@@ -139,4 +139,11 @@ tape('Linking', function (t) {
     st.ok(bytecode.indexOf('_') < 0);
     st.end();
   });
+
+  t.test('hashed placeholder', function (st) {
+    var bytecode = '6060604052341561000__$cb901161e812ceb78cfe30ca65050c4337$__66606060606060';
+    bytecode = linker.linkBytecode(bytecode, { 'lib2.sol:L': '0x123456' });
+    st.equal(bytecode, '6060604052341561000000000000000000000000000000000000012345666606060606060');
+    st.end();
+  });
 });

@@ -1,3 +1,13 @@
+var keccak = require('keccak');
+
+function keccak256 (input) {
+  return keccak('keccak256').update(input).digest();
+}
+
+function libraryHashPlaceholder (input) {
+  return '$' + keccak256(input).toString('hex').slice(0, 34) + '$';
+}
+
 var linkBytecode = function (bytecode, libraries) {
   // NOTE: for backwards compatibility support old compiler which didn't use file names
   var librariesComplete = {};
@@ -19,11 +29,6 @@ var linkBytecode = function (bytecode, libraries) {
   }
 
   for (libraryName in librariesComplete) {
-    // truncate to 37 characters
-    var internalName = libraryName.slice(0, 36);
-    // prefix and suffix with __
-    var libLabel = '__' + internalName + Array(37 - internalName.length).join('_') + '__';
-
     var hexAddress = librariesComplete[libraryName];
     if (hexAddress.slice(0, 2) !== '0x' || hexAddress.length > 42) {
       throw new Error('Invalid address specified for ' + libraryName);
@@ -32,9 +37,19 @@ var linkBytecode = function (bytecode, libraries) {
     hexAddress = hexAddress.slice(2);
     hexAddress = Array(40 - hexAddress.length + 1).join('0') + hexAddress;
 
-    while (bytecode.indexOf(libLabel) >= 0) {
-      bytecode = bytecode.replace(libLabel, hexAddress);
-    }
+    // Support old (library name) and new (hash of library name)
+    // placeholders.
+    var replace = function (name) {
+      // truncate to 37 characters
+      var truncatedName = name.slice(0, 36);
+      var libLabel = '__' + truncatedName + Array(37 - truncatedName.length).join('_') + '__';
+      while (bytecode.indexOf(libLabel) >= 0) {
+        bytecode = bytecode.replace(libLabel, hexAddress);
+      }
+    };
+
+    replace(libraryName);
+    replace(libraryHashPlaceholder(libraryName));
   }
 
   return bytecode;
