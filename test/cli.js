@@ -43,6 +43,12 @@ tape('CLI', function (t) {
     spt.end();
   });
 
+  t.test('incorrect source source', function (st) {
+    var spt = spawn(st, './solcjs --bin test/fixtureIncorrectSource.sol');
+    spt.stderr.match(/^test\/fixtureIncorrectSource.sol:1:1: SyntaxError: Invalid pragma "contract"/);
+    spt.end();
+  });
+
   t.test('--abi', function (st) {
     var spt = spawn(st, './solcjs --abi test/' + daodir + '/Token.sol');
     spt.stderr.empty();
