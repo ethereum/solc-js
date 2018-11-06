@@ -1,14 +1,8 @@
 const tape = require('tape');
 const spawn = require('tape-spawn');
 const pkg = require('../package.json');
-const semver = require('semver');
 
-var daodir;
-if (semver.lt(pkg.version, '0.5.0')) {
-  daodir = 'DAO040';
-} else {
-  daodir = 'DAO';
-}
+var daodir = 'DAO';
 
 tape('CLI', function (t) {
   t.test('--version', function (st) {
