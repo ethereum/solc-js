@@ -48,7 +48,7 @@ tape('Version and license', function (t) {
 
 tape('Compilation', function (t) {
   t.test('single files can be compiled', function (st) {
-    if (!solc.supportsSingle) {
+    if (!solc.features.legacySingleInput) {
       st.skip('Not supported by solc');
       st.end();
       return;
@@ -76,7 +76,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('invalid source code fails properly', function (st) {
-    if (!solc.supportsSingle) {
+    if (!solc.features.legacySingleInput) {
       st.skip('Not supported by solc');
       st.end();
       return;
@@ -114,7 +114,7 @@ tape('Compilation', function (t) {
       return;
     }
 
-    if (!solc.supportsMulti) {
+    if (!solc.features.multipleInputs) {
       st.skip('Not supported by solc');
       st.end();
       return;
@@ -162,7 +162,7 @@ tape('Compilation', function (t) {
       return;
     }
 
-    if (!solc.supportsImportCallback) {
+    if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
       return;
@@ -222,7 +222,7 @@ tape('Compilation', function (t) {
       return;
     }
 
-    if (!solc.supportsImportCallback) {
+    if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
       return;
@@ -257,7 +257,7 @@ tape('Compilation', function (t) {
       return;
     }
 
-    if (!solc.supportsImportCallback) {
+    if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
       return;
@@ -282,7 +282,7 @@ tape('Compilation', function (t) {
       return;
     }
 
-    if (!solc.supportsImportCallback) {
+    if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
       return;
@@ -304,7 +304,7 @@ tape('Compilation', function (t) {
       return;
     }
 
-    if (!solc.supportsImportCallback) {
+    if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
       return;
