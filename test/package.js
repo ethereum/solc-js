@@ -586,6 +586,7 @@ tape('Loading Legacy Versions', function (t) {
         return;
       }
       if (!solcSnapshot.supportsSingle) {
+        st.plan(1);
         st.skip('Not supported by solc');
         st.end();
         return;
