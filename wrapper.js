@@ -127,7 +127,8 @@ function setupMethods (soljson) {
       return formatFatalError('Only Solidity sources are supported');
     }
 
-    if (input['sources'] == null) {
+    // NOTE: this is deliberately `== null`
+    if (input['sources'] == null || input['sources'].length === 0) {
       return formatFatalError('No input specified');
     }
 
