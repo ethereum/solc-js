@@ -191,6 +191,9 @@ function setupMethods (soljson) {
 
     // Try our luck with an ancient compiler
     if (compileJSON !== null) {
+      if (Object.keys(sources).length !== 1) {
+        return formatFatalError('Compiler does not support multiple input files.');
+      }
       return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
     }
 
