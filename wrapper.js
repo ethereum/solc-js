@@ -224,6 +224,10 @@ function setupMethods (soljson) {
       nativeStandardJSON: compileStandard !== null
     },
     compile: compileStandardWrapper,
+    // Temporary wrappers to minimise breaking with other projects.
+    // NOTE: to be removed in 0.5.1
+    compileStandard: compileStandardWrapper,
+    compileStandardWrapper: compileStandardWrapper,
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
     loadRemoteVersion: function (versionString, cb) {
