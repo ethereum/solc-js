@@ -585,15 +585,25 @@ tape('Loading Legacy Versions', function (t) {
         st.end();
         return;
       }
-      if (!solcSnapshot.supportsSingle) {
-        st.plan(1);
-        st.skip('Not supported by solc');
-        st.end();
-        return;
-      }
-      var output = solcSnapshot.compile('contract x { function g() public {} }');
-      st.ok(':x' in output.contracts);
-      st.ok(output.contracts[':x'].bytecode.length > 0);
+      var input = {
+        'language': 'Solidity',
+        'settings': {
+          'outputSelection': {
+            '*': {
+              '*': [ 'evm.bytecode' ]
+            }
+          }
+        },
+        'sources': {
+          'cont.sol': {
+            'content': 'contract x { function g() public {} }'
+          }
+        }
+      };
+      var output = JSON.parse(solcSnapshot.compileStandardWrapper(JSON.stringify(input)));
+      var x = getBytecodeStandard(output, 'cont.sol', 'x');
+      st.ok(x);
+      st.ok(x.length > 0);
     });
   });
 });
