@@ -4,6 +4,15 @@ const solc = require('../index.js');
 const linker = require('../linker.js');
 const execSync = require('child_process').execSync;
 
+function containsErrorStandard (errors, msg) {
+  for (var error in errors) {
+    if (errors[error].formattedMessage.match(msg) !== null || errors[error].message.match(msg) !== null) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function runTests (solc, versionText) {
   console.log(`Running tests with ${versionText} ${solc.version()}`);
 
