@@ -48,17 +48,17 @@ function setupMethods (soljson) {
   };
 
   var compileJSON = null;
-  if ('x_compileJSON' in soljson) {
+  if ('_compileJSON' in soljson) {
     compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
   }
 
   var compileJSONMulti = null;
-  if ('x_compileJSONMulti' in soljson) {
+  if ('_compileJSONMulti' in soljson) {
     compileJSONMulti = soljson.cwrap('compileJSONMulti', 'string', ['string', 'number']);
   }
 
   var compileJSONCallback = null;
-  if ('x_compileJSONCallback' in soljson) {
+  if ('_compileJSONCallback' in soljson) {
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
       return runWithReadCallback(readCallback, compileInternal, [ input, optimize ]);
@@ -66,7 +66,7 @@ function setupMethods (soljson) {
   }
 
   var compileStandard = null;
-  if ('x_compileStandard' in soljson) {
+  if ('_compileStandard' in soljson) {
     var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
     compileStandard = function (input, readCallback) {
       return runWithReadCallback(readCallback, compileStandardInternal, [ input ]);
@@ -78,6 +78,20 @@ function setupMethods (soljson) {
       return runWithReadCallback(readCallback, solidityCompile, [ input ]);
     };
   }
+
+  var compile = function (input, optimise, readCallback) {
+    var result = '';
+    if (readCallback !== undefined && compileJSONCallback !== null) {
+      result = compileJSONCallback(JSON.stringify(input), optimise, readCallback);
+    } else if (typeof input !== 'string' && compileJSONMulti !== null) {
+      result = compileJSONMulti(JSON.stringify(input), optimise);
+    } else if (compileJSON !== null) {
+      result = compileJSON(input, optimise);
+    } else {
+      return { errors: 'No suitable compiler interface found.' };
+    }
+    return JSON.parse(result);
+  };
 
   // Expects a Standard JSON I/O but supports old compilers
   var compileStandardWrapper = function (input, readCallback) {
@@ -216,11 +230,13 @@ function setupMethods (soljson) {
       compileCallback: compileJSONCallback,
       compileStandard: compileStandard
     },
-    compile: compileStandardWrapper,
-
-    compileStandard: compileStandardWrapper,
+    compile: compile,
+    compileStandard: compileStandard,
     compileStandardWrapper: compileStandardWrapper,
-
+    supportsSingle: compileJSON !== null,
+    supportsMulti: compileJSONMulti !== null,
+    supportsImportCallback: compileJSONCallback !== null,
+    supportsStandard: compileStandard !== null,
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
     loadRemoteVersion: function (versionString, cb) {
