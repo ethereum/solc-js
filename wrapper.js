@@ -230,6 +230,11 @@ function setupMethods (soljson) {
       compileCallback: compileJSONCallback,
       compileStandard: compileStandard
     },
+    features: {
+      multipleInputs: compileJSONMulti !== null || compileStandard !== null,
+      importCallback: compileJSONCallback !== null || compileStandard !== null,
+      nativeStandardJSON: compileStandard !== null
+    },
     compile: compile,
     compileStandard: compileStandard,
     compileStandardWrapper: compileStandardWrapper,
