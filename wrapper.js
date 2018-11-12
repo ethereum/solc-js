@@ -48,17 +48,17 @@ function setupMethods (soljson) {
   };
 
   var compileJSON = null;
-  if ('disabled_compileJSON' in soljson) {
+  if ('_compileJSON' in soljson) {
     compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
   }
 
   var compileJSONMulti = null;
-  if ('disabled_compileJSONMulti' in soljson) {
+  if ('_compileJSONMulti' in soljson) {
     compileJSONMulti = soljson.cwrap('compileJSONMulti', 'string', ['string', 'number']);
   }
 
   var compileJSONCallback = null;
-  if ('disabled_compileJSONCallback' in soljson) {
+  if ('_compileJSONCallback' in soljson) {
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
       return runWithReadCallback(readCallback, compileInternal, [ input, optimize ]);
