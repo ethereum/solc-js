@@ -329,9 +329,9 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('compiling standard JSON', function (st) {
-    if (!solc.supportsStandard) {
-      st.skip('Not supported by solc');
+  t.test('compiling standard JSON (using lowlevel API)', function (st) {
+    if (typeof solc.lowlevel.compileStandard !== 'function') {
+      st.skip('Low-level compileStandard interface not implemented by this compiler version.');
       st.end();
       return;
     }
@@ -363,15 +363,15 @@ tape('Compilation', function (t) {
       }
     }
 
-    var output = JSON.parse(solc.compileStandard(JSON.stringify(input)));
+    var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
     st.ok(bytecodeExists(output, 'cont.sol', 'x'));
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
     st.end();
   });
 
-  t.test('invalid source code fails properly with standard JSON', function (st) {
-    if (!solc.supportsStandard) {
-      st.skip('Not supported by solc');
+  t.test('invalid source code fails properly with standard JSON (using lowlevel API)', function (st) {
+    if (typeof solc.lowlevel.compileStandard !== 'function') {
+      st.skip('Low-level compileStandard interface not implemented by this compiler version.');
       st.end();
       return;
     }
@@ -391,7 +391,7 @@ tape('Compilation', function (t) {
         }
       }
     };
-    var output = JSON.parse(solc.compileStandard(JSON.stringify(input)));
+    var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
     st.plan(3);
     st.ok('errors' in output);
     st.ok(output.errors.length >= 1);
@@ -404,9 +404,9 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('compiling standard JSON (with callback)', function (st) {
-    if (!solc.supportsStandard) {
-      st.skip('Not supported by solc');
+  t.test('compiling standard JSON (with callback) (using lowlevel API)', function (st) {
+    if (typeof solc.lowlevel.compileStandard !== 'function') {
+      st.skip('Low-level compileStandard interface not implemented by this compiler version.');
       st.end();
       return;
     }
@@ -443,13 +443,13 @@ tape('Compilation', function (t) {
       }
     }
 
-    var output = JSON.parse(solc.compileStandard(JSON.stringify(input), findImports));
+    var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), findImports));
     st.ok(bytecodeExists(output, 'cont.sol', 'x'));
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
     st.end();
   });
 
-  t.test('compiling standard JSON (using wrapper)', function (st) {
+  t.test('compiling standard JSON', function (st) {
     // Example needs support for compileJSONMulti
     // FIXME: add test for wrapper without multiple files
     if (semver.lt(solc.semver(), '0.1.6')) {
@@ -487,7 +487,7 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('compiling standard JSON (using wrapper and libraries)', function (st) {
+  t.test('compiling standard JSON (using libraries)', function (st) {
     // Example needs support for compileJSONMulti
     // FIXME: add test for wrapper without multiple files
     if (semver.lt(solc.semver(), '0.1.6')) {
@@ -531,7 +531,7 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('compiling standard JSON (using lowlevel API)', function (st) {
+  t.test('compiling standard JSON (using libraries) (using lowlevel API)', function (st) {
     if (typeof solc.lowlevel.compileStandard !== 'function') {
       st.skip('Low-level compileStandard interface not implemented by this compiler version.');
       st.end();
