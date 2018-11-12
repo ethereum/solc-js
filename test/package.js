@@ -53,6 +53,7 @@ tape('Compilation', function (t) {
       st.end();
       return;
     }
+
     var output = solc.compile('contract x { function g() public {} }');
     st.ok('contracts' in output);
     var bytecode = getBytecode(output, '', 'x');
@@ -67,6 +68,7 @@ tape('Compilation', function (t) {
       st.end();
       return;
     }
+
     var output = JSON.parse(solc.lowlevel.compileSingle('contract x { function g() public {} }'));
     st.ok('contracts' in output);
     var bytecode = getBytecode(output, '', 'x');
@@ -81,6 +83,7 @@ tape('Compilation', function (t) {
       st.end();
       return;
     }
+
     var output = solc.compile('contract x { this is an invalid contract }');
     if (semver.lt(solc.semver(), '0.1.4')) {
       st.ok(output.error.indexOf('Parser error: Expected identifier') !== -1);
@@ -108,12 +111,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('multiple files can be compiled', function (st) {
-    if (semver.lt(solc.semver(), '0.1.6')) {
-      st.skip('Not supported by solc <0.1.6');
-      st.end();
-      return;
-    }
-
+    // <0.1.6 doesn't have this
     if (!solc.features.multipleInputs) {
       st.skip('Not supported by solc');
       st.end();
@@ -156,12 +154,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('lazy-loading callback works', function (st) {
-    if (semver.lt(solc.semver(), '0.2.1')) {
-      st.skip('Not supported by solc <0.2.1');
-      st.end();
-      return;
-    }
-
+    // <0.2.1 doesn't have this
     if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
@@ -216,12 +209,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('lazy-loading callback works (with file not found)', function (st) {
-    if (semver.lt(solc.semver(), '0.2.1')) {
-      st.skip('Not supported by solc <0.2.1');
-      st.end();
-      return;
-    }
-
+    // <0.2.1 doesn't have this
     if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
@@ -251,12 +239,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('lazy-loading callback works (with exception)', function (st) {
-    if (semver.lt(solc.semver(), '0.2.1')) {
-      st.skip('Not supported by solc <0.2.1');
-      st.end();
-      return;
-    }
-
+    // <0.2.1 doesn't have this
     if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
@@ -276,12 +259,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('lazy-loading callback fails properly (with invalid callback)', function (st) {
-    if (semver.lt(solc.semver(), '0.2.1')) {
-      st.skip('Not supported by solc <0.2.1');
-      st.end();
-      return;
-    }
-
+    // <0.2.1 doesn't have this
     if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
@@ -298,12 +276,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('file import without lazy-loading callback fails properly', function (st) {
-    if (semver.lt(solc.semver(), '0.2.1')) {
-      st.skip('Not supported by solc <0.2.1');
-      st.end();
-      return;
-    }
-
+    // <0.2.1 doesn't have this
     if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
@@ -450,10 +423,9 @@ tape('Compilation', function (t) {
   });
 
   t.test('compiling standard JSON', function (st) {
-    // Example needs support for compileJSONMulti
-    // FIXME: add test for wrapper without multiple files
-    if (semver.lt(solc.semver(), '0.1.6')) {
-      st.skip('Not supported by solc <0.1.6');
+    // <0.1.6 doesn't have this
+    if (!solc.features.multipleInputs) {
+      st.skip('Not supported by solc');
       st.end();
       return;
     }
@@ -488,10 +460,9 @@ tape('Compilation', function (t) {
   });
 
   t.test('compiling standard JSON (using libraries)', function (st) {
-    // Example needs support for compileJSONMulti
-    // FIXME: add test for wrapper without multiple files
-    if (semver.lt(solc.semver(), '0.1.6')) {
-      st.skip('Not supported by solc <0.1.6');
+    // <0.1.6 doesn't have this
+    if (!solc.features.multipleInputs) {
+      st.skip('Not supported by solc');
       st.end();
       return;
     }
