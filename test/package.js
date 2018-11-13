@@ -386,7 +386,7 @@ tape('Compilation', function (t) {
       }
     };
 
-    var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify(input)));
+    var output = JSON.parse(solc.compile(JSON.stringify(input)));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
     st.ok(x);
     st.ok(x.length > 0);
@@ -428,7 +428,7 @@ tape('Compilation', function (t) {
       }
     };
 
-    var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify(input)));
+    var output = JSON.parse(solc.compile(JSON.stringify(input)));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
     st.ok(x);
     st.ok(x.length > 0);
@@ -508,10 +508,18 @@ tape('Loading Legacy Versions', function (t) {
           }
         }
       };
-      var output = JSON.parse(solcSnapshot.compileStandardWrapper(JSON.stringify(input)));
+      var output = JSON.parse(solcSnapshot.compile(JSON.stringify(input)));
       var x = getBytecodeStandard(output, 'cont.sol', 'x');
       st.ok(x);
       st.ok(x.length > 0);
     });
+  });
+});
+
+tape('API backwards compatibility', function (t) {
+  t.test('compileStandard and compileStandardWrapper exists', function (st) {
+    st.equal(solc.compile, solc.compileStandard);
+    st.equal(solc.compile, solc.compileStandardWrapper);
+    st.end();
   });
 });

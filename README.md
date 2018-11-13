@@ -49,6 +49,8 @@ for (var contractName in output.contracts) {
 
 #### From version 0.1.6
 
+**Not available since 0.5.0**
+
 Starting from version 0.1.6, multiple files are supported with automatic import resolution by the compiler as follows:
 
 ```javascript
@@ -65,6 +67,8 @@ for (var contractName in output.contracts)
 Note that all input files that are imported have to be supplied, the compiler will not load any additional files on its own.
 
 #### From version 0.2.1
+
+**Not available since 0.5.0**
 
 Starting from version 0.2.1, a callback is supported to resolve missing imports as follows:
 
@@ -106,6 +110,10 @@ There is also a direct method, `compileStandard`, which is only present on recen
 Starting from version 0.4.20 a Semver compatible version number can be retrieved on every compiler release, including old ones, using the `semver()` method.
 
 #### From version 0.5.0
+
+Starting from version 0.5.0, `compile`, `compileStandard` and `compileStandardWrapper` all do the same thing - what `compileStandardWrapper` used to do.
+
+*Note*: with 0.5.1, `compileStandard` and `compileStandardWrapper` will be removed.
 
 Starting from version 0.5.0 the low-level functions are also exposed:
 - `solc.lowlevel.compileSingle`: the original entry point, supports only a single file
