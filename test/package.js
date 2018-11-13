@@ -47,21 +47,6 @@ tape('Version and license', function (t) {
 });
 
 tape('Compilation', function (t) {
-  t.test('single files can be compiled', function (st) {
-    if (!solc.features.legacySingleInput) {
-      st.skip('Not supported by solc');
-      st.end();
-      return;
-    }
-
-    var output = solc.compile('contract x { function g() public {} }');
-    st.ok('contracts' in output);
-    var bytecode = getBytecode(output, '', 'x');
-    st.ok(bytecode);
-    st.ok(bytecode.length > 0);
-    st.end();
-  });
-
   t.test('single files can be compiled (using lowlevel API)', function (st) {
     if (typeof solc.lowlevel.compileSingle !== 'function') {
       st.skip('Low-level compileSingle interface not implemented by this compiler version.');
@@ -77,14 +62,14 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('invalid source code fails properly', function (st) {
-    if (!solc.features.legacySingleInput) {
-      st.skip('Not supported by solc');
+  t.test('invalid source code fails properly (using lowlevel API)', function (st) {
+    if (typeof solc.lowlevel.compileSingle !== 'function') {
+      st.skip('Low-level compileSingle interface not implemented by this compiler version.');
       st.end();
       return;
     }
 
-    var output = solc.compile('contract x { this is an invalid contract }');
+    var output = JSON.parse(solc.lowlevel.compileSingle('contract x { this is an invalid contract }'));
     if (semver.lt(solc.semver(), '0.1.4')) {
       st.ok(output.error.indexOf('Parser error: Expected identifier') !== -1);
       st.end();
@@ -110,29 +95,8 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('multiple files can be compiled', function (st) {
-    // <0.1.6 doesn't have this
-    if (!solc.features.multipleInputs) {
-      st.skip('Not supported by solc');
-      st.end();
-      return;
-    }
-
-    var input = {
-      'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
-      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
-    };
-    var output = solc.compile({sources: input});
-    var x = getBytecode(output, 'cont.sol', 'x');
-    st.ok(x);
-    st.ok(x.length > 0);
-    var L = getBytecode(output, 'lib.sol', 'L');
-    st.ok(L);
-    st.ok(L.length > 0);
-    st.end();
-  });
-
   t.test('multiple files can be compiled (using lowlevel API)', function (st) {
+    // Introduced in 0.1.6
     if (typeof solc.lowlevel.compileMulti !== 'function') {
       st.skip('Low-level compileMulti interface not implemented by this compiler version.');
       st.end();
@@ -153,35 +117,8 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('lazy-loading callback works', function (st) {
-    // <0.2.1 doesn't have this
-    if (!solc.features.importCallback) {
-      st.skip('Not supported by solc');
-      st.end();
-      return;
-    }
-
-    var input = {
-      'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
-    };
-    function findImports (path) {
-      if (path === 'lib.sol') {
-        return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
-      } else {
-        return { error: 'File not found' };
-      }
-    }
-    var output = solc.compile({sources: input}, 0, findImports);
-    var x = getBytecode(output, 'cont.sol', 'x');
-    var L = getBytecode(output, 'lib.sol', 'L');
-    st.ok(x);
-    st.ok(x.length > 0);
-    st.ok(L);
-    st.ok(L.length > 0);
-    st.end();
-  });
-
   t.test('lazy-loading callback works (using lowlevel API)', function (st) {
+    // Introduced in 0.2.1
     if (typeof solc.lowlevel.compileCallback !== 'function') {
       st.skip('Low-level compileCallback interface not implemented by this compiler version.');
       st.end();
@@ -208,10 +145,10 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('lazy-loading callback works (with file not found)', function (st) {
+  t.test('lazy-loading callback works (with file not found) (using lowlevel API)', function (st) {
     // <0.2.1 doesn't have this
-    if (!solc.features.importCallback) {
-      st.skip('Not supported by solc');
+    if (typeof solc.lowlevel.compileCallback !== 'function') {
+      st.skip('Low-level compileCallback interface not implemented by this compiler version.');
       st.end();
       return;
     }
@@ -222,7 +159,7 @@ tape('Compilation', function (t) {
     function findImports (path) {
       return { error: 'File not found' };
     }
-    var output = solc.compile({sources: input}, 0, findImports);
+    var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports));
     st.plan(3);
     st.ok('errors' in output);
     // Check if the ParserError exists, but allow others too
@@ -238,10 +175,10 @@ tape('Compilation', function (t) {
     st.end();
   });
 
-  t.test('lazy-loading callback works (with exception)', function (st) {
+  t.test('lazy-loading callback works (with exception) (using lowlevel API)', function (st) {
     // <0.2.1 doesn't have this
-    if (!solc.features.importCallback) {
-      st.skip('Not supported by solc');
+    if (typeof solc.lowlevel.compileCallback !== 'function') {
+      st.skip('Low-level compileCallback interface not implemented by this compiler version.');
       st.end();
       return;
     }
@@ -253,15 +190,15 @@ tape('Compilation', function (t) {
       throw new Error('Could not implement this interface properly...');
     }
     st.throws(function () {
-      solc.compile({sources: input}, 0, findImports);
+      solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports);
     }, /^Error: Could not implement this interface properly.../);
     st.end();
   });
 
-  t.test('lazy-loading callback fails properly (with invalid callback)', function (st) {
+  t.test('lazy-loading callback fails properly (with invalid callback) (using lowlevel API)', function (st) {
     // <0.2.1 doesn't have this
-    if (!solc.features.importCallback) {
-      st.skip('Not supported by solc');
+    if (typeof solc.lowlevel.compileCallback !== 'function') {
+      st.skip('Low-level compileCallback interface not implemented by this compiler version.');
       st.end();
       return;
     }
@@ -270,15 +207,15 @@ tape('Compilation', function (t) {
       'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
     st.throws(function () {
-      solc.compile({sources: input}, 0, "this isn't a callback");
+      solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, "this isn't a callback");
     }, /Invalid callback specified./);
     st.end();
   });
 
-  t.test('file import without lazy-loading callback fails properly', function (st) {
+  t.test('file import without lazy-loading callback fails properly (using lowlevel API)', function (st) {
     // <0.2.1 doesn't have this
-    if (!solc.features.importCallback) {
-      st.skip('Not supported by solc');
+    if (typeof solc.lowlevel.compileCallback !== 'function') {
+      st.skip('Low-level compileCallback interface not implemented by this compiler version.');
       st.end();
       return;
     }
@@ -286,16 +223,16 @@ tape('Compilation', function (t) {
     var input = {
       'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
     };
-    var output = solc.compile({sources: input}, 0);
+    var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input})));
     st.plan(3);
     st.ok('errors' in output);
     // Check if the ParserError exists, but allow others too
     st.ok(output.errors.length >= 1);
     for (var error in output.errors) {
       // Error should be something like:
-      //   cont.sol:1:1: ParserError: Source "lib.sol" not found: File not supplied initially.
-      //   cont.sol:1:1: Error: Source "lib.sol" not found: File not supplied initially.
-      if (output.errors[error].indexOf('Error') !== -1 && output.errors[error].indexOf('File not supplied initially.') !== -1) {
+      //   cont.sol:1:1: ParserError: Source "lib.sol" not found: File import callback not supported
+      //   cont.sol:1:1: Error: Source "lib.sol" not found: File import callback not supported
+      if (output.errors[error].indexOf('Error') !== -1 && output.errors[error].indexOf('File import callback not supported') !== -1) {
         st.ok(true);
       }
     }
