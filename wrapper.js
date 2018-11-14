@@ -34,16 +34,21 @@ function setupMethods (soljson) {
         };
       };
     }
-    var cb = soljson.Runtime.addFunction(wrapCallback(readCallback));
+
+    // This is to support multiple versions of Emscripten.
+    var addFunction = soljson.addFunction || soljson.Runtime.addFunction;
+    var removeFunction = soljson.removeFunction || soljson.Runtime.removeFunction;
+
+    var cb = addFunction(wrapCallback(readCallback));
     var output;
     try {
       args.push(cb);
       output = compile.apply(undefined, args);
     } catch (e) {
-      soljson.Runtime.removeFunction(cb);
+      removeFunction(cb);
       throw e;
     }
-    soljson.Runtime.removeFunction(cb);
+    removeFunction(cb);
     return output;
   };
 
