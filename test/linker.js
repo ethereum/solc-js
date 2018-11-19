@@ -81,6 +81,15 @@ tape('Link references', function (t) {
     );
     st.end();
   });
+
+  t.test('Two references with same library name', function (st) {
+    var bytecode = '6060604052341561000f57600080fd5b61011a8061001e6000396000f30060606040526004361060255763ffffffff60e060020a60003504166326121ff08114602a575b600080fd5b3415603457600080fd5b603a603c565b005b73__lib2.sol:L____________________________6326121ff06040518163ffffffff1660e060020a02815260040160006040518083038186803b1515608157600080fd5b6102c65a03f41515609157600080fd5b50505073__lib2.sol:L____________________________6326121ff06040518163ffffffff1660e060020a02815260040160006040518083038186803b151560d957600080fd5b6102c65a03f4151560e957600080fd5b5050505600a165627a7a72305820fdfb8eab411d7bc86d7dfbb0c985c30bebf1cc105dc5b807291551b3d5aa29d90029';
+    st.deepEqual(
+      linker.findLinkReferences(bytecode),
+      { 'lib2.sol:L': [ { start: 92, length: 20 }, { start: 180, length: 20 } ] }
+    );
+    st.end();
+  });
 });
 
 tape('Linking', function (t) {
