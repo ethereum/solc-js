@@ -19,8 +19,8 @@ var linkBytecode = function (bytecode, libraries) {
         librariesComplete[libraryName + ':' + lib] = libraries[libraryName][lib];
       }
     } else {
-      // backwards compatible API for early solc-js verisons
-      var parsed = libraryName.match(/^([^:]*):?(.*)$/);
+      // backwards compatible API for early solc-js versions
+      var parsed = libraryName.match(/^([^:]+):(.+)$/);
       if (parsed) {
         librariesComplete[parsed[2]] = libraries[libraryName];
       }
