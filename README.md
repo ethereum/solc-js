@@ -38,7 +38,7 @@ It can also be included and used in other projects:
 ```javascript
 var solc = require('solc')
 var input = 'contract x { function g() {} }'
-// Setting 1 as second paramateractivates the optimiser
+// Setting 1 as second paramater activates the optimiser
 var output = solc.compile(input, 1)
 for (var contractName in output.contracts) {
 	// code and ABI that are needed by web3
