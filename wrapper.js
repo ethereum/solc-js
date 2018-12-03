@@ -230,7 +230,7 @@ function setupMethods (soljson) {
     },
     compile: compileStandardWrapper,
     // Temporary wrappers to minimise breaking with other projects.
-    // NOTE: to be removed in 0.5.1
+    // NOTE: to be removed in 0.5.2
     compileStandard: compileStandardWrapper,
     compileStandardWrapper: compileStandardWrapper,
     // Loads the compiler of the given version from the github repository
