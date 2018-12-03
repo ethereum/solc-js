@@ -1,5 +1,5 @@
 workflows:
-  version: 2
+  version: 2.1
   node-multi-build:
     jobs:
       - node-v4:
