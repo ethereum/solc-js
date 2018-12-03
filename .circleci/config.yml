@@ -2,22 +2,10 @@ workflows:
   version: 2.1
   node-multi-build:
     jobs:
-      - node-v4:
-          filters:
-            branches:
-              only: master
-      - node-v6:
-          filters:
-            branches:
-              only: master
-      - node-v8:
-          filters:
-            branches:
-              only: master
+      - node-v4
+      - node-v6
+      - node-v8
       - node-v10:
-          filters:
-            branches:
-              only: master
           run_coveralls: true
 
 version: 2.1
