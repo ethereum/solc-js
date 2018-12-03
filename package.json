@@ -39,11 +39,13 @@
   },
   "homepage": "https://github.com/ethereum/solc-js#readme",
   "dependencies": {
+    "command-exists": "^1.2.8",
     "fs-extra": "^0.30.0",
     "keccak": "^1.0.2",
     "memorystream": "^0.3.1",
     "require-from-string": "^2.0.0",
     "semver": "^5.5.0",
+    "tmp": "0.0.33",
     "yargs": "^11.0.0"
   },
   "devDependencies": {
