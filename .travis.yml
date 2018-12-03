@@ -9,9 +9,6 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-      node_js: '4'
-      env: CXX=g++-4.8 TEST_SUITE=test
-    - os: linux
       node_js: '6'
       env: CXX=g++-4.8 TEST_SUITE=test
     - os: linux
