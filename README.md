@@ -35,7 +35,7 @@ used in combination with an Ethereum client via the `eth.compile.solidity()` RPC
 
 Starting from version 0.5.0, `compile`, `compileStandard` and `compileStandardWrapper` all do the same thing - what `compileStandardWrapper` used to do.
 
-*Note*: with 0.5.1, `compileStandard` and `compileStandardWrapper` will be removed.
+*Note*: with 0.5.2, `compileStandard` and `compileStandardWrapper` will be removed.
 
 Starting from version 0.5.0 the low-level functions are also exposed:
 - `solc.lowlevel.compileSingle`: the original entry point, supports only a single file
