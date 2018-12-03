@@ -167,8 +167,9 @@ var solc = require('solc')
 solc.loadRemoteVersion('latest', function (err, solcSnapshot) {
 	if (err) {
 		// An error was encountered, display and quit
+	} else {
+		// NOTE: Use `solcSnapshot` here with the same interface `solc` has
 	}
-	var output = solcSnapshot.compile("contract t { function g() {} }", 1)
 })
 ```
 
