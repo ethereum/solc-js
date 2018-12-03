@@ -31,40 +31,48 @@ used in combination with an Ethereum client via the `eth.compile.solidity()` RPC
 
 ### Usage in Projects
 
-#### From early versions
+#### From version 0.5.0
 
-It can also be included and used in other projects:
+Starting from version 0.5.0, `compile`, `compileStandard` and `compileStandardWrapper` all do the same thing - what `compileStandardWrapper` used to do.
 
-```javascript
-var solc = require('solc')
-var input = 'contract x { function g() {} }'
-// Setting 1 as second paramater activates the optimiser
-var output = solc.compile(input, 1)
-for (var contractName in output.contracts) {
-	// code and ABI that are needed by web3
-	console.log(contractName + ': ' + output.contracts[contractName].bytecode)
-	console.log(contractName + '; ' + JSON.parse(output.contracts[contractName].interface))
-}
-```
+*Note*: with 0.5.1, `compileStandard` and `compileStandardWrapper` will be removed.
 
-#### From version 0.1.6
+Starting from version 0.5.0 the low-level functions are also exposed:
+- `solc.lowlevel.compileSingle`: the original entry point, supports only a single file
+- `solc.lowlevel.compileMulti`: this supports multiple files, introduced in 0.1.6
+- `solc.lowlevel.compileCallback`: this supports callbacks, introduced in 0.2.1
+- `solc.lowlevel.compileStandard`: this supports the Standard JSON input and output interface, introduced in 0.4.11
 
-**Not available since 0.5.0**
-
-Starting from version 0.1.6, multiple files are supported with automatic import resolution by the compiler as follows:
-
+Example:
 ```javascript
 var solc = require('solc')
 var input = {
 	'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
 	'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
 }
-var output = solc.compile({ sources: input }, 1)
+var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({ sources: input }), 1))
 for (var contractName in output.contracts)
 	console.log(contractName + ': ' + output.contracts[contractName].bytecode)
 ```
 
-Note that all input files that are imported have to be supplied, the compiler will not load any additional files on its own.
+#### From version 0.4.20
+
+Starting from version 0.4.20 a Semver compatible version number can be retrieved on every compiler release, including old ones, using the `semver()` method.
+
+#### From version 0.4.11
+
+Starting from version 0.4.11 there is a new entry point named `compileStandardWrapper()` which supports Solidity's [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description). It also maps old compiler output to it.
+
+```javascript
+var solc = require('solc')
+
+// 'input' is a JSON string corresponding to the "standard JSON input" as described in the link above
+// 'findImports' works as described above
+var output = solc.compileStandardWrapper(input, findImports)
+// Ouput is a JSON string corresponding to the "standard JSON output"
+```
+
+There is also a direct method, `compileStandard`, which is only present on recent compilers and works the same way. `compileStandardWrapper` is preferred however because it provides the same interface for old compilers.
 
 #### From version 0.2.1
 
@@ -90,47 +98,40 @@ for (var contractName in output.contracts)
 
 The `compile()` method always returns an object, which can contain `errors`, `sources` and `contracts` fields. `errors` is a list of error mesages.
 
-#### From version 0.4.11
+#### From version 0.1.6
 
-Starting from version 0.4.11 there is a new entry point named `compileStandardWrapper()` which supports Solidity's [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description). It also maps old compiler output to it.
+**Not available since 0.5.0**
 
-```javascript
-var solc = require('solc')
+Starting from version 0.1.6, multiple files are supported with automatic import resolution by the compiler as follows:
 
-// 'input' is a JSON string corresponding to the "standard JSON input" as described in the link above
-// 'findImports' works as described above
-var output = solc.compileStandardWrapper(input, findImports)
-// Ouput is a JSON string corresponding to the "standard JSON output"
-```
-
-There is also a direct method, `compileStandard`, which is only present on recent compilers and works the same way. `compileStandardWrapper` is preferred however because it provides the same interface for old compilers.
-
-#### From version 0.4.20
-
-Starting from version 0.4.20 a Semver compatible version number can be retrieved on every compiler release, including old ones, using the `semver()` method.
-
-#### From version 0.5.0
-
-Starting from version 0.5.0, `compile`, `compileStandard` and `compileStandardWrapper` all do the same thing - what `compileStandardWrapper` used to do.
-
-*Note*: with 0.5.1, `compileStandard` and `compileStandardWrapper` will be removed.
-
-Starting from version 0.5.0 the low-level functions are also exposed:
-- `solc.lowlevel.compileSingle`: the original entry point, supports only a single file
-- `solc.lowlevel.compileMulti`: this supports multiple files, introduced in 0.1.6
-- `solc.lowlevel.compileCallback`: this supports callbacks, introduced in 0.2.1
-- `solc.lowlevel.compileStandard`: this supports the Standard JSON input and output interface, introduced in 0.4.11
-
-Example:
 ```javascript
 var solc = require('solc')
 var input = {
 	'lib.sol': 'library L { function f() returns (uint) { return 7; } }',
 	'cont.sol': 'import "lib.sol"; contract x { function g() { L.f(); } }'
 }
-var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({ sources: input }), 1))
+var output = solc.compile({ sources: input }, 1)
 for (var contractName in output.contracts)
 	console.log(contractName + ': ' + output.contracts[contractName].bytecode)
+```
+
+Note that all input files that are imported have to be supplied, the compiler will not load any additional files on its own.
+
+
+#### From early versions
+
+It can also be included and used in other projects:
+
+```javascript
+var solc = require('solc')
+var input = 'contract x { function g() {} }'
+// Setting 1 as second paramater activates the optimiser
+var output = solc.compile(input, 1)
+for (var contractName in output.contracts) {
+	// code and ABI that are needed by web3
+	console.log(contractName + ': ' + output.contracts[contractName].bytecode)
+	console.log(contractName + '; ' + JSON.parse(output.contracts[contractName].interface))
+}
 ```
 
 ### Using with Electron
