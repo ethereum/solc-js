@@ -5,6 +5,7 @@ var originalUncaughtExceptionListeners = process.listeners("uncaughtException");
 
 var fs = require('fs-extra');
 var path = require('path');
+
 var solc = require('./index.js');
 var smtchecker = require('./smtchecker.js');
 // FIXME: remove annoying exception catcher of Emscripten
@@ -54,29 +55,26 @@ function abort (msg) {
 if (argv['standard-json']) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
   var output = solc.compileStandardWrapper(input);
-
   try {
-    var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output));
-    if (inputJSON) {
-      output = solc.compileStandardWrapper(JSON.stringify(inputJSON));
+    input = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output));
+    if (input !== null) {
+      output = solc.compileStandardWrapper(JSON.stringify(input));
     }
-  }
-  catch (e) {
+  } catch (e) {
     var addError = {
-      component: "general",
+      component: 'general',
       formattedMessage: e.toString(),
       message: e.toString(),
-      type: "Warning"
+      type: 'Warning'
     };
 
-    var outputJSON = JSON.parse(output);
-    if (!outputJSON.errors) {
-      outputJSON.errors = []
+    output = JSON.parse(output);
+    if (!output.errors) {
+      output.errors = [];
     }
-    outputJSON.errors.push(addError);
-    output = JSON.stringify(outputJSON);
+    output.errors.push(addError);
+    output = JSON.stringify(output);
   }
-
   console.log(output);
   process.exit(0);
 } else if (files.length === 0) {
@@ -98,20 +96,24 @@ for (var i = 0; i < files.length; i++) {
   }
 }
 
-var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify({
-  language: 'Solidity',
-  settings: {
-    optimizer: {
-      enabled: argv.optimize
-    },
-    outputSelection: {
-      '*': {
-        '*': [ 'abi', 'evm.bytecode' ]
+var output = JSON.parse(solc.compileStandardWrapper(
+  JSON.stringify({
+    language: 'Solidity',
+    settings: {
+      optimizer: {
+        enabled: argv.optimize
+      },
+      outputSelection: {
+        '*': {
+          '*': [ 'abi', 'evm.bytecode' ]
+        }
       }
-    }
-  },
-  sources: sources
-})));
+    },
+    sources: sources
+  }), {
+    smtCallback: smtchecker.smtSolve
+  }
+));
 
 if (!output) {
   abort('No output from compiler');

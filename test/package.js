@@ -353,7 +353,7 @@ tape('Compilation', function (t) {
       }
     }
 
-    var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), findImports));
+    var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), { readCallback: findImports }));
     st.ok(bytecodeExists(output, 'cont.sol', 'x'));
     st.ok(bytecodeExists(output, 'lib.sol', 'L'));
     st.end();

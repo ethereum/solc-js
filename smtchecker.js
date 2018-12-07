@@ -26,7 +26,7 @@ function solve (query) {
   var solverOutput = execSync(solvers[0].name + ' ' + solvers[0].params + ' ' + tmpFile.name);
   // Trigger early manual cleanup
   tmpFile.removeCallback();
-  return solverOutput.toString();
+  return { contents: outputStr };
 }
 
 // This function checks the standard JSON output for auxiliaryInputRequested,
@@ -51,7 +51,7 @@ function handleSMTQueries (inputJSON, outputJSON) {
 
   var responses = {};
   for (var query in queries) {
-    responses[query] = solve(queries[query]);
+    responses[query] = solve(queries[query]).contents;
   }
 
   // Note: all existing solved queries are replaced.
@@ -61,5 +61,6 @@ function handleSMTQueries (inputJSON, outputJSON) {
 }
 
 module.exports = {
-  handleSMTQueries: handleSMTQueries
+  handleSMTQueries: handleSMTQueries,
+  smtSolve: solve
 };
