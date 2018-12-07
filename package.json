@@ -27,6 +27,7 @@
     "abi.js",
     "index.js",
     "linker.js",
+    "smtchecker.js",
     "solcjs",
     "soljson.js",
     "translate.js",
