@@ -208,3 +208,34 @@ var translate = require('solc/translate')
 // assemblyJSON refers to the JSON of the given assembly and sourceCode is the source of which the assembly was generated from
 var output = translate.prettyPrintLegacyAssemblyJSON(assemblyJSON, sourceCode)
 ```
+
+## Browser Usage
+
+Add the version of `solc` you want to use into `index.html`:
+
+```html
+<script type="text/javascript" src="https://solc-bin.ethereum.org/bin/{{ SOLC VERSION }}.js"></script>
+```
+
+(Alternatively use `https://solc-bin.ethereum.org/bin/soljson-latest.js` to get the latests version.)
+
+This will load `solc` into the global variable `window.Module`. Then use this inside Javascript as:
+
+```javascript
+var wrapper = requrie('solc/wrapper')
+var solc = wrapper(window.Module)
+
+```
+
+Or in ES6 syntax:
+```javascript
+import * as wrapper from 'solc/wrapper'
+const solc = wrapper(window.Module)
+```
+
+Alternatively, to iterate the releases, one can load `list.js` from `solc-bin`:
+```html
+<script type="text/javascript" src="https://solc-bin.ethereum.org/bin/list.js"></script>
+```
+
+This will result in two global variables, `windows.soljsonReleases` listing all releases and `window.soljsonSources` listing all nightly builds and releases.
