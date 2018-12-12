@@ -15,4 +15,11 @@ tape('SMTChecker', function (t) {
     st.equal(smtchecker.handleSMTQueries(input, output), null);
     st.end();
   });
+
+  t.test('smoke test with empty smtlib2queries', function (st) {
+    var input = {};
+    var output = { auxiliaryInputRequested: { smtlib2queries: { } } };
+    st.equal(smtchecker.handleSMTQueries(input, output), null);
+    st.end();
+  });
 });
