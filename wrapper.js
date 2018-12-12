@@ -151,13 +151,13 @@ function setupMethods (soljson) {
       }
     }
 
-    function translateOutput (output) {
+    function translateOutput (output, libraries) {
       try {
         output = JSON.parse(output);
       } catch (e) {
         return formatFatalError('Compiler returned invalid JSON: ' + e.message);
       }
-      output = translate.translateJsonCompilerOutput(output);
+      output = translate.translateJsonCompilerOutput(output, libraries);
       if (output == null) {
         return formatFatalError('Failed to process output');
       }
