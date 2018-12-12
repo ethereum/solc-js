@@ -324,36 +324,39 @@ function setupMethods (soljson) {
       nativeStandardJSON: compileStandard !== null
     },
     compile: compileStandardWrapper,
-    // Loads the compiler of the given version from the github repository
-    // instead of from the local filesystem.
-    loadRemoteVersion: function (versionString, cb) {
-      const mem = new MemoryStream(null, { readable: false });
-      const url = 'https://binaries.soliditylang.org/bin/soljson-' + versionString + '.js';
-      https.get(url, function (response) {
-        if (response.statusCode !== 200) {
-          cb(new Error('Error retrieving binary: ' + response.statusMessage));
-        } else {
-          response.pipe(mem);
-          response.on('end', function () {
-            // Based on the require-from-string package.
-            const soljson = new Module();
-            soljson._compile(mem.toString(), 'soljson-' + versionString + '.js');
-            if (module.parent && module.parent.children) {
-              // Make sure the module is plugged into the hierarchy correctly to have parent
-              // properly garbage collected.
-              module.parent.children.splice(module.parent.children.indexOf(soljson), 1);
-            }
-
-            cb(null, setupMethods(soljson.exports));
-          });
-        }
-      }).on('error', function (error) {
-        cb(error);
-      });
-    },
     // Use this if you want to add wrapper functions around the pure module.
     setupMethods: setupMethods
   };
 }
 
-module.exports = setupMethods;
+// Loads the compiler of the given version from the github repository
+// instead of from the local filesystem.
+function loadRemoteVersion (versionString, cb) {
+  const mem = new MemoryStream(null, { readable: false });
+  const url = 'https://binaries.soliditylang.org/bin/soljson-' + versionString + '.js';
+  https.get(url, function (response) {
+    if (response.statusCode !== 200) {
+      cb(new Error('Error retrieving binary: ' + response.statusMessage));
+    } else {
+      response.pipe(mem);
+      response.on('end', function () {
+        // Based on the require-from-string package.
+        const soljson = new Module();
+        soljson._compile(mem.toString(), 'soljson-' + versionString + '.js');
+        if (module.parent && module.parent.children) {
+          // Make sure the module is plugged into the hierarchy correctly to have parent
+          // properly garbage collected.
+          module.parent.children.splice(module.parent.children.indexOf(soljson), 1);
+        }
+
+        cb(null, setupMethods(soljson.exports));
+      });
+    }
+  }).on('error', function (error) {
+    cb(error);
+  });
+}
+module.exports = {
+  load: setupMethods,
+  loadRemoteVersion: loadRemoteVersion
+};
