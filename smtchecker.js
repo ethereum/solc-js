@@ -41,7 +41,7 @@ function handleSMTQueries (inputJSON, outputJSON) {
   }
 
   var queries = auxInputReq.smtlib2queries;
-  if (!queries || Object.keys(queries) === 0) {
+  if (!queries || Object.keys(queries).length === 0) {
     return null;
   }
 
