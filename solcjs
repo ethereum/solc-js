@@ -7,6 +7,7 @@ var fs = require('fs-extra');
 var path = require('path');
 var solc = require('./index.js');
 var smtchecker = require('./smtchecker.js');
+var smtsolver = require('./smtsolver.js');
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
@@ -56,7 +57,7 @@ if (argv['standard-json']) {
   var output = solc.compileStandardWrapper(input);
 
   try {
-    var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output));
+    var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
     if (inputJSON) {
       output = solc.compileStandardWrapper(JSON.stringify(inputJSON));
     }

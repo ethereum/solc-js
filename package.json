@@ -28,6 +28,7 @@
     "index.js",
     "linker.js",
     "smtchecker.js",
+    "smtsolver.js",
     "solcjs",
     "soljson.js",
     "translate.js",
