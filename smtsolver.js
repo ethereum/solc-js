@@ -6,7 +6,7 @@ var tmp = require('tmp');
 var potentialSolvers = [
   {
     name: 'z3',
-    params: ''
+    params: '-smt2'
   },
   {
     name: 'cvc4',
@@ -20,17 +20,36 @@ function solve (query) {
     throw new Error('No SMT solver available. Assertion checking will not be performed.');
   }
 
-  var tmpFile = tmp.fileSync();
+  var tmpFile = tmp.fileSync({ postfix: '.smt2' });
   fs.writeFileSync(tmpFile.name, query);
   // TODO For now only the first SMT solver found is used.
   // At some point a computation similar to the one done in
   // SMTPortfolio::check should be performed, where the results
   // given by different solvers are compared and an error is
   // reported if solvers disagree (i.e. SAT vs UNSAT).
-  var solverOutput = execSync(solvers[0].name + ' ' + solvers[0].params + ' ' + tmpFile.name);
+  var solverOutput;
+  try {
+    solverOutput = execSync(
+      solvers[0].name + ' ' + solvers[0].params + ' ' + tmpFile.name, {
+        timeout: 10000
+      }
+    ).toString();
+  } catch (e) {
+    // execSync throws if the process times out or returns != 0.
+    // The latter might happen with z3 if the query asks for a model
+    // for an UNSAT formula. We can still use stdout.
+    solverOutput = e.stdout.toString();
+    if (
+      !solverOutput.startsWith('sat') &&
+      !solverOutput.startsWith('unsat') &&
+      !solverOutput.startsWith('unknown')
+    ) {
+      throw new Error('Failed solve SMT query. ' + e.toString());
+    }
+  }
   // Trigger early manual cleanup
   tmpFile.removeCallback();
-  return solverOutput.toString();
+  return solverOutput;
 }
 
 module.exports = {
