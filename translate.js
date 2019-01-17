@@ -150,9 +150,9 @@ function translateJsonCompilerOutput (output, libraries) {
 
 function escapeString (text) {
   return text
-    .replace(/\n/, '\\n')
-    .replace(/\r/, '\\r')
-    .replace(/\t/, '\\t');
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t');
 }
 
 function formatAssemblyText (asm, prefix, source) {
