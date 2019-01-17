@@ -1,5 +1,8 @@
 contract C {
-  function f() returns (bytes4) {
+  // Leaving an empty line here intentionally
+
+
+  function f() public returns (bytes4) {
     return this.f.selector;
   }
 }
