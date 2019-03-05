@@ -75,7 +75,7 @@ tape('CLI', function (t) {
       },
       'sources': {
         'Contract.sol': {
-          'content': 'pragma solidity ^0.5.0; contract Contract { function f() pure public {} }'
+          'content': 'pragma solidity >=0.5.0; contract Contract { function f() pure public {} }'
         }
       }
     };
