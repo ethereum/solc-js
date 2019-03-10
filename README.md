@@ -238,4 +238,4 @@ Alternatively, to iterate the releases, one can load `list.js` from `solc-bin`:
 <script type="text/javascript" src="https://solc-bin.ethereum.org/bin/list.js"></script>
 ```
 
-This will result in two global variables, `windows.soljsonReleases` listing all releases and `window.soljsonSources` listing all nightly builds and releases.
+This will result in two global variables, `window.soljsonReleases` listing all releases and `window.soljsonSources` listing all nightly builds and releases.
