@@ -222,7 +222,7 @@ Add the version of `solc` you want to use into `index.html`:
 This will load `solc` into the global variable `window.Module`. Then use this inside Javascript as:
 
 ```javascript
-var wrapper = requrie('solc/wrapper')
+var wrapper = require('solc/wrapper')
 var solc = wrapper(window.Module)
 
 ```
