@@ -7,7 +7,7 @@ var pkg = require('./package.json');
 var fs = require('fs');
 var https = require('https');
 var MemoryStream = require('memorystream');
-var ethJSUtil = require('ethereumjs-util');
+var keccak256 = require('js-sha3').keccak256;
 
 function getVersionList (cb) {
   console.log('Retrieving available version list...');
@@ -48,7 +48,7 @@ function downloadBinary (outputName, version, expectedHash) {
     response.pipe(file);
     file.on('finish', function () {
       file.close(function () {
-        var hash = '0x' + ethJSUtil.sha3(fs.readFileSync(outputName, { encoding: 'binary' })).toString('hex');
+        var hash = '0x' + keccak256(fs.readFileSync(outputName, { encoding: 'binary' }));
         if (expectedHash !== hash) {
           console.log('Hash mismatch: ' + expectedHash + ' vs ' + hash);
           process.exit(1);
