@@ -1,11 +1,7 @@
-var keccak = require('keccak');
-
-function keccak256 (input) {
-  return keccak('keccak256').update(input).digest();
-}
+var keccak256 = require('js-sha3').keccak256;
 
 function libraryHashPlaceholder (input) {
-  return '$' + keccak256(input).toString('hex').slice(0, 34) + '$';
+  return '$' + keccak256(input).slice(0, 34) + '$';
 }
 
 var linkBytecode = function (bytecode, libraries) {
