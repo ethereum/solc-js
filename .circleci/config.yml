@@ -5,7 +5,8 @@ workflows:
       - node-v4
       - node-v6
       - node-v8
-      - node-v10:
+      - node-v10
+      - node-v12:
           run_coveralls: true
 
 version: 2.1
@@ -58,3 +59,7 @@ jobs:
     <<: *node-base
     docker:
       - image: circleci/node:10
+  node-v12:
+    <<: *node-base
+    docker:
+      - image: circleci/node:12

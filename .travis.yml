@@ -21,6 +21,9 @@ matrix:
       node_js: '10'
       env: CXX=g++-4.8 TEST_SUITE=test
     - os: linux
-      node_js: '10'
+      node_js: '12'
+      env: CXX=g++-4.8 TEST_SUITE=test
+    - os: linux
+      node_js: '12'
       env: CXX=g++-4.8 TEST_SUITE=coveralls
 script: npm run $TEST_SUITE
