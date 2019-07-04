@@ -1,6 +1,6 @@
 var commandExistsSync = require('command-exists').sync;
 var execSync = require('child_process').execSync;
-var fs = require('fs-extra');
+var fs = require('fs');
 var tmp = require('tmp');
 
 var potentialSolvers = [
