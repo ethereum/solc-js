@@ -48,7 +48,7 @@
     "semver": "^5.5.0",
     "js-sha3": "0.8.0",
     "tmp": "0.0.33",
-    "yargs": "^11.0.0"
+    "yargs": "^13.2.0"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
