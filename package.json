@@ -11,7 +11,7 @@
     "prepublish": "node downloadCurrentVersion.js && node verifyVersion.js",
     "pretest": "npm run lint",
     "test": "tape ./test/index.js",
-    "coverage": "node ./node_modules/istanbul/lib/cli.js cover ./node_modules/tape/bin/tape ./test/index.js",
+    "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info"
   },
   "repository": {
@@ -52,13 +52,18 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
-    "istanbul": "^0.4.5",
+    "nyc": "^14.1.0",
     "semistandard": "^12.0.0",
     "tape": "^4.11.0",
     "tape-spawn": "^1.4.2"
   },
   "semistandard": {
     "ignore": [
+      "soljson.js"
+    ]
+  },
+  "nyc": {
+    "exclude": [
       "soljson.js"
     ]
   }
