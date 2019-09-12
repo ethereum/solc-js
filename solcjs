@@ -114,6 +114,8 @@ var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify({
   sources: sources
 })));
 
+let hasError = false;
+
 if (!output) {
   abort('No output from compiler');
 } else if (output['errors']) {
@@ -123,6 +125,7 @@ if (!output) {
       console.log(message.formattedMessage)
     } else {
       console.error(message.formattedMessage)
+      hasError = true
     }
   }
 }
@@ -157,3 +160,7 @@ for (var fileName in output.contracts) {
 originalUncaughtExceptionListeners.forEach(function (listener) {
   process.addListener('uncaughtException', listener);
 });
+
+if (hasError) {
+  process.exit(1);
+}
