@@ -28,6 +28,9 @@ solcjs --help
 Note: this commandline interface is not compatible with `solc` provided by the Solidity compiler package and thus cannot be
 used in combination with an Ethereum client via the `eth.compile.solidity()` RPC method. Please refer to the
 [Solidity compiler documentation](https://solidity.readthedocs.io/) for instructions to install `solc`.
+Furthermore, the commandline interface to solc-js provides fewer features than the binary release.
+One of the missing features is automatic loading of files from the filesystem if they are not explicitly
+mentioned on the command line.
 
 ### Usage in Projects
 
