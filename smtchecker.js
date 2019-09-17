@@ -25,6 +25,18 @@ function handleSMTQueries (inputJSON, outputJSON, solver) {
   return inputJSON;
 }
 
+function smtCallback (solver) {
+  return function (query) {
+    try {
+      var result = solver(query);
+      return { contents: result };
+    } catch (err) {
+      return { error: err };
+    }
+  };
+}
+
 module.exports = {
-  handleSMTQueries: handleSMTQueries
+  handleSMTQueries: handleSMTQueries,
+  smtCallback: smtCallback
 };
