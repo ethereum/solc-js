@@ -6,6 +6,8 @@ const semver = require('semver');
 var daodir;
 if (semver.lt(pkg.version, '0.5.0')) {
   daodir = 'DAO040';
+} else if (semver.lt(pkg.version, '0.6.0')) {
+  daodir = 'DAO050';
 } else {
   daodir = 'DAO';
 }

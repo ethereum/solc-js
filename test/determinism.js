@@ -10,6 +10,8 @@ tape('Deterministic Compilation', function (t) {
     var testdir;
     if (semver.lt(solc.semver(), '0.5.0')) {
       testdir = 'test/DAO040/';
+    } else if (semver.lt(solc.semver(), '0.6.0')) {
+      testdir = 'test/DAO050/';
     } else {
       testdir = 'test/DAO/';
     }
