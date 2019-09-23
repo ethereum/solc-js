@@ -435,6 +435,9 @@ tape('Compilation', function (t) {
     var L = getBytecodeStandard(output, 'lib.sol', 'L');
     st.ok(L);
     st.ok(L.length > 0);
+
+    var outputNewApi = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
+    st.deepEqual(output, outputNewApi);
     st.end();
   });
 
