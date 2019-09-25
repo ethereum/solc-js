@@ -3,6 +3,13 @@ declare module "solc" {
   export function semver(): string;
   export function license(): string;
 
+  export let lowlevel: {
+    compileSingle: function(input: string): string;
+    compileMulti: function(input: string): string;
+    compileCallback: function(input: string): string;
+    compileStandard: function(input: string): string;
+  };
+
   export let features: {
     legacySingleInput: boolean,
     multipleInputs: boolean,
@@ -12,5 +19,6 @@ declare module "solc" {
 
   export type ReadCallbackResult = { contents: string } | { error: string };
   export type ReadCallback = (path: string) => ReadCallbackResult;
-  export function compile(input: string, readCallback?: ReadCallback): string;
+  export type Callbacks = { import: ReadCallback };
+  export function compile(input: string, readCallback?: Callbacks | ReadCallback): string;
 }
