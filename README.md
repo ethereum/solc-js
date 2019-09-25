@@ -46,6 +46,8 @@ It also accepts an optional callback function to resolve unmet dependencies. Thi
 It cannot be used together with callback-based, asynchronous, filesystem access. A workaround is to collect the names of dependencies, return an error, and keep re-running the compiler until all
 of them are resolved.
 
+Starting 0.5.12 it also accepts an object in place of the callback to supply different kind of callbacks, however only file imports are supported.
+
 *Note*: as an intermittent backwards compatibility feature, between versions 0.5.0 and 0.5.2, `compileStandard` and `compileStandardWrapper` also exists and behave like `compile` does.
 
 #### Example usage without the import callback
@@ -106,7 +108,11 @@ function findImports (path) {
 		return { error: 'File not found' }
 }
 
+// Current syntax
 var output = JSON.parse(solc.compile(JSON.stringify(input), findImports))
+
+// New syntax (supported from 0.5.12)
+var output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }))
 
 // `output` here contains the JSON output as specified in the documentation
 for (var contractName in output.contracts['test.sol']) {
