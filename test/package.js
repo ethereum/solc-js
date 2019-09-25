@@ -396,6 +396,48 @@ tape('Compilation', function (t) {
     st.end();
   });
 
+  t.test('compiling standard JSON (with imports)', function (st) {
+    // <0.1.6 doesn't have this
+    if (!solc.features.multipleInputs) {
+      st.skip('Not supported by solc');
+      st.end();
+      return;
+    }
+
+    var input = {
+      'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
+          '*': {
+            '*': [ 'evm.bytecode' ]
+          }
+        }
+      },
+      'sources': {
+        'cont.sol': {
+          'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+        }
+      }
+    };
+
+    function findImports (path) {
+      if (path === 'lib.sol') {
+        return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
+      } else {
+        return { error: 'File not found' };
+      }
+    }
+
+    var output = JSON.parse(solc.compile(JSON.stringify(input), findImports));
+    var x = getBytecodeStandard(output, 'cont.sol', 'x');
+    st.ok(x);
+    st.ok(x.length > 0);
+    var L = getBytecodeStandard(output, 'lib.sol', 'L');
+    st.ok(L);
+    st.ok(L.length > 0);
+    st.end();
+  });
+
   t.test('compiling standard JSON (using libraries)', function (st) {
     // <0.1.6 doesn't have this
     if (!solc.features.multipleInputs) {
