@@ -3,6 +3,7 @@
 [![Coverage Status](https://img.shields.io/coveralls/ethereum/solc-js.svg?style=flat-square)](https://coveralls.io/r/ethereum/solc-js)
 
 # solc-js
+
 JavaScript bindings for the [Solidity compiler](https://github.com/ethereum/solidity).
 
 Uses the Emscripten compiled Solidity found in the [solc-bin repository](https://github.com/ethereum/solc-bin).
@@ -35,8 +36,9 @@ mentioned on the command line.
 ### Usage in Projects
 
 There are two ways to use `solc`:
-1) Through a high-level API giving a uniform interface to all compiler versions
-2) Through a low-level API giving access to all the compiler interfaces, which depend on the version of the compiler
+
+1. Through a high-level API giving a uniform interface to all compiler versions
+2. Through a low-level API giving access to all the compiler interfaces, which depend on the version of the compiler
 
 #### High-level API
 
@@ -48,81 +50,95 @@ of them are resolved.
 
 Starting 0.5.12 it also accepts an object in place of the callback to supply different kind of callbacks, however only file imports are supported.
 
-*Note*: as an intermittent backwards compatibility feature, between versions 0.5.0 and 0.5.2, `compileStandard` and `compileStandardWrapper` also exists and behave like `compile` does.
+_Note_: as an intermittent backwards compatibility feature, between versions 0.5.0 and 0.5.2, `compileStandard` and `compileStandardWrapper` also exists and behave like `compile` does.
 
 #### Example usage without the import callback
 
 Example:
+
 ```javascript
-var solc = require('solc')
+var solc = require('solc');
 
 var input = {
-	language: 'Solidity',
-	sources: {
-		'test.sol': {
-			content: 'contract C { function f() public { } }'
-		}
-	},
-	settings: {
-		outputSelection: {
-			'*': {
-				'*': [ '*' ]
-			}
-		}
-	}
-}
+  language: 'Solidity',
+  sources: {
+    'test.sol': {
+      content: 'contract C { function f() public { } }'
+    }
+  },
+  settings: {
+    outputSelection: {
+      '*': {
+        '*': ['*']
+      }
+    }
+  }
+};
 
-var output = JSON.parse(solc.compile(JSON.stringify(input)))
+var output = JSON.parse(solc.compile(JSON.stringify(input)));
 
 // `output` here contains the JSON output as specified in the documentation
 for (var contractName in output.contracts['test.sol']) {
-	console.log(contractName + ': ' + output.contracts['test.sol'][contractName].evm.bytecode.object)
+  console.log(
+    contractName +
+      ': ' +
+      output.contracts['test.sol'][contractName].evm.bytecode.object
+  );
 }
 ```
 
 #### Example usage with import callback
 
 ```javascript
-var solc = require('solc')
+var solc = require('solc');
 
 var input = {
-	language: 'Solidity',
-	sources: {
-		'test.sol': {
-			content: 'import "lib.sol"; contract C { function f() public { L.f(); } }'
-		}
-	},
-	settings: {
-		outputSelection: {
-			'*': {
-				'*': [ '*' ]
-			}
-		}
-	}
-}
+  language: 'Solidity',
+  sources: {
+    'test.sol': {
+      content: 'import "lib.sol"; contract C { function f() public { L.f(); } }'
+    }
+  },
+  settings: {
+    outputSelection: {
+      '*': {
+        '*': ['*']
+      }
+    }
+  }
+};
 
-function findImports (path) {
-	if (path === 'lib.sol')
-		return { contents: 'library L { function f() internal returns (uint) { return 7; } }' }
-	else
-		return { error: 'File not found' }
+function findImports(path) {
+  if (path === 'lib.sol')
+    return {
+      contents:
+        'library L { function f() internal returns (uint) { return 7; } }'
+    };
+  else return { error: 'File not found' };
 }
 
 // Current syntax
-var output = JSON.parse(solc.compile(JSON.stringify(input), findImports))
+var output = JSON.parse(solc.compile(JSON.stringify(input), findImports));
 
 // New syntax (supported from 0.5.12)
-var output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }))
+var output = JSON.parse(
+  solc.compile(JSON.stringify(input), { import: findImports })
+);
 
 // `output` here contains the JSON output as specified in the documentation
 for (var contractName in output.contracts['test.sol']) {
-	console.log(contractName + ': ' + output.contracts['test.sol'][contractName].evm.bytecode.object)
+  console.log(
+    contractName +
+      ': ' +
+      output.contracts['test.sol'][contractName].evm.bytecode.object
+  );
 }
 ```
 
 #### Low-level API
 
 The low-level API is as follows:
+
 - `solc.lowlevel.compileSingle`: the original entry point, supports only a single file
 - `solc.lowlevel.compileMulti`: this supports multiple files, introduced in 0.1.6
 - `solc.lowlevel.compileCallback`: this supports callbacks, introduced in 0.2.1
@@ -139,15 +155,15 @@ To turn off `nodeIntegration`, use the following:
 
 ```javascript
 new BrowserWindow({
-	webPreferences: {
-		nodeIntegration: false
-	}
-})
+  webPreferences: {
+    nodeIntegration: false
+  }
+});
 ```
 
 ### Using a Legacy Version
 
-In order to compile contracts using a specific version of Solidity, the `solc.loadRemoteVersion(version, callback)` method is available. This returns a new `solc` object that uses a version of the compiler specified. 
+In order to compile contracts using a specific version of Solidity, the `solc.loadRemoteVersion(version, callback)` method is available. This returns a new `solc` object that uses a version of the compiler specified.
 
 You can also load the "binary" manually and use `setupMethods` to create the familiar wrapper functions described above:
 `var solc = solc.setupMethods(require("/my/local/soljson.js"))`.
@@ -157,16 +173,16 @@ You can also load the "binary" manually and use `setupMethods` to create the fam
 By default, the npm version is only created for releases. This prevents people from deploying contracts with non-release versions because they are less stable and harder to verify. If you would like to use the latest development snapshot (at your own risk!), you may use the following example code.
 
 ```javascript
-var solc = require('solc')
+var solc = require('solc');
 
 // getting the development snapshot
-solc.loadRemoteVersion('latest', function (err, solcSnapshot) {
-	if (err) {
-		// An error was encountered, display and quit
-	} else {
-		// NOTE: Use `solcSnapshot` here with the same interface `solc` has
-	}
-})
+solc.loadRemoteVersion('latest', function(err, solcSnapshot) {
+  if (err) {
+    // An error was encountered, display and quit
+  } else {
+    // NOTE: Use `solcSnapshot` here with the same interface `solc` has
+  }
+});
 ```
 
 ### Linking Bytecode
@@ -178,33 +194,42 @@ The `linker` module (`require('solc/linker')`) offers helpers to accomplish this
 The `linkBytecode` method provides a simple helper for linking:
 
 ```javascript
-var linker = require('solc/linker')
+var linker = require('solc/linker');
 
-bytecode = linker.linkBytecode(bytecode, { 'MyLibrary': '0x123456...' })
+bytecode = linker.linkBytecode(bytecode, { MyLibrary: '0x123456...' });
 ```
 
-As of Solidity 0.4.11 the compiler supports [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description) which outputs a *link references* map. This gives a map of library names to offsets in the bytecode to replace the addresses at. It also doesn't have the limitation on library file and contract name lengths.
+As of Solidity 0.4.11 the compiler supports [standard JSON input and output](https://solidity.readthedocs.io/en/develop/using-the-compiler.html#compiler-input-and-output-json-description) which outputs a _link references_ map. This gives a map of library names to offsets in the bytecode to replace the addresses at. It also doesn't have the limitation on library file and contract name lengths.
 
 There is a method available in the `linker` module called `findLinkReferences` which can find such link references in bytecode produced by an older compiler:
 
 ```javascript
-var linker = require('solc/linker')
+var linker = require('solc/linker');
 
-var linkReferences = linker.findLinkReferences(bytecode)
+var linkReferences = linker.findLinkReferences(bytecode);
 ```
 
 ### Updating the ABI
 
-The ABI generated by Solidity versions can differ slightly, due to new features introduced.  There is a tool included which aims to translate the ABI generated by an older Solidity version to conform to the latest standard.
+The ABI generated by Solidity versions can differ slightly, due to new features introduced. There is a tool included which aims to translate the ABI generated by an older Solidity version to conform to the latest standard.
 
 It can be used as:
+
 ```javascript
-var abi = require('solc/abi')
+var abi = require('solc/abi');
 
-var inputABI = [{"constant":false,"inputs":[],"name":"hello","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"}]
-var outputABI = abi.update('0.3.6', inputABI)
+var inputABI = [
+  {
+    constant: false,
+    inputs: [],
+    name: 'hello',
+    outputs: [{ name: '', type: 'string' }],
+    payable: false,
+    type: 'function'
+  }
+];
+var outputABI = abi.update('0.3.6', inputABI);
 // Output contains: [{"constant":false,"inputs":[],"name":"hello","outputs":[{"name":"","type":"string"}],"payable":true,"type":"function"},{"type":"fallback","payable":true}]
-
 ```
 
 ### Formatting old JSON assembly output
@@ -223,7 +248,10 @@ var output = translate.prettyPrintLegacyAssemblyJSON(assemblyJSON, sourceCode)
 Add the version of `solc` you want to use into `index.html`:
 
 ```html
-<script type="text/javascript" src="https://solc-bin.ethereum.org/bin/{{ SOLC VERSION }}.js"></script>
+<script
+  type="text/javascript"
+  src="https://solc-bin.ethereum.org/bin/{{ SOLC VERSION }}.js"
+></script>
 ```
 
 (Alternatively use `https://solc-bin.ethereum.org/bin/soljson-latest.js` to get the latests version.)
@@ -231,20 +259,24 @@ Add the version of `solc` you want to use into `index.html`:
 This will load `solc` into the global variable `window.Module`. Then use this inside Javascript as:
 
 ```javascript
-var wrapper = require('solc/wrapper')
-var solc = wrapper(window.Module)
-
+var wrapper = require('solc/wrapper');
+var solc = wrapper(window.Module);
 ```
 
 Or in ES6 syntax:
+
 ```javascript
-import * as wrapper from 'solc/wrapper'
-const solc = wrapper(window.Module)
+import * as wrapper from 'solc/wrapper';
+const solc = wrapper(window.Module);
 ```
 
 Alternatively, to iterate the releases, one can load `list.js` from `solc-bin`:
+
 ```html
-<script type="text/javascript" src="https://solc-bin.ethereum.org/bin/list.js"></script>
+<script
+  type="text/javascript"
+  src="https://solc-bin.ethereum.org/bin/list.js"
+></script>
 ```
 
 This will result in two global variables, `window.soljsonReleases` listing all releases and `window.soljsonSources` listing all nightly builds and releases.
