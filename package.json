@@ -42,13 +42,13 @@
   "homepage": "https://github.com/ethereum/solc-js#readme",
   "dependencies": {
     "command-exists": "^1.2.8",
+    "commander": "3.0.2",
     "fs-extra": "^0.30.0",
+    "js-sha3": "0.8.0",
     "memorystream": "^0.3.1",
     "require-from-string": "^2.0.0",
     "semver": "^5.5.0",
-    "js-sha3": "0.8.0",
-    "tmp": "0.0.33",
-    "yargs": "^13.2.0"
+    "tmp": "0.0.33"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
