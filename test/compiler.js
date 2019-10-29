@@ -3,6 +3,9 @@ const semver = require('semver');
 const solc = require('../index.js');
 const linker = require('../linker.js');
 
+function runTests (solc, versionText) {
+console.log(`Running tests with ${versionText} ${solc.version()}`);
+
 function getBytecode (output, fileName, contractName) {
   try {
     var outputContract;
@@ -30,6 +33,9 @@ function getBytecodeStandard (output, fileName, contractName) {
     return '';
   }
 }
+
+tape(versionText, function (t) {
+var tape = t.test;
 
 tape('Version and license', function (t) {
   t.test('check version', function (st) {
@@ -527,6 +533,11 @@ tape('Compilation', function (t) {
   });
 });
 
+});
+
+// Only run on the latest version.
+if (versionText === 'latest') {
+
 tape('Loading Legacy Versions', function (t) {
   t.test('loading remote version - development snapshot', function (st) {
     // getting the development snapshot
@@ -568,3 +579,27 @@ tape('API backwards compatibility', function (t) {
     st.end();
   });
 });
+
+}
+
+}
+
+runTests(solc, 'latest');
+
+// New features 0.1.6, 0.2.1, 0.4.11, 0.5.0, etc.
+const versions = [
+  'v0.1.1+commit.6ff4cd6',
+  'v0.1.6+commit.d41f8b7',
+  'v0.2.0+commit.4dc2445',
+  'v0.2.1+commit.91a6b35',
+  'v0.3.6+commit.3fc68da',
+  'v0.4.26+commit.4563c3fc'
+];
+for (var version in versions) {
+  version = versions[version];
+  solc.loadRemoteVersion(version, function (err, solc) {
+    if (!err) {
+      runTests(solc, version);
+    }
+  });
+}
