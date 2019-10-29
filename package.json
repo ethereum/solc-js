@@ -7,12 +7,12 @@
     "solcjs": "solcjs"
   },
   "scripts": {
-    "lint": "semistandard",
+    "lint": "node ./node_modules/semistandard/bin/cmd.js",
     "prepublish": "node downloadCurrentVersion.js && node verifyVersion.js",
     "pretest": "npm run lint",
     "test": "tape ./test/index.js",
-    "coverage": "istanbul cover node_modules/tape/bin/tape ./test/index.js",
-    "coveralls": "npm run coverage && coveralls <coverage/lcov.info"
+    "coverage": "node ./node_modules/istanbul/lib/cli.js cover ./node_modules/tape/bin/tape ./test/index.js",
+    "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info"
   },
   "repository": {
     "type": "git",
