@@ -11,48 +11,29 @@ var smtsolver = require('./smtsolver.js');
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
+var commander = require('commander');
 
-var yargs = require('yargs')
-  .usage('Usage: $0 [options] [input_file...]')
-  .option('version', {
-    describe: 'Show version and exit.',
-    type: 'boolean'
-  })
-  .option('optimize', {
-    describe: 'Enable bytecode optimizer.',
-    type: 'boolean'
-  })
-  .option('bin', {
-    describe: 'Binary of the contracts in hex.',
-    type: 'boolean'
-  })
-  .option('abi', {
-    describe: 'ABI of the contracts.',
-    type: 'boolean'
-  })
-  .option('standard-json', {
-    describe: 'Turn on Standard JSON Input / Output mode.',
-    type: 'boolean'
-  })
-  .option('output-dir', {
-    alias: 'o',
-    describe: 'Output directory for the contracts.',
-    type: 'string'
-  })
-  .version(solc.version())
-  .showHelpOnFail(false, 'Specify --help for available options')
-  .help()
+var program = new commander.Command();
+program.name('solcjs');
+program.version(solc.version());
+program
+  .option('--version', 'Show version and exit.')
+  .option('--optimize', 'Enable bytecode optimizer.')
+  .option('--bin', 'Binary of the contracts in hex.')
+  .option('--abi', 'ABI of the contracts.')
+  .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
+  .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.');
+program.parse(process.argv);
 
-var argv = yargs.argv;
-var files = argv._;
-var destination = argv['output-dir'] || '.'
+var files = program.args;
+var destination = program.outputDir || '.'
 
 function abort (msg) {
   console.error(msg || 'Error occured');
   process.exit(1);
 }
 
-if (argv['standard-json']) {
+if (program.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
   var output = solc.compileStandardWrapper(input);
 
@@ -85,7 +66,7 @@ if (argv['standard-json']) {
   process.exit(1);
 }
 
-if (!(argv.bin || argv.abi)) {
+if (!(program.bin || program.abi)) {
   abort('Invalid option selected, must specify either --bin or --abi');
 }
 
@@ -103,7 +84,7 @@ var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify({
   language: 'Solidity',
   settings: {
     optimizer: {
-      enabled: argv.optimize
+      enabled: program.optimize
     },
     outputSelection: {
       '*': {
@@ -146,11 +127,11 @@ for (var fileName in output.contracts) {
     var contractFileName = fileName + ':' + contractName;
     contractFileName = contractFileName.replace(/[:./\\]/g, '_');
 
-    if (argv.bin) {
+    if (program.bin) {
       writeFile(contractFileName + '.bin', output.contracts[fileName][contractName].evm.bytecode.object);
     }
 
-    if (argv.abi) {
+    if (program.abi) {
       writeFile(contractFileName + '.abi', JSON.stringify(output.contracts[fileName][contractName].abi));
     }
   }
