@@ -29,6 +29,13 @@ tape('CLI', function (t) {
     spt.end();
   });
 
+  t.test('--bin --optimize', function (st) {
+    var spt = spawn(st, './solcjs --bin --optimize test/contracts/Smoke.sol');
+    spt.stderr.empty();
+    spt.succeeds();
+    spt.end();
+  });
+
   t.test('invalid file specified', function (st) {
     var spt = spawn(st, './solcjs --bin test/fileNotFound.sol');
     spt.stderr.match(/^Error reading /);
