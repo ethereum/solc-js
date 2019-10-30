@@ -3,14 +3,16 @@ var execSync = require('child_process').execSync;
 var fs = require('fs');
 var tmp = require('tmp');
 
+const timeout = 10000;
+
 var potentialSolvers = [
   {
     name: 'z3',
-    params: '-smt2'
+    params: '-smt2 -t:' + timeout
   },
   {
     name: 'cvc4',
-    params: '--lang=smt2'
+    params: '--lang=smt2 --tlimit=' + timeout
   }
 ];
 var solvers = potentialSolvers.filter(solver => commandExistsSync(solver.name));
