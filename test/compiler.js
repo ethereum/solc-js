@@ -96,7 +96,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('multiple files can be compiled (using lowlevel API)', function (st) {
-    // Introduced in 0.1.6
+    // <0.1.6 doesn't have this
     if (typeof solc.lowlevel.compileMulti !== 'function') {
       st.skip('Low-level compileMulti interface not implemented by this compiler version.');
       st.end();
@@ -118,7 +118,7 @@ tape('Compilation', function (t) {
   });
 
   t.test('lazy-loading callback works (using lowlevel API)', function (st) {
-    // Introduced in 0.2.1
+    // <0.2.1 doesn't have this
     if (typeof solc.lowlevel.compileCallback !== 'function') {
       st.skip('Low-level compileCallback interface not implemented by this compiler version.');
       st.end();
@@ -397,8 +397,8 @@ tape('Compilation', function (t) {
   });
 
   t.test('compiling standard JSON (with imports)', function (st) {
-    // <0.1.6 doesn't have this
-    if (!solc.features.multipleInputs) {
+    // <0.2.1 doesn't have this
+    if (!solc.features.importCallback) {
       st.skip('Not supported by solc');
       st.end();
       return;
