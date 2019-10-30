@@ -2,6 +2,7 @@ const tape = require('tape');
 const semver = require('semver');
 const solc = require('../index.js');
 const linker = require('../linker.js');
+const execSync = require('child_process').execSync;
 
 function runTests (solc, versionText) {
 console.log(`Running tests with ${versionText} ${solc.version()}`);
@@ -597,9 +598,7 @@ const versions = [
 ];
 for (var version in versions) {
   version = versions[version];
-  solc.loadRemoteVersion(version, function (err, solc) {
-    if (!err) {
-      runTests(solc, version);
-    }
-  });
+  execSync(`curl -o /tmp/${version}.js https://ethereum.github.io/solc-bin/bin/soljson-${version}.js`);
+  const newSolc = require('../wrapper.js')(require(`/tmp/${version}.js`));
+  runTests(newSolc, version);
 }
