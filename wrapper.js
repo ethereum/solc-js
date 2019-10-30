@@ -109,6 +109,11 @@ function setupMethods (soljson) {
       });
     }
 
+    // Forward compatibility with 0.6.x
+    if (typeof readCallback === 'object') {
+      readCallback = readCallback.import;
+    }
+
     if (readCallback !== undefined && typeof readCallback !== 'function') {
       return formatFatalError('Invalid import callback supplied');
     }
