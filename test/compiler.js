@@ -57,7 +57,7 @@ tape('Compilation', function (t) {
     var output = JSON.parse(solc.lowlevel.compileSingle('contract x { function g() public {} }'));
     st.ok('contracts' in output);
     var bytecode = getBytecode(output, '', 'x');
-    st.ok(bytecode);
+    st.ok(typeof bytecode === 'string');
     st.ok(bytecode.length > 0);
     st.end();
   });
@@ -109,10 +109,10 @@ tape('Compilation', function (t) {
     };
     var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({sources: input})));
     var x = getBytecode(output, 'cont.sol', 'x');
-    st.ok(x);
+    st.ok(typeof x === 'string');
     st.ok(x.length > 0);
     var L = getBytecode(output, 'lib.sol', 'L');
-    st.ok(L);
+    st.ok(typeof L === 'string');
     st.ok(L.length > 0);
     st.end();
   });
@@ -138,9 +138,9 @@ tape('Compilation', function (t) {
     var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports));
     var x = getBytecode(output, 'cont.sol', 'x');
     var L = getBytecode(output, 'lib.sol', 'L');
-    st.ok(x);
+    st.ok(typeof x === 'string');
     st.ok(x.length > 0);
-    st.ok(L);
+    st.ok(typeof L === 'string');
     st.ok(L.length > 0);
     st.end();
   });
@@ -388,10 +388,10 @@ tape('Compilation', function (t) {
 
     var output = JSON.parse(solc.compile(JSON.stringify(input)));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
-    st.ok(x);
+    st.ok(typeof x === 'string');
     st.ok(x.length > 0);
     var L = getBytecodeStandard(output, 'lib.sol', 'L');
-    st.ok(L);
+    st.ok(typeof L === 'string');
     st.ok(L.length > 0);
     st.end();
   });
@@ -430,10 +430,10 @@ tape('Compilation', function (t) {
 
     var output = JSON.parse(solc.compile(JSON.stringify(input), findImports));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
-    st.ok(x);
+    st.ok(typeof x === 'string');
     st.ok(x.length > 0);
     var L = getBytecodeStandard(output, 'lib.sol', 'L');
-    st.ok(L);
+    st.ok(typeof L === 'string');
     st.ok(L.length > 0);
 
     var outputNewApi = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
@@ -475,11 +475,11 @@ tape('Compilation', function (t) {
 
     var output = JSON.parse(solc.compile(JSON.stringify(input)));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
-    st.ok(x);
+    st.ok(typeof x === 'string');
     st.ok(x.length > 0);
     st.ok(Object.keys(linker.findLinkReferences(x)).length === 0);
     var L = getBytecodeStandard(output, 'lib.sol', 'L');
-    st.ok(L);
+    st.ok(typeof L === 'string');
     st.ok(L.length > 0);
     st.end();
   });
@@ -517,11 +517,11 @@ tape('Compilation', function (t) {
 
     var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
     var x = getBytecodeStandard(output, 'cont.sol', 'x');
-    st.ok(x);
+    st.ok(typeof x === 'string');
     st.ok(x.length > 0);
     st.ok(Object.keys(linker.findLinkReferences(x)).length === 0);
     var L = getBytecodeStandard(output, 'lib.sol', 'L');
-    st.ok(L);
+    st.ok(typeof L === 'string');
     st.ok(L.length > 0);
     st.end();
   });
@@ -555,7 +555,7 @@ tape('Loading Legacy Versions', function (t) {
       };
       var output = JSON.parse(solcSnapshot.compile(JSON.stringify(input)));
       var x = getBytecodeStandard(output, 'cont.sol', 'x');
-      st.ok(x);
+      st.ok(typeof x === 'string');
       st.ok(x.length > 0);
     });
   });
