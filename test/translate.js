@@ -48,9 +48,9 @@ tape('Version string to Semver translator', function (t) {
 
 tape('prettyPrintLegacyAssemblyJSON', function (t) {
   t.test('Works properly', function (st) {
-    var fixtureAsmJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtureAsmJson.json')).toString());
-    var fixtureAsmJsonSource = fs.readFileSync(path.resolve(__dirname, 'fixtureAsmJson.sol')).toString();
-    var fixtureAsmJsonOutput = fs.readFileSync(path.resolve(__dirname, 'fixtureAsmJson.output')).toString();
+    var fixtureAsmJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'resources/fixtureAsmJson.json')).toString());
+    var fixtureAsmJsonSource = fs.readFileSync(path.resolve(__dirname, 'resources/fixtureAsmJson.sol')).toString();
+    var fixtureAsmJsonOutput = fs.readFileSync(path.resolve(__dirname, 'resources/fixtureAsmJson.output')).toString();
     st.equal(translate.prettyPrintLegacyAssemblyJSON(fixtureAsmJson, fixtureAsmJsonSource), fixtureAsmJsonOutput);
     st.end();
   });
