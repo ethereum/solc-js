@@ -17,20 +17,20 @@ tape('CLI', function (t) {
   });
 
   t.test('no mode specified', function (st) {
-    var spt = spawn(st, './solcjs test/contracts/Smoke.sol');
+    var spt = spawn(st, './solcjs test/resources/fixtureSmoke.sol');
     spt.stderr.match(/^Invalid option selected/);
     spt.end();
   });
 
   t.test('--bin', function (st) {
-    var spt = spawn(st, './solcjs --bin test/contracts/Smoke.sol');
+    var spt = spawn(st, './solcjs --bin test/resources/fixtureSmoke.sol');
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
   });
 
   t.test('--bin --optimize', function (st) {
-    var spt = spawn(st, './solcjs --bin --optimize test/contracts/Smoke.sol');
+    var spt = spawn(st, './solcjs --bin --optimize test/resources/fixtureSmoke.sol');
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
@@ -43,20 +43,20 @@ tape('CLI', function (t) {
   });
 
   t.test('incorrect source source', function (st) {
-    var spt = spawn(st, './solcjs --bin test/fixtureIncorrectSource.sol');
-    spt.stderr.match(/^test\/fixtureIncorrectSource.sol:1:1: SyntaxError: Invalid pragma "contract"/);
+    var spt = spawn(st, './solcjs --bin test/resources/fixtureIncorrectSource.sol');
+    spt.stderr.match(/^test\/resources\/fixtureIncorrectSource.sol:1:1: SyntaxError: Invalid pragma "contract"/);
     spt.end();
   });
 
   t.test('--abi', function (st) {
-    var spt = spawn(st, './solcjs --abi test/contracts/Smoke.sol');
+    var spt = spawn(st, './solcjs --abi test/resources/fixtureSmoke.sol');
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
   });
 
   t.test('--bin --abi', function (st) {
-    var spt = spawn(st, './solcjs --bin --abi test/contracts/Smoke.sol');
+    var spt = spawn(st, './solcjs --bin --abi test/resources/fixtureSmoke.sol');
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
