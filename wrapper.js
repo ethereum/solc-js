@@ -114,8 +114,8 @@ function setupMethods (soljson) {
       readCallback = readCallback.import;
     }
 
-    if (readCallback !== undefined && typeof readCallback !== 'function') {
-      return formatFatalError('Invalid import callback supplied');
+    if (readCallback !== undefined) {
+      assert(typeof readCallback === 'function', 'Invalid callback specified.');
     }
 
     try {
