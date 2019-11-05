@@ -35,6 +35,33 @@ function runTests (solc, versionText) {
     }
   }
 
+  function expectError (output, errorType, message) {
+    if (output.errors) {
+      for (var error in output.errors) {
+        error = output.errors[error];
+        if (error.type === errorType) {
+          if (message) {
+            return error.message.match(message) !== null;
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function expectNoError (output) {
+    if (output.errors) {
+      for (var error in output.errors) {
+        error = output.errors[error];
+        if (error.severity === 'error') {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   tape(versionText, function (t) {
     var tape = t.test;
 
@@ -530,6 +557,38 @@ function runTests (solc, versionText) {
         var L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
+        st.end();
+      });
+
+      t.test('compiling standard JSON (invalid JSON)', function (st) {
+        var output = JSON.parse(solc.compile('{invalid'));
+        // TODO: change wrapper to output matching error
+        st.ok(expectError(output, 'JSONError', 'Line 1, Column 2\n  Missing \'}\' or object member name') || expectError(output, 'SOLCError', 'Invalid JSON supplied'));
+        st.end();
+      });
+
+      t.test('compiling standard JSON (invalid language)', function (st) {
+        var output = JSON.parse(solc.compile('{"language":"InvalidSolidity","sources":{"cont.sol":{"content":""}}}'));
+        // TODO: change wrapper to output matching error
+        st.ok(expectError(output, 'JSONError', 'supported as a language.') || expectError(output, 'SOLCError', 'Only Solidity sources are supported'));
+        st.end();
+      });
+
+      t.test('compiling standard JSON (no sources)', function (st) {
+        var output = JSON.parse(solc.compile('{"language":"Solidity"}'));
+        // TODO: change wrapper to output matching error
+        st.ok(expectError(output, 'JSONError', 'No input sources specified.') || expectError(output, 'SOLCError', 'No input specified'));
+        st.end();
+      });
+
+      t.test('compiling standard JSON (multiple sources on old compiler)', function (st) {
+        var output = JSON.parse(solc.compile('{"language":"Solidity","sources":{"cont.sol":{"content":"import \\"lib.sol\\";"},"lib.sol":{"content":""}}}'));
+        console.log(output);
+        if (solc.features.multipleInputs) {
+          st.ok(expectNoError(output));
+        } else {
+          st.ok(expectError(output, 'SOLCError', 'Multiple sources provided, but compiler only supports single input') || expectError(output, 'Parser error', 'Parser error: Source not found.'));
+        }
         st.end();
       });
     });
