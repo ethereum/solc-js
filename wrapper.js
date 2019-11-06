@@ -156,7 +156,7 @@ function setupMethods (soljson) {
     }
 
     function librariesSupplied (input) {
-      if (input['settings'] !== null) {
+      if (input['settings']) {
         return input['settings']['libraries'];
       }
     }
