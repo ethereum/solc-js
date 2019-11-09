@@ -50,8 +50,6 @@ of them are resolved.
 
 Starting 0.5.12 it also accepts an object in place of the callback to supply different kind of callbacks, however only file imports are supported.
 
-_Note_: as an intermittent backwards compatibility feature, between versions 0.5.0 and 0.5.2, `compileStandard` and `compileStandardWrapper` also exists and behave like `compile` does.
-
 #### Example usage without the import callback
 
 Example:

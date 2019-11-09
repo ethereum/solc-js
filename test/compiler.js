@@ -626,14 +626,6 @@ function runTests (solc, versionText) {
         });
       });
     });
-
-    tape('API backwards compatibility', function (t) {
-      t.test('compileStandard and compileStandardWrapper exists', function (st) {
-        st.equal(solc.compile, solc.compileStandard);
-        st.equal(solc.compile, solc.compileStandardWrapper);
-        st.end();
-      });
-    });
   }
 }
 
