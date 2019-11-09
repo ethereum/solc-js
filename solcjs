@@ -3,7 +3,7 @@
 // hold on to any exception handlers that existed prior to this script running, we'll be adding them back at the end
 var originalUncaughtExceptionListeners = process.listeners("uncaughtException");
 
-var fs = require('fs-extra');
+var fs = require('fs');
 var path = require('path');
 var solc = require('./index.js');
 var smtchecker = require('./smtchecker.js');
@@ -110,6 +110,8 @@ if (!output) {
     }
   }
 }
+
+
 
 fs.ensureDirSync (destination);
 
