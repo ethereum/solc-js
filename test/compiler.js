@@ -169,7 +169,7 @@ function runTests (solc, versionText) {
             return { error: 'File not found' };
           }
         }
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports));
+        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports }));
         var x = getBytecode(output, 'cont.sol', 'x');
         var L = getBytecode(output, 'lib.sol', 'L');
         st.ok(typeof x === 'string');
@@ -193,7 +193,7 @@ function runTests (solc, versionText) {
         function findImports (path) {
           return { error: 'File not found' };
         }
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports));
+        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports }));
         st.plan(3);
         st.ok('errors' in output);
         // Check if the ParserError exists, but allow others too
@@ -224,7 +224,7 @@ function runTests (solc, versionText) {
           throw new Error('Could not implement this interface properly...');
         }
         st.throws(function () {
-          solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports);
+          solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports });
         }, /^Error: Could not implement this interface properly.../);
         st.end();
       });
@@ -242,7 +242,7 @@ function runTests (solc, versionText) {
         };
         st.throws(function () {
           solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, "this isn't a callback");
-        }, /Invalid callback specified./);
+        }, /Invalid callback object specified./);
         st.end();
       });
 
@@ -387,7 +387,7 @@ function runTests (solc, versionText) {
           }
         }
 
-        var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), findImports));
+        var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), { import: findImports }));
         st.ok(bytecodeExists(output, 'cont.sol', 'x'));
         st.ok(bytecodeExists(output, 'lib.sol', 'L'));
         st.end();
@@ -462,16 +462,13 @@ function runTests (solc, versionText) {
           }
         }
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input), findImports));
+        var output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
         var x = getBytecodeStandard(output, 'cont.sol', 'x');
         st.ok(typeof x === 'string');
         st.ok(x.length > 0);
         var L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
-
-        var outputNewApi = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
-        st.deepEqual(output, outputNewApi);
         st.end();
       });
 
