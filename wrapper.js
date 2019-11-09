@@ -5,6 +5,29 @@ var https = require('https');
 var MemoryStream = require('memorystream');
 
 function setupMethods (soljson) {
+  var version;
+  if ('_solidity_version' in soljson) {
+    version = soljson.cwrap('solidity_version', 'string', []);
+  } else {
+    version = soljson.cwrap('version', 'string', []);
+  }
+
+  var versionToSemver = function () {
+    return translate.versionToSemver(version());
+  };
+
+  var license;
+  if ('_solidity_license' in soljson) {
+    license = soljson.cwrap('solidity_license', 'string', []);
+  } else if ('_license' in soljson) {
+    license = soljson.cwrap('license', 'string', []);
+  } else {
+    // pre 0.4.14
+    license = function () {
+      // return undefined
+    };
+  }
+
   var copyString = function (str, ptr) {
     var length = soljson.lengthBytesUTF8(str);
     var buffer = soljson._malloc(length + 1);
@@ -198,29 +221,6 @@ function setupMethods (soljson) {
 
     return formatFatalError('Compiler does not support any known interface.');
   };
-
-  var version;
-  if ('_solidity_version' in soljson) {
-    version = soljson.cwrap('solidity_version', 'string', []);
-  } else {
-    version = soljson.cwrap('version', 'string', []);
-  }
-
-  var versionToSemver = function () {
-    return translate.versionToSemver(version());
-  };
-
-  var license;
-  if ('_solidity_license' in soljson) {
-    license = soljson.cwrap('solidity_license', 'string', []);
-  } else if ('_license' in soljson) {
-    license = soljson.cwrap('license', 'string', []);
-  } else {
-    // pre 0.4.14
-    license = function () {
-      // return undefined
-    };
-  }
 
   return {
     version: version,
