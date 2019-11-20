@@ -583,7 +583,6 @@ function runTests (solc, versionText) {
 
       t.test('compiling standard JSON (multiple sources on old compiler)', function (st) {
         var output = JSON.parse(solc.compile('{"language":"Solidity","sources":{"cont.sol":{"content":"import \\"lib.sol\\";"},"lib.sol":{"content":""}}}'));
-        console.log(output);
         if (solc.features.multipleInputs) {
           st.ok(expectNoError(output));
         } else {
