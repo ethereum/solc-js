@@ -122,7 +122,7 @@ function setupMethods (soljson) {
       return JSON.stringify({
         errors: [
           {
-            'type': 'SOLCError',
+            'type': 'JSONError',
             'component': 'solcjs',
             'severity': 'error',
             'message': message,
