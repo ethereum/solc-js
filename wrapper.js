@@ -50,8 +50,8 @@ function setupMethods (soljson) {
 
   // This calls compile() with args || cb
   var runWithReadCallback = function (readCallback, compile, args) {
-    // Forward compatibility with 0.6.x
-    if (typeof readCallback === 'object') {
+    if (readCallback) {
+      assert(typeof readCallback === 'object', 'Invalid callback object specified.');
       readCallback = readCallback.import;
     }
 
@@ -130,15 +130,6 @@ function setupMethods (soljson) {
           }
         ]
       });
-    }
-
-    // Forward compatibility with 0.6.x
-    if (typeof readCallback === 'object') {
-      readCallback = readCallback.import;
-    }
-
-    if (readCallback !== undefined) {
-      assert(typeof readCallback === 'function', 'Invalid callback specified.');
     }
 
     try {
