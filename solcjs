@@ -35,12 +35,12 @@ function abort (msg) {
 
 if (program.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
-  var output = solc.compileStandardWrapper(input);
+  var output = solc.compile(input);
 
   try {
     var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
     if (inputJSON) {
-      output = solc.compileStandardWrapper(JSON.stringify(inputJSON));
+      output = solc.compile(JSON.stringify(inputJSON));
     }
   }
   catch (e) {
@@ -80,7 +80,7 @@ for (var i = 0; i < files.length; i++) {
   }
 }
 
-var output = JSON.parse(solc.compileStandardWrapper(JSON.stringify({
+var output = JSON.parse(solc.compile(JSON.stringify({
   language: 'Solidity',
   settings: {
     optimizer: {

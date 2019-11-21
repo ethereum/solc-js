@@ -122,7 +122,7 @@ function setupMethods (soljson) {
       return JSON.stringify({
         errors: [
           {
-            'type': 'SOLCError',
+            'type': 'JSONError',
             'component': 'solcjs',
             'severity': 'error',
             'message': message,
@@ -148,17 +148,17 @@ function setupMethods (soljson) {
     }
 
     if (input['language'] !== 'Solidity') {
-      return formatFatalError('Only Solidity sources are supported');
+      return formatFatalError('Only "Solidity" is supported as a language.');
     }
 
     // NOTE: this is deliberately `== null`
     if (input['sources'] == null || input['sources'].length === 0) {
-      return formatFatalError('No input specified');
+      return formatFatalError('No input sources specified.');
     }
 
     // Bail out early
     if ((input['sources'].length > 1) && (compileJSONMulti === null)) {
-      return formatFatalError('Multiple sources provided, but compiler only supports single input');
+      return formatFatalError('Multiple sources provided, but compiler only supports single input.');
     }
 
     function isOptimizerEnabled (input) {
@@ -192,14 +192,14 @@ function setupMethods (soljson) {
       }
       output = translate.translateJsonCompilerOutput(output, libraries);
       if (output == null) {
-        return formatFatalError('Failed to process output');
+        return formatFatalError('Failed to process output.');
       }
       return JSON.stringify(output);
     }
 
     var sources = translateSources(input);
     if (sources === null || Object.keys(sources).length === 0) {
-      return formatFatalError('Failed to process sources');
+      return formatFatalError('Failed to process sources.');
     }
 
     // Try linking if libraries were supplied
