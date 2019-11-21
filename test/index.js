@@ -3,6 +3,7 @@ const semver = require('semver');
 require('./linker.js');
 require('./translate.js');
 require('./compiler.js');
+require('./smtcallback.js');
 require('./smtchecker.js');
 require('./abi.js');
 
