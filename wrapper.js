@@ -53,7 +53,7 @@ function setupMethods (soljson) {
 
   var wrapCallbackWithKind = function (callback) {
     assert(typeof callback === 'function', 'Invalid callback specified.');
-    return function (kind, data, contents, error) {
+    return function (context, kind, data, contents, error) {
       var result = callback(soljson.Pointer_stringify(kind), soljson.Pointer_stringify(data));
       if (typeof result.contents === 'string') {
         copyString(result.contents, contents);
@@ -117,6 +117,10 @@ function setupMethods (soljson) {
     var output;
     try {
       args.push(cb);
+      if (isVersion6) {
+        // Callback context.
+        args.push(null);
+      }
       output = compile.apply(undefined, args);
     } catch (e) {
       removeFunction(cb);
@@ -152,7 +156,12 @@ function setupMethods (soljson) {
     };
   }
   if ('_solidity_compile' in soljson) {
-    var solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
+    var solidityCompile;
+    if (isVersion6) {
+      solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number', 'number']);
+    } else {
+      solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
+    }
     compileStandard = function (input, callbacks) {
       return runWithCallbacks(callbacks, solidityCompile, [ input ]);
     };
