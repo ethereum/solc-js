@@ -17,6 +17,8 @@ function setupMethods (soljson) {
     return translate.versionToSemver(version());
   };
 
+  var isVersion6 = semver.gt(versionToSemver(), '0.5.99');
+
   var license;
   if ('_solidity_license' in soljson) {
     license = soljson.cwrap('solidity_license', 'string', []);
@@ -80,7 +82,7 @@ function setupMethods (soljson) {
     }
 
     var singleCallback;
-    if (semver.gt(versionToSemver(), '0.5.99')) {
+    if (isVersion6) {
       // After 0.6.x multiple kind of callbacks are supported.
       var smtSolverCallback = callbacks.smtSolver;
       if (smtSolverCallback === undefined) {
