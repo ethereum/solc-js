@@ -654,3 +654,11 @@ for (var version in versions) {
   const newSolc = require('../wrapper.js')(require(`/tmp/${version}.js`));
   runTests(newSolc, version);
 }
+
+
+// add tests:
+// - multiple sources with very old version (error)
+// - compiler warnings/errors
+// - no bytecode output (gas estimation) from compiler
+
+
