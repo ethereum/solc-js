@@ -4,7 +4,11 @@ function libraryHashPlaceholder (input) {
   return '$' + keccak256(input).slice(0, 34) + '$';
 }
 
-var linkBytecode = function (bytecode, libraries) {
+var linkBytecode = function (bytecode, libraries, linkReferences) {
+  if (typeof linkReferences === typeof '' || linkReferences === null || linkReferences === undefined) {
+    linkReferences = findLinkReferences(bytecode);
+  }
+
   // NOTE: for backwards compatibility support old compiler which didn't use file names
   var librariesComplete = {};
   for (var libraryName in libraries) {
@@ -35,12 +39,27 @@ var linkBytecode = function (bytecode, libraries) {
 
     // Support old (library name) and new (hash of library name)
     // placeholders.
-    var replace = function (name) {
+    var findAndReplace = function (name) {
       // truncate to 37 characters
       var truncatedName = name.slice(0, 36);
       var libLabel = '__' + truncatedName + Array(37 - truncatedName.length).join('_') + '__';
       while (bytecode.indexOf(libLabel) >= 0) {
         bytecode = bytecode.replace(libLabel, hexAddress);
+      }
+    };
+
+    var replace = function (name) {
+      // truncate to 37 characters
+      var truncatedName = name.slice(0, 36);
+      if (linkReferences && linkReferences[truncatedName]) {
+        linkReferences[truncatedName].forEach(function (reference) {
+          var start = reference.start * 2;
+          var end = (reference.start + reference.length) * 2;
+          bytecode = bytecode.slice(0, start) + hexAddress + bytecode.slice(end);
+        });
+      } else {
+        // manually find and replace if link reference is not present
+        findAndReplace(name);
       }
     };
 
