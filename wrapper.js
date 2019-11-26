@@ -132,16 +132,19 @@ function setupMethods (soljson) {
 
   var compileJSON = null;
   if ('_compileJSON' in soljson) {
+    // input (text), optimize (bool) -> output (jsontext)
     compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
   }
 
   var compileJSONMulti = null;
   if ('_compileJSONMulti' in soljson) {
+    // input (jsontext), optimize (bool) -> output (jsontext)
     compileJSONMulti = soljson.cwrap('compileJSONMulti', 'string', ['string', 'number']);
   }
 
   var compileJSONCallback = null;
   if ('_compileJSONCallback' in soljson) {
+    // input (jsontext), optimize (bool), callback (ptr) -> output (jsontext)
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
       return runWithCallbacks(readCallback, compileInternal, [ input, optimize ]);
@@ -150,6 +153,7 @@ function setupMethods (soljson) {
 
   var compileStandard = null;
   if ('_compileStandard' in soljson) {
+    // input (jsontext), callback (ptr) -> output (jsontext)
     var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
     compileStandard = function (input, readCallback) {
       return runWithCallbacks(readCallback, compileStandardInternal, [ input ]);
@@ -158,8 +162,10 @@ function setupMethods (soljson) {
   if ('_solidity_compile' in soljson) {
     var solidityCompile;
     if (isVersion6) {
+      // input (jsontext), callback (ptr), callback_context (ptr) -> output (jsontext)
       solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number', 'number']);
     } else {
+      // input (jsontext), callback (ptr) -> output (jsontext)
       solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
     }
     compileStandard = function (input, callbacks) {
