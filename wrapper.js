@@ -61,6 +61,8 @@ function setupMethods (soljson) {
   var wrapCallbackWithKind = function (callback) {
     assert(typeof callback === 'function', 'Invalid callback specified.');
     return function (context, kind, data, contents, error) {
+      // Must be a null pointer.
+      assert(context === 0, 'Callback context must be null.');
       var result = callback(copyFromCString(kind), copyFromCString(data));
       if (typeof result.contents === 'string') {
         copyToCString(result.contents, contents);
