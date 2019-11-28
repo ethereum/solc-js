@@ -30,6 +30,9 @@ function setupMethods (soljson) {
 
   var copyToCString = function (str, ptr) {
     var length = soljson.lengthBytesUTF8(str);
+    // This is allocating memory using solc's allocator.
+    // Assuming copyToCString is only used in the context of wrapCallback, solc will free these pointers.
+    // See https://github.com/ethereum/solidity/blob/v0.5.13/libsolc/libsolc.h#L37-L40
     var buffer = soljson._malloc(length + 1);
     soljson.stringToUTF8(str, buffer, length + 1);
     soljson.setValue(ptr, buffer, '*');
