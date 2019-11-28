@@ -421,7 +421,40 @@ function runTests (solc, versionText) {
         st.end();
       });
 
-      t.test('compiling standard JSON', function (st) {
+      t.test('compiling standard JSON (single file)', function (st) {
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
+              }
+            }
+          },
+          'sources': {
+            'c.sol': {
+              'content': 'contract C { function g() public { } function h() internal {} }'
+            }
+          }
+        };
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectNoError(output));
+        var C = getBytecodeStandard(output, 'c.sol', 'C');
+        st.ok(typeof C === 'string');
+        st.ok(C.length > 0);
+        var CGas = getGasEstimate(output, 'c.sol', 'C');
+        st.ok(typeof CGas === 'object');
+        st.ok(typeof CGas['creation'] === 'object');
+        st.ok(typeof CGas['creation']['codeDepositCost'] === 'string');
+        st.ok(typeof CGas['external'] === 'object');
+        st.ok(typeof CGas['external']['g()'] === 'string');
+        st.ok(typeof CGas['internal'] === 'object');
+        st.ok(typeof CGas['internal']['h()'] === 'string');
+        st.end();
+      });
+
+      t.test('compiling standard JSON (multiple files)', function (st) {
         // <0.1.6 doesn't have this
         if (!solc.features.multipleInputs) {
           st.skip('Not supported by solc');
