@@ -28,22 +28,29 @@ function setupMethods (soljson) {
     };
   }
 
-  var copyString = function (str, ptr) {
+  var copyToCString = function (str, ptr) {
     var length = soljson.lengthBytesUTF8(str);
+    // This is allocating memory using solc's allocator.
+    // Assuming copyToCString is only used in the context of wrapCallback, solc will free these pointers.
+    // See https://github.com/ethereum/solidity/blob/v0.5.13/libsolc/libsolc.h#L37-L40
     var buffer = soljson._malloc(length + 1);
     soljson.stringToUTF8(str, buffer, length + 1);
     soljson.setValue(ptr, buffer, '*');
   };
 
+  // This is to support multiple versions of Emscripten.
+  // Take a single `ptr` and returns a `str`.
+  var copyFromCString = soljson.UTF8ToString || soljson.Pointer_stringify;
+
   var wrapCallback = function (callback) {
     assert(typeof callback === 'function', 'Invalid callback specified.');
     return function (path, contents, error) {
-      var result = callback(soljson.Pointer_stringify(path));
+      var result = callback(copyFromCString(path));
       if (typeof result.contents === 'string') {
-        copyString(result.contents, contents);
+        copyToCString(result.contents, contents);
       }
       if (typeof result.error === 'string') {
-        copyString(result.error, error);
+        copyToCString(result.error, error);
       }
     };
   };
