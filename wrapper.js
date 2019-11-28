@@ -35,10 +35,14 @@ function setupMethods (soljson) {
     soljson.setValue(ptr, buffer, '*');
   };
 
+  var copyFromCString = function (ptr) {
+    return soljson.Pointer_stringify(ptr);
+  }
+
   var wrapCallback = function (callback) {
     assert(typeof callback === 'function', 'Invalid callback specified.');
     return function (path, contents, error) {
-      var result = callback(soljson.Pointer_stringify(path));
+      var result = callback(copyFromCString(path));
       if (typeof result.contents === 'string') {
         copyToCString(result.contents, contents);
       }
