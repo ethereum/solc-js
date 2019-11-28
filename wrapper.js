@@ -35,9 +35,9 @@ function setupMethods (soljson) {
     soljson.setValue(ptr, buffer, '*');
   };
 
-  var copyFromCString = function (ptr) {
-    return soljson.Pointer_stringify(ptr);
-  }
+  // This is to support multiple versions of Emscripten.
+  // Take a single `ptr` and returns a `str`.
+  var copyFromCString = soljson.UTF8ToString || soljson.Pointer_stringify;
 
   var wrapCallback = function (callback) {
     assert(typeof callback === 'function', 'Invalid callback specified.');
