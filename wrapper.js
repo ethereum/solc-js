@@ -5,12 +5,34 @@ var https = require('https');
 var MemoryStream = require('memorystream');
 
 function setupMethods (soljson) {
+  // can used to replace the loaded wasm (binary), but soljson.js will try to load soljson.wasm anyway
+  //soljson.wasmBinary = require('fs').readFileSync('soljson.wasm');
+  //console.log(soljson.wasmBinary);
+
+  // need to wait for async instantation of wasm
+  soljson.onRuntimeInitialized = function () {
+    console.log('ready...');
+
+    var version;
+    if ('_solidity_version' in soljson) {
+      version = soljson.cwrap('solidity_version', 'string', []);
+    } else {
+      version = soljson.cwrap('version', 'string', []);
+    }
+ 
+    console.log(version())
+  };
+
+  // This below obviously wont work
+
   var version;
   if ('_solidity_version' in soljson) {
     version = soljson.cwrap('solidity_version', 'string', []);
   } else {
     version = soljson.cwrap('version', 'string', []);
   }
+  
+  console.log('_solidity_version' in soljson)
 
   var versionToSemver = function () {
     return translate.versionToSemver(version());
