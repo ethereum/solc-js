@@ -468,6 +468,40 @@ function runTests (solc, versionText) {
         st.end();
       });
 
+      t.test('compiling standard JSON (abstract contract)', function (st) {
+        // <0.1.6 doesn't have this
+        if (!solc.features.multipleInputs) {
+          st.skip('Not supported by solc');
+          st.end();
+          return;
+        }
+
+        var isVersion6 = semver.gt(solc.semver(), '0.5.99');
+
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
+              }
+            }
+          },
+          'sources': {
+            'c.sol': {
+              'content': (isVersion6 ? 'abstract ' : '') + 'contract C { function f() public; }'
+            }
+          }
+        };
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectNoError(output));
+        var C = getBytecodeStandard(output, 'c.sol', 'C');
+        st.ok(typeof C === 'string');
+        st.ok(C.length === 0);
+        st.end();
+      });
+
       t.test('compiling standard JSON (with imports)', function (st) {
         // <0.2.1 doesn't have this
         if (!solc.features.importCallback) {
