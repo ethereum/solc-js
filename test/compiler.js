@@ -35,6 +35,20 @@ function runTests (solc, versionText) {
     }
   }
 
+  function getGasEstimate (output, fileName, contractName) {
+    try {
+      var outputFile;
+      if (semver.lt(solc.semver(), '0.4.9')) {
+        outputFile = output.contracts[''];
+      } else {
+        outputFile = output.contracts[fileName];
+      }
+      return outputFile[contractName]['evm']['gasEstimates'];
+    } catch (e) {
+      return '';
+    }
+  }
+
   function expectError (output, errorType, message) {
     if (output.errors) {
       for (var error in output.errors) {
@@ -406,7 +420,7 @@ function runTests (solc, versionText) {
           'settings': {
             'outputSelection': {
               '*': {
-                '*': [ 'evm.bytecode' ]
+                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
               }
             }
           },
@@ -415,7 +429,7 @@ function runTests (solc, versionText) {
               'content': 'library L { function f() public returns (uint) { return 7; } }'
             },
             'cont.sol': {
-              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } function h() internal {} }'
             }
           }
         };
@@ -424,6 +438,14 @@ function runTests (solc, versionText) {
         var x = getBytecodeStandard(output, 'cont.sol', 'x');
         st.ok(typeof x === 'string');
         st.ok(x.length > 0);
+        var xGas = getGasEstimate(output, 'cont.sol', 'x');
+        st.ok(typeof xGas === 'object');
+        st.ok(typeof xGas['creation'] === 'object');
+        st.ok(typeof xGas['creation']['codeDepositCost'] === 'string');
+        st.ok(typeof xGas['external'] === 'object');
+        st.ok(typeof xGas['external']['g()'] === 'string');
+        st.ok(typeof xGas['internal'] === 'object');
+        st.ok(typeof xGas['internal']['h()'] === 'string');
         var L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
