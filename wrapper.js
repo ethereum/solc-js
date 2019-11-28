@@ -28,7 +28,7 @@ function setupMethods (soljson) {
     };
   }
 
-  var copyString = function (str, ptr) {
+  var copyToCString = function (str, ptr) {
     var length = soljson.lengthBytesUTF8(str);
     var buffer = soljson._malloc(length + 1);
     soljson.stringToUTF8(str, buffer, length + 1);
@@ -40,10 +40,10 @@ function setupMethods (soljson) {
     return function (path, contents, error) {
       var result = callback(soljson.Pointer_stringify(path));
       if (typeof result.contents === 'string') {
-        copyString(result.contents, contents);
+        copyToCString(result.contents, contents);
       }
       if (typeof result.error === 'string') {
-        copyString(result.error, error);
+        copyToCString(result.error, error);
       }
     };
   };
