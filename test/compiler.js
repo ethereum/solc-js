@@ -55,9 +55,12 @@ function runTests (solc, versionText) {
         error = output.errors[error];
         if (error.type === errorType) {
           if (message) {
-            return error.message.match(message) !== null;
+            if (error.message.match(message) !== null) {
+              return true;
+            }
+          } else {
+            return true;
           }
-          return true;
         }
       }
     }
