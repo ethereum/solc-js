@@ -676,6 +676,35 @@ function runTests (solc, versionText) {
         st.end();
       });
 
+      t.test('compiling standard JSON (with warning >=0.4.0)', function (st) {
+        // In 0.4.0 "pragma solidity" was added. Not including it is a warning.
+        if (semver.lt(solc.semver(), '0.4.0')) {
+          st.skip('Not supported by solc');
+          st.end();
+          return;
+        }
+
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': [ 'evm.bytecode' ]
+              }
+            }
+          },
+          'sources': {
+            'c.sol': {
+              'content': 'contract C { function f() public { } }'
+            }
+          }
+        };
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectError(output, 'Warning', 'Source file does not specify required compiler version!'));
+        st.end();
+      });
+
       t.test('compiling standard JSON (using libraries) (using lowlevel API)', function (st) {
         // 0.4.0 has a bug with libraries
         if (semver.eq(solc.semver(), '0.4.0')) {
