@@ -163,11 +163,6 @@ function setupMethods (soljson) {
       return formatFatalError('No input sources specified.');
     }
 
-    // Bail out early
-    if ((input['sources'].length > 1) && (compileJSONMulti === null)) {
-      return formatFatalError('Multiple sources provided, but compiler only supports single input.');
-    }
-
     function isOptimizerEnabled (input) {
       return input['settings'] && input['settings']['optimizer'] && input['settings']['optimizer']['enabled'];
     }
@@ -223,6 +218,9 @@ function setupMethods (soljson) {
 
     // Try our luck with an ancient compiler
     if (compileJSON !== null) {
+      if (Object.keys(sources).length !== 1) {
+        return formatFatalError('Multiple sources provided, but compiler only supports single input.');
+      }
       return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
     }
 

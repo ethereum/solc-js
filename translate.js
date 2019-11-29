@@ -155,8 +155,9 @@ function escapeString (text) {
     .replace(/\t/g, '\\t');
 }
 
+// 'asm' can be an object or a string
 function formatAssemblyText (asm, prefix, source) {
-  if (typeof asm === typeof '' || asm === null || asm === undefined) {
+  if (typeof asm === 'string' || asm === null || asm === undefined) {
     return prefix + (asm || '') + '\n';
   }
   var text = prefix + '.code\n';
