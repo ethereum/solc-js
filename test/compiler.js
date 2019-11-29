@@ -435,6 +435,7 @@ function runTests (solc, versionText) {
         };
 
         var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectNoError(output));
         var x = getBytecodeStandard(output, 'cont.sol', 'x');
         st.ok(typeof x === 'string');
         st.ok(x.length > 0);
@@ -485,6 +486,7 @@ function runTests (solc, versionText) {
         }
 
         var output = JSON.parse(solc.compile(JSON.stringify(input), findImports));
+        st.ok(expectNoError(output));
         var x = getBytecodeStandard(output, 'cont.sol', 'x');
         st.ok(typeof x === 'string');
         st.ok(x.length > 0);
@@ -530,6 +532,7 @@ function runTests (solc, versionText) {
         };
 
         var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectNoError(output));
         var x = getBytecodeStandard(output, 'cont.sol', 'x');
         st.ok(typeof x === 'string');
         st.ok(x.length > 0);
@@ -572,6 +575,7 @@ function runTests (solc, versionText) {
         };
 
         var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
+        st.ok(expectNoError(output));
         var x = getBytecodeStandard(output, 'cont.sol', 'x');
         st.ok(typeof x === 'string');
         st.ok(x.length > 0);
