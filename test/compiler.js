@@ -111,6 +111,13 @@ function runTests (solc, versionText) {
       });
 
       t.test('invalid source code fails properly (using lowlevel API)', function (st) {
+        // TODO: try finding an example which doesn't crash it?
+        if (semver.eq(solc.semver(), '0.4.11')) {
+          st.skip('Skipping on broken compiler version');
+          st.end();
+          return;
+        }
+
         if (typeof solc.lowlevel.compileSingle !== 'function') {
           st.skip('Low-level compileSingle interface not implemented by this compiler version.');
           st.end();
@@ -328,6 +335,13 @@ function runTests (solc, versionText) {
       });
 
       t.test('invalid source code fails properly with standard JSON (using lowlevel API)', function (st) {
+        // TODO: try finding an example which doesn't crash it?
+        if (semver.eq(solc.semver(), '0.4.11')) {
+          st.skip('Skipping on broken compiler version');
+          st.end();
+          return;
+        }
+
         if (typeof solc.lowlevel.compileStandard !== 'function') {
           st.skip('Low-level compileStandard interface not implemented by this compiler version.');
           st.end();
@@ -542,6 +556,13 @@ function runTests (solc, versionText) {
       });
 
       t.test('compiling standard JSON (using libraries)', function (st) {
+        // 0.4.0 has a bug with libraries
+        if (semver.eq(solc.semver(), '0.4.0')) {
+          st.skip('Skipping on broken compiler version');
+          st.end();
+          return;
+        }
+
         // <0.1.6 doesn't have this
         if (!solc.features.multipleInputs) {
           st.skip('Not supported by solc');
@@ -586,6 +607,13 @@ function runTests (solc, versionText) {
       });
 
       t.test('compiling standard JSON (using libraries) (using lowlevel API)', function (st) {
+        // 0.4.0 has a bug with libraries
+        if (semver.eq(solc.semver(), '0.4.0')) {
+          st.skip('Skipping on broken compiler version');
+          st.end();
+          return;
+        }
+
         if (typeof solc.lowlevel.compileStandard !== 'function') {
           st.skip('Low-level compileStandard interface not implemented by this compiler version.');
           st.end();
@@ -707,13 +735,16 @@ function runTests (solc, versionText) {
 
 runTests(solc, 'latest');
 
-// New features 0.1.6, 0.2.1, 0.4.11, 0.5.0, etc.
+// New compiler interface features 0.1.6, 0.2.1, 0.4.11, 0.5.0, etc.
+// 0.4.0 added pragmas (used in tests above)
 const versions = [
   'v0.1.1+commit.6ff4cd6',
   'v0.1.6+commit.d41f8b7',
   'v0.2.0+commit.4dc2445',
   'v0.2.1+commit.91a6b35',
   'v0.3.6+commit.3fc68da',
+  'v0.4.0+commit.acd334c9',
+  'v0.4.11+commit.68ef5810',
   'v0.4.26+commit.4563c3fc'
 ];
 for (var version in versions) {
