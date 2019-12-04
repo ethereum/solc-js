@@ -31,12 +31,30 @@ function setupMethods (soljson) {
     };
   }
 
+  var alloc;
+  if ('_solidity_alloc' in soljson) {
+    alloc = soljson.cwrap('solidity_alloc', 'number', [ 'number' ]);
+  } else {
+    alloc = soljson._malloc;
+    assert(alloc, 'Expected malloc to be present.');
+  }
+
+  var reset;
+  if ('_solidity_reset' in soljson) {
+    reset = soljson.cwrap('solidity_reset', null, []);
+  }
+
   var copyToCString = function (str, ptr) {
     var length = soljson.lengthBytesUTF8(str);
     // This is allocating memory using solc's allocator.
-    // Assuming copyToCString is only used in the context of wrapCallback, solc will free these pointers.
-    // See https://github.com/ethereum/solidity/blob/v0.5.13/libsolc/libsolc.h#L37-L40
-    var buffer = soljson._malloc(length + 1);
+    //
+    // Before 0.6.0:
+    //   Assuming copyToCString is only used in the context of wrapCallback, solc will free these pointers.
+    //   See https://github.com/ethereum/solidity/blob/v0.5.13/libsolc/libsolc.h#L37-L40
+    //
+    // After 0.6.0:
+    //   The duty is on solc-js to free these pointers. We accomplish that by calling `reset` at the end.
+    var buffer = alloc(length + 1);
     soljson.stringToUTF8(str, buffer, length + 1);
     soljson.setValue(ptr, buffer, '*');
   };
@@ -136,6 +154,14 @@ function setupMethods (soljson) {
       throw e;
     }
     removeFunction(cb);
+    if (reset) {
+      // Explicitly free memory.
+      //
+      // NOTE: cwrap() of "compile" will copy the returned pointer into a
+      //       Javascript string and it is not possible to call free() on it.
+      //       reset() however will clear up all allocations.
+      reset();
+    }
     return output;
   };
 
