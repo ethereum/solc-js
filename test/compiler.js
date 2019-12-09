@@ -439,6 +439,7 @@ function runTests (solc, versionText) {
         var B = getBytecodeStandard(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
+        st.ok(Object.keys(linker.findLinkReferences(B)).length === 0);
         var BGas = getGasEstimate(output, 'b.sol', 'B');
         st.ok(typeof BGas === 'object');
         st.ok(typeof BGas['creation'] === 'object');
@@ -493,6 +494,7 @@ function runTests (solc, versionText) {
         var B = getBytecodeStandard(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
+        st.ok(Object.keys(linker.findLinkReferences(B)).length === 0);
         st.end();
       });
 
