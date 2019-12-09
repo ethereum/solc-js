@@ -493,9 +493,49 @@ function runTests (solc, versionText) {
         var L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
+        st.end();
+      });
 
-        var outputNewApi = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
-        st.deepEqual(output, outputNewApi);
+      t.test('compiling standard JSON (with imports + new callback API)', function (st) {
+        // <0.2.1 doesn't have this
+        if (!solc.features.importCallback) {
+          st.skip('Not supported by solc');
+          st.end();
+          return;
+        }
+
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': [ 'evm.bytecode' ]
+              }
+            }
+          },
+          'sources': {
+            'cont.sol': {
+              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+            }
+          }
+        };
+
+        function findImports (path) {
+          if (path === 'lib.sol') {
+            return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
+          } else {
+            return { error: 'File not found' };
+          }
+        }
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
+        st.ok(expectNoError(output));
+        var x = getBytecodeStandard(output, 'cont.sol', 'x');
+        st.ok(typeof x === 'string');
+        st.ok(x.length > 0);
+        var L = getBytecodeStandard(output, 'lib.sol', 'L');
+        st.ok(typeof L === 'string');
+        st.ok(L.length > 0);
         st.end();
       });
 
