@@ -55,9 +55,12 @@ function runTests (solc, versionText) {
         error = output.errors[error];
         if (error.type === errorType) {
           if (message) {
-            return error.message.match(message) !== null;
+            if (error.message.match(message) !== null) {
+              return true;
+            }
+          } else {
+            return true;
           }
-          return true;
         }
       }
     }
@@ -421,7 +424,40 @@ function runTests (solc, versionText) {
         st.end();
       });
 
-      t.test('compiling standard JSON', function (st) {
+      t.test('compiling standard JSON (single file)', function (st) {
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
+              }
+            }
+          },
+          'sources': {
+            'c.sol': {
+              'content': 'contract C { function g() public { } function h() internal {} }'
+            }
+          }
+        };
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectNoError(output));
+        var C = getBytecodeStandard(output, 'c.sol', 'C');
+        st.ok(typeof C === 'string');
+        st.ok(C.length > 0);
+        var CGas = getGasEstimate(output, 'c.sol', 'C');
+        st.ok(typeof CGas === 'object');
+        st.ok(typeof CGas['creation'] === 'object');
+        st.ok(typeof CGas['creation']['codeDepositCost'] === 'string');
+        st.ok(typeof CGas['external'] === 'object');
+        st.ok(typeof CGas['external']['g()'] === 'string');
+        st.ok(typeof CGas['internal'] === 'object');
+        st.ok(typeof CGas['internal']['h()'] === 'string');
+        st.end();
+      });
+
+      t.test('compiling standard JSON (multiple files)', function (st) {
         // <0.1.6 doesn't have this
         if (!solc.features.multipleInputs) {
           st.skip('Not supported by solc');
@@ -465,6 +501,40 @@ function runTests (solc, versionText) {
         var A = getBytecodeStandard(output, 'a.sol', 'A');
         st.ok(typeof A === 'string');
         st.ok(A.length > 0);
+        st.end();
+      });
+
+      t.test('compiling standard JSON (abstract contract)', function (st) {
+        // <0.1.6 doesn't have this
+        if (!solc.features.multipleInputs) {
+          st.skip('Not supported by solc');
+          st.end();
+          return;
+        }
+
+        var isVersion6 = semver.gt(solc.semver(), '0.5.99');
+
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
+              }
+            }
+          },
+          'sources': {
+            'c.sol': {
+              'content': (isVersion6 ? 'abstract ' : '') + 'contract C { function f() public; }'
+            }
+          }
+        };
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectNoError(output));
+        var C = getBytecodeStandard(output, 'c.sol', 'C');
+        st.ok(typeof C === 'string');
+        st.ok(C.length === 0);
         st.end();
       });
 
@@ -603,6 +673,35 @@ function runTests (solc, versionText) {
         var L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
+        st.end();
+      });
+
+      t.test('compiling standard JSON (with warning >=0.4.0)', function (st) {
+        // In 0.4.0 "pragma solidity" was added. Not including it is a warning.
+        if (semver.lt(solc.semver(), '0.4.0')) {
+          st.skip('Not supported by solc');
+          st.end();
+          return;
+        }
+
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': [ 'evm.bytecode' ]
+              }
+            }
+          },
+          'sources': {
+            'c.sol': {
+              'content': 'contract C { function f() public { } }'
+            }
+          }
+        };
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectError(output, 'Warning', 'Source file does not specify required compiler version!'));
         st.end();
       });
 
