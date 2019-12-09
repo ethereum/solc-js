@@ -102,9 +102,9 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var output = JSON.parse(solc.lowlevel.compileSingle('contract x { function g() public {} }'));
+        var output = JSON.parse(solc.lowlevel.compileSingle('contract A { function g() public {} }'));
         st.ok('contracts' in output);
-        var bytecode = getBytecode(output, '', 'x');
+        var bytecode = getBytecode(output, '', 'A');
         st.ok(typeof bytecode === 'string');
         st.ok(bytecode.length > 0);
         st.end();
@@ -152,16 +152,16 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          'lib.sol': 'library L { function f() public returns (uint) { return 7; } }',
-          'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+          'a.sol': 'contract A { function f() public returns (uint) { return 7; } }',
+          'b.sol': 'import "a.sol"; contract B is A { function g() public { f(); } }'
         };
         var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({sources: input})));
-        var x = getBytecode(output, 'cont.sol', 'x');
-        st.ok(typeof x === 'string');
-        st.ok(x.length > 0);
-        var L = getBytecode(output, 'lib.sol', 'L');
-        st.ok(typeof L === 'string');
-        st.ok(L.length > 0);
+        var B = getBytecode(output, 'b.sol', 'B');
+        st.ok(typeof B === 'string');
+        st.ok(B.length > 0);
+        var A = getBytecode(output, 'a.sol', 'A');
+        st.ok(typeof A === 'string');
+        st.ok(A.length > 0);
         st.end();
       });
 
@@ -174,22 +174,22 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+          'b.sol': 'import "a.sol"; contract B is A { function g() public { f(); } }'
         };
         function findImports (path) {
-          if (path === 'lib.sol') {
-            return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
+          if (path === 'a.sol') {
+            return { contents: 'contract A { function f() public returns (uint) { return 7; } }' };
           } else {
             return { error: 'File not found' };
           }
         }
         var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports));
-        var x = getBytecode(output, 'cont.sol', 'x');
-        var L = getBytecode(output, 'lib.sol', 'L');
-        st.ok(typeof x === 'string');
-        st.ok(x.length > 0);
-        st.ok(typeof L === 'string');
-        st.ok(L.length > 0);
+        var B = getBytecode(output, 'b.sol', 'B');
+        st.ok(typeof B === 'string');
+        st.ok(B.length > 0);
+        var A = getBytecode(output, 'a.sol', 'A');
+        st.ok(typeof A === 'string');
+        st.ok(A.length > 0);
         st.end();
       });
 
@@ -202,7 +202,7 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+          'b.sol': 'import "a.sol"; contract B { function g() public { f(); } }'
         };
         function findImports (path) {
           return { error: 'File not found' };
@@ -232,7 +232,7 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+          'b.sol': 'import "a.sol"; contract B { function g() public { f(); } }'
         };
         function findImports (path) {
           throw new Error('Could not implement this interface properly...');
@@ -269,7 +269,7 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+          'b.sol': 'import "a.sol"; contract B is A { function g() public { f(); } }'
         };
         var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input})));
         st.plan(3);
@@ -304,11 +304,11 @@ function runTests (solc, versionText) {
             }
           },
           'sources': {
-            'lib.sol': {
-              'content': 'library L { function f() public returns (uint) { return 7; } }'
+            'a.sol': {
+              'content': 'contract A { function f() public returns (uint) { return 7; } }'
             },
-            'cont.sol': {
-              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+            'b.sol': {
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
@@ -322,8 +322,8 @@ function runTests (solc, versionText) {
         }
 
         var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
-        st.ok(bytecodeExists(output, 'cont.sol', 'x'));
-        st.ok(bytecodeExists(output, 'lib.sol', 'L'));
+        st.ok(bytecodeExists(output, 'a.sol', 'A'));
+        st.ok(bytecodeExists(output, 'b.sol', 'B'));
         st.end();
       });
 
@@ -379,15 +379,15 @@ function runTests (solc, versionText) {
             }
           },
           'sources': {
-            'cont.sol': {
-              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+            'b.sol': {
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
 
         function findImports (path) {
-          if (path === 'lib.sol') {
-            return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
+          if (path === 'a.sol') {
+            return { contents: 'contract A { function f() public returns (uint) { return 7; } }' };
           } else {
             return { error: 'File not found' };
           }
@@ -402,8 +402,8 @@ function runTests (solc, versionText) {
         }
 
         var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), findImports));
-        st.ok(bytecodeExists(output, 'cont.sol', 'x'));
-        st.ok(bytecodeExists(output, 'lib.sol', 'L'));
+        st.ok(bytecodeExists(output, 'a.sol', 'A'));
+        st.ok(bytecodeExists(output, 'b.sol', 'B'));
         st.end();
       });
 
@@ -425,31 +425,31 @@ function runTests (solc, versionText) {
             }
           },
           'sources': {
-            'lib.sol': {
-              'content': 'library L { function f() public returns (uint) { return 7; } }'
+            'a.sol': {
+              'content': 'contract A { function f() public returns (uint) { return 7; } }'
             },
-            'cont.sol': {
-              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } function h() internal {} }'
+            'b.sol': {
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } function h() internal {} }'
             }
           }
         };
 
         var output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var x = getBytecodeStandard(output, 'cont.sol', 'x');
-        st.ok(typeof x === 'string');
-        st.ok(x.length > 0);
-        var xGas = getGasEstimate(output, 'cont.sol', 'x');
-        st.ok(typeof xGas === 'object');
-        st.ok(typeof xGas['creation'] === 'object');
-        st.ok(typeof xGas['creation']['codeDepositCost'] === 'string');
-        st.ok(typeof xGas['external'] === 'object');
-        st.ok(typeof xGas['external']['g()'] === 'string');
-        st.ok(typeof xGas['internal'] === 'object');
-        st.ok(typeof xGas['internal']['h()'] === 'string');
-        var L = getBytecodeStandard(output, 'lib.sol', 'L');
-        st.ok(typeof L === 'string');
-        st.ok(L.length > 0);
+        var B = getBytecodeStandard(output, 'b.sol', 'B');
+        st.ok(typeof B === 'string');
+        st.ok(B.length > 0);
+        var BGas = getGasEstimate(output, 'b.sol', 'B');
+        st.ok(typeof BGas === 'object');
+        st.ok(typeof BGas['creation'] === 'object');
+        st.ok(typeof BGas['creation']['codeDepositCost'] === 'string');
+        st.ok(typeof BGas['external'] === 'object');
+        st.ok(typeof BGas['external']['g()'] === 'string');
+        st.ok(typeof BGas['internal'] === 'object');
+        st.ok(typeof BGas['internal']['h()'] === 'string');
+        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        st.ok(typeof A === 'string');
+        st.ok(A.length > 0);
         st.end();
       });
 
@@ -471,15 +471,15 @@ function runTests (solc, versionText) {
             }
           },
           'sources': {
-            'cont.sol': {
-              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+            'b.sol': {
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
 
         function findImports (path) {
-          if (path === 'lib.sol') {
-            return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
+          if (path === 'a.sol') {
+            return { contents: 'contract A { function f() public returns (uint) { return 7; } }' };
           } else {
             return { error: 'File not found' };
           }
@@ -487,12 +487,12 @@ function runTests (solc, versionText) {
 
         var output = JSON.parse(solc.compile(JSON.stringify(input), findImports));
         st.ok(expectNoError(output));
-        var x = getBytecodeStandard(output, 'cont.sol', 'x');
-        st.ok(typeof x === 'string');
-        st.ok(x.length > 0);
-        var L = getBytecodeStandard(output, 'lib.sol', 'L');
-        st.ok(typeof L === 'string');
-        st.ok(L.length > 0);
+        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        st.ok(typeof A === 'string');
+        st.ok(A.length > 0);
+        var B = getBytecodeStandard(output, 'b.sol', 'B');
+        st.ok(typeof B === 'string');
+        st.ok(B.length > 0);
         st.end();
       });
 
@@ -514,15 +514,15 @@ function runTests (solc, versionText) {
             }
           },
           'sources': {
-            'cont.sol': {
-              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+            'b.sol': {
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
 
         function findImports (path) {
-          if (path === 'lib.sol') {
-            return { contents: 'library L { function f() public returns (uint) { return 7; } }' };
+          if (path === 'a.sol') {
+            return { contents: 'contract A { function f() public returns (uint) { return 7; } }' };
           } else {
             return { error: 'File not found' };
           }
@@ -530,12 +530,12 @@ function runTests (solc, versionText) {
 
         var output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
         st.ok(expectNoError(output));
-        var x = getBytecodeStandard(output, 'cont.sol', 'x');
-        st.ok(typeof x === 'string');
-        st.ok(x.length > 0);
-        var L = getBytecodeStandard(output, 'lib.sol', 'L');
-        st.ok(typeof L === 'string');
-        st.ok(L.length > 0);
+        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        st.ok(typeof A === 'string');
+        st.ok(A.length > 0);
+        var B = getBytecodeStandard(output, 'b.sol', 'B');
+        st.ok(typeof B === 'string');
+        st.ok(B.length > 0);
         st.end();
       });
 
@@ -565,18 +565,18 @@ function runTests (solc, versionText) {
             'lib.sol': {
               'content': 'library L { function f() public returns (uint) { return 7; } }'
             },
-            'cont.sol': {
-              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+            'a.sol': {
+              'content': 'import "lib.sol"; contract A { function g() public { L.f(); } }'
             }
           }
         };
 
         var output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var x = getBytecodeStandard(output, 'cont.sol', 'x');
-        st.ok(typeof x === 'string');
-        st.ok(x.length > 0);
-        st.ok(Object.keys(linker.findLinkReferences(x)).length === 0);
+        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        st.ok(typeof A === 'string');
+        st.ok(A.length > 0);
+        st.ok(Object.keys(linker.findLinkReferences(A)).length === 0);
         var L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
@@ -608,18 +608,18 @@ function runTests (solc, versionText) {
             'lib.sol': {
               'content': 'library L { function f() public returns (uint) { return 7; } }'
             },
-            'cont.sol': {
-              'content': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
+            'a.sol': {
+              'content': 'import "lib.sol"; contract A { function g() public { L.f(); } }'
             }
           }
         };
 
         var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var x = getBytecodeStandard(output, 'cont.sol', 'x');
-        st.ok(typeof x === 'string');
-        st.ok(x.length > 0);
-        st.ok(Object.keys(linker.findLinkReferences(x)).length === 0);
+        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        st.ok(typeof A === 'string');
+        st.ok(A.length > 0);
+        st.ok(Object.keys(linker.findLinkReferences(A)).length === 0);
         var L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
