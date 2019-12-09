@@ -513,6 +513,12 @@ function runTests (solc, versionText) {
         }
 
         var isVersion6 = semver.gt(solc.semver(), '0.5.99');
+        var source;
+        if (isVersion6) {
+          source = 'abstract contract C { function f() public virtual; }';
+        } else {
+          source = 'contract C { function f() public; }';
+        }
 
         var input = {
           'language': 'Solidity',
@@ -525,7 +531,7 @@ function runTests (solc, versionText) {
           },
           'sources': {
             'c.sol': {
-              'content': (isVersion6 ? 'abstract ' : '') + 'contract C { function f() public; }'
+              'content': source
             }
           }
         };
