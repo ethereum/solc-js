@@ -31,22 +31,29 @@ function setupMethods (soljson) {
     };
   }
 
-  var copyString = function (str, ptr) {
+  var copyToCString = function (str, ptr) {
     var length = soljson.lengthBytesUTF8(str);
+    // This is allocating memory using solc's allocator.
+    // Assuming copyToCString is only used in the context of wrapCallback, solc will free these pointers.
+    // See https://github.com/ethereum/solidity/blob/v0.5.13/libsolc/libsolc.h#L37-L40
     var buffer = soljson._malloc(length + 1);
     soljson.stringToUTF8(str, buffer, length + 1);
     soljson.setValue(ptr, buffer, '*');
   };
 
+  // This is to support multiple versions of Emscripten.
+  // Take a single `ptr` and returns a `str`.
+  var copyFromCString = soljson.UTF8ToString || soljson.Pointer_stringify;
+
   var wrapCallback = function (callback) {
     assert(typeof callback === 'function', 'Invalid callback specified.');
     return function (data, contents, error) {
-      var result = callback(soljson.Pointer_stringify(data));
+      var result = callback(copyFromCString(data));
       if (typeof result.contents === 'string') {
-        copyString(result.contents, contents);
+        copyToCString(result.contents, contents);
       }
       if (typeof result.error === 'string') {
-        copyString(result.error, error);
+        copyToCString(result.error, error);
       }
     };
   };
@@ -54,12 +61,12 @@ function setupMethods (soljson) {
   var wrapCallbackWithKind = function (callback) {
     assert(typeof callback === 'function', 'Invalid callback specified.');
     return function (context, kind, data, contents, error) {
-      var result = callback(soljson.Pointer_stringify(kind), soljson.Pointer_stringify(data));
+      var result = callback(copyFromCString(kind), copyFromCString(data));
       if (typeof result.contents === 'string') {
-        copyString(result.contents, contents);
+        copyToCString(result.contents, contents);
       }
       if (typeof result.error === 'string') {
-        copyString(result.error, error);
+        copyToCString(result.error, error);
       }
     };
   };
@@ -208,11 +215,6 @@ function setupMethods (soljson) {
       return formatFatalError('No input sources specified.');
     }
 
-    // Bail out early
-    if ((input['sources'].length > 1) && (compileJSONMulti === null)) {
-      return formatFatalError('Multiple sources provided, but compiler only supports single input.');
-    }
-
     function isOptimizerEnabled (input) {
       return input['settings'] && input['settings']['optimizer'] && input['settings']['optimizer']['enabled'];
     }
@@ -268,6 +270,9 @@ function setupMethods (soljson) {
 
     // Try our luck with an ancient compiler
     if (compileJSON !== null) {
+      if (Object.keys(sources).length !== 1) {
+        return formatFatalError('Multiple sources provided, but compiler only supports single input.');
+      }
       return translateOutput(compileJSON(sources[Object.keys(sources)[0]], isOptimizerEnabled(input)), libraries);
     }
 

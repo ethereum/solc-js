@@ -110,15 +110,15 @@ function translateJsonCompilerOutput (output, libraries) {
       'evm': {
         'legacyAssembly': contractInput['assembly'],
         'bytecode': {
-          'object': linker.linkBytecode(contractInput['bytecode'], libraries),
+          'object': contractInput['bytecode'] && linker.linkBytecode(contractInput['bytecode'], libraries || {}),
           'opcodes': contractInput['opcodes'],
           'sourceMap': contractInput['srcmap'],
-          'linkReferences': linker.findLinkReferences(contractInput['bytecode'])
+          'linkReferences': contractInput['bytecode'] && linker.findLinkReferences(contractInput['bytecode'])
         },
         'deployedBytecode': {
-          'object': linker.linkBytecode(contractInput['runtimeBytecode'], libraries),
+          'object': contractInput['runtimeBytecode'] && linker.linkBytecode(contractInput['runtimeBytecode'], libraries || {}),
           'sourceMap': contractInput['srcmapRuntime'],
-          'linkReferences': linker.findLinkReferences(contractInput['runtimeBytecode'])
+          'linkReferences': contractInput['runtimeBytecode'] && linker.findLinkReferences(contractInput['runtimeBytecode'])
         },
         'methodIdentifiers': contractInput['functionHashes'],
         'gasEstimates': translatedGasEstimates
@@ -155,8 +155,9 @@ function escapeString (text) {
     .replace(/\t/g, '\\t');
 }
 
+// 'asm' can be an object or a string
 function formatAssemblyText (asm, prefix, source) {
-  if (typeof asm === typeof '' || asm === null || asm === undefined) {
+  if (typeof asm === 'string' || asm === null || asm === undefined) {
     return prefix + (asm || '') + '\n';
   }
   var text = prefix + '.code\n';
