@@ -46,7 +46,7 @@ function solve (query) {
       !solverOutput.startsWith('unsat') &&
       !solverOutput.startsWith('unknown')
     ) {
-      throw new Error('Failed solve SMT query. ' + e.toString());
+      throw new Error('Failed to solve SMT query. ' + e.toString());
     }
   }
   // Trigger early manual cleanup
@@ -55,5 +55,6 @@ function solve (query) {
 }
 
 module.exports = {
-  smtSolver: solve
+  smtSolver: solve,
+  availableSolvers: solvers.length
 };

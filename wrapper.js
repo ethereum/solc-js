@@ -3,6 +3,7 @@ var translate = require('./translate.js');
 var requireFromString = require('require-from-string');
 var https = require('https');
 var MemoryStream = require('memorystream');
+var semver = require('semver');
 
 function setupMethods (soljson) {
   var version;
@@ -16,6 +17,8 @@ function setupMethods (soljson) {
     return translate.versionToSemver(version());
   };
 
+  var isVersion6 = semver.gt(versionToSemver(), '0.5.99');
+
   var license;
   if ('_solidity_license' in soljson) {
     license = soljson.cwrap('solidity_license', 'string', []);
@@ -28,12 +31,30 @@ function setupMethods (soljson) {
     };
   }
 
+  var alloc;
+  if ('_solidity_alloc' in soljson) {
+    alloc = soljson.cwrap('solidity_alloc', 'number', [ 'number' ]);
+  } else {
+    alloc = soljson._malloc;
+    assert(alloc, 'Expected malloc to be present.');
+  }
+
+  var reset;
+  if ('_solidity_reset' in soljson) {
+    reset = soljson.cwrap('solidity_reset', null, []);
+  }
+
   var copyToCString = function (str, ptr) {
     var length = soljson.lengthBytesUTF8(str);
     // This is allocating memory using solc's allocator.
-    // Assuming copyToCString is only used in the context of wrapCallback, solc will free these pointers.
-    // See https://github.com/ethereum/solidity/blob/v0.5.13/libsolc/libsolc.h#L37-L40
-    var buffer = soljson._malloc(length + 1);
+    //
+    // Before 0.6.0:
+    //   Assuming copyToCString is only used in the context of wrapCallback, solc will free these pointers.
+    //   See https://github.com/ethereum/solidity/blob/v0.5.13/libsolc/libsolc.h#L37-L40
+    //
+    // After 0.6.0:
+    //   The duty is on solc-js to free these pointers. We accomplish that by calling `reset` at the end.
+    var buffer = alloc(length + 1);
     soljson.stringToUTF8(str, buffer, length + 1);
     soljson.setValue(ptr, buffer, '*');
   };
@@ -44,8 +65,23 @@ function setupMethods (soljson) {
 
   var wrapCallback = function (callback) {
     assert(typeof callback === 'function', 'Invalid callback specified.');
-    return function (path, contents, error) {
-      var result = callback(copyFromCString(path));
+    return function (data, contents, error) {
+      var result = callback(copyFromCString(data));
+      if (typeof result.contents === 'string') {
+        copyToCString(result.contents, contents);
+      }
+      if (typeof result.error === 'string') {
+        copyToCString(result.error, error);
+      }
+    };
+  };
+
+  var wrapCallbackWithKind = function (callback) {
+    assert(typeof callback === 'function', 'Invalid callback specified.');
+    return function (context, kind, data, contents, error) {
+      // Must be a null pointer.
+      assert(context === 0, 'Callback context must be null.');
+      var result = callback(copyFromCString(kind), copyFromCString(data));
       if (typeof result.contents === 'string') {
         copyToCString(result.contents, contents);
       }
@@ -56,66 +92,119 @@ function setupMethods (soljson) {
   };
 
   // This calls compile() with args || cb
-  var runWithReadCallback = function (readCallback, compile, args) {
-    // Forward compatibility with 0.6.x
-    if (typeof readCallback === 'object') {
-      readCallback = readCallback.import;
+  var runWithCallbacks = function (callbacks, compile, args) {
+    if (callbacks) {
+      assert(typeof callbacks === 'object', 'Invalid callback object specified.');
+    } else {
+      callbacks = {};
     }
 
+    var readCallback = callbacks.import;
     if (readCallback === undefined) {
-      readCallback = function (path) {
+      readCallback = function (data) {
         return {
           error: 'File import callback not supported'
         };
       };
     }
 
+    var singleCallback;
+    if (isVersion6) {
+      // After 0.6.x multiple kind of callbacks are supported.
+      var smtSolverCallback = callbacks.smtSolver;
+      if (smtSolverCallback === undefined) {
+        smtSolverCallback = function (data) {
+          return {
+            error: 'SMT solver callback not supported'
+          };
+        };
+      }
+
+      singleCallback = function (kind, data) {
+        if (kind === 'source') {
+          return readCallback(data);
+        } else if (kind === 'smt-query') {
+          return smtSolverCallback(data);
+        } else {
+          assert(false, 'Invalid callback kind specified.');
+        }
+      };
+
+      singleCallback = wrapCallbackWithKind(singleCallback);
+    } else {
+      // Old Solidity version only supported imports.
+      singleCallback = wrapCallback(readCallback);
+    }
+
     // This is to support multiple versions of Emscripten.
     var addFunction = soljson.addFunction || soljson.Runtime.addFunction;
     var removeFunction = soljson.removeFunction || soljson.Runtime.removeFunction;
 
-    var cb = addFunction(wrapCallback(readCallback));
+    var cb = addFunction(singleCallback);
     var output;
     try {
       args.push(cb);
+      if (isVersion6) {
+        // Callback context.
+        args.push(null);
+      }
       output = compile.apply(undefined, args);
     } catch (e) {
       removeFunction(cb);
       throw e;
     }
     removeFunction(cb);
+    if (reset) {
+      // Explicitly free memory.
+      //
+      // NOTE: cwrap() of "compile" will copy the returned pointer into a
+      //       Javascript string and it is not possible to call free() on it.
+      //       reset() however will clear up all allocations.
+      reset();
+    }
     return output;
   };
 
   var compileJSON = null;
   if ('_compileJSON' in soljson) {
+    // input (text), optimize (bool) -> output (jsontext)
     compileJSON = soljson.cwrap('compileJSON', 'string', ['string', 'number']);
   }
 
   var compileJSONMulti = null;
   if ('_compileJSONMulti' in soljson) {
+    // input (jsontext), optimize (bool) -> output (jsontext)
     compileJSONMulti = soljson.cwrap('compileJSONMulti', 'string', ['string', 'number']);
   }
 
   var compileJSONCallback = null;
   if ('_compileJSONCallback' in soljson) {
+    // input (jsontext), optimize (bool), callback (ptr) -> output (jsontext)
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
-      return runWithReadCallback(readCallback, compileInternal, [ input, optimize ]);
+      return runWithCallbacks(readCallback, compileInternal, [ input, optimize ]);
     };
   }
 
   var compileStandard = null;
   if ('_compileStandard' in soljson) {
+    // input (jsontext), callback (ptr) -> output (jsontext)
     var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
     compileStandard = function (input, readCallback) {
-      return runWithReadCallback(readCallback, compileStandardInternal, [ input ]);
+      return runWithCallbacks(readCallback, compileStandardInternal, [ input ]);
     };
   }
   if ('_solidity_compile' in soljson) {
-    var solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
-    compileStandard = function (input, readCallback) {
-      return runWithReadCallback(readCallback, solidityCompile, [ input ]);
+    var solidityCompile;
+    if (isVersion6) {
+      // input (jsontext), callback (ptr), callback_context (ptr) -> output (jsontext)
+      solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number', 'number']);
+    } else {
+      // input (jsontext), callback (ptr) -> output (jsontext)
+      solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
+    }
+    compileStandard = function (input, callbacks) {
+      return runWithCallbacks(callbacks, solidityCompile, [ input ]);
     };
   }
 
@@ -137,15 +226,6 @@ function setupMethods (soljson) {
           }
         ]
       });
-    }
-
-    // Forward compatibility with 0.6.x
-    if (typeof readCallback === 'object') {
-      readCallback = readCallback.import;
-    }
-
-    if (readCallback !== undefined) {
-      assert(typeof readCallback === 'function', 'Invalid callback specified.');
     }
 
     try {
@@ -244,10 +324,6 @@ function setupMethods (soljson) {
       nativeStandardJSON: compileStandard !== null
     },
     compile: compileStandardWrapper,
-    // Temporary wrappers to minimise breaking with other projects.
-    // NOTE: to be removed in 0.5.2
-    compileStandard: compileStandardWrapper,
-    compileStandardWrapper: compileStandardWrapper,
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
     loadRemoteVersion: function (versionString, cb) {

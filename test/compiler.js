@@ -193,7 +193,7 @@ function runTests (solc, versionText) {
             return { error: 'File not found' };
           }
         }
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports));
+        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports }));
         var B = getBytecode(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
@@ -217,7 +217,7 @@ function runTests (solc, versionText) {
         function findImports (path) {
           return { error: 'File not found' };
         }
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports));
+        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports }));
         st.plan(3);
         st.ok('errors' in output);
         // Check if the ParserError exists, but allow others too
@@ -248,7 +248,7 @@ function runTests (solc, versionText) {
           throw new Error('Could not implement this interface properly...');
         }
         st.throws(function () {
-          solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, findImports);
+          solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports });
         }, /^Error: Could not implement this interface properly.../);
         st.end();
       });
@@ -266,7 +266,7 @@ function runTests (solc, versionText) {
         };
         st.throws(function () {
           solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, "this isn't a callback");
-        }, /Invalid callback specified./);
+        }, /Invalid callback object specified./);
         st.end();
       });
 
@@ -418,7 +418,7 @@ function runTests (solc, versionText) {
           }
         }
 
-        var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), findImports));
+        var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), { import: findImports }));
         st.ok(bytecodeExists(output, 'a.sol', 'A'));
         st.ok(bytecodeExists(output, 'b.sol', 'B'));
         st.end();
@@ -513,6 +513,12 @@ function runTests (solc, versionText) {
         }
 
         var isVersion6 = semver.gt(solc.semver(), '0.5.99');
+        var source;
+        if (isVersion6) {
+          source = 'abstract contract C { function f() public virtual; }';
+        } else {
+          source = 'contract C { function f() public; }';
+        }
 
         var input = {
           'language': 'Solidity',
@@ -525,7 +531,7 @@ function runTests (solc, versionText) {
           },
           'sources': {
             'c.sol': {
-              'content': (isVersion6 ? 'abstract ' : '') + 'contract C { function f() public; }'
+              'content': source
             }
           }
         };
@@ -570,50 +576,6 @@ function runTests (solc, versionText) {
           }
         }
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input), findImports));
-        st.ok(expectNoError(output));
-        var A = getBytecodeStandard(output, 'a.sol', 'A');
-        st.ok(typeof A === 'string');
-        st.ok(A.length > 0);
-        var B = getBytecodeStandard(output, 'b.sol', 'B');
-        st.ok(typeof B === 'string');
-        st.ok(B.length > 0);
-        st.ok(Object.keys(linker.findLinkReferences(B)).length === 0);
-        st.end();
-      });
-
-      t.test('compiling standard JSON (with imports + new callback API)', function (st) {
-        // <0.2.1 doesn't have this
-        if (!solc.features.importCallback) {
-          st.skip('Not supported by solc');
-          st.end();
-          return;
-        }
-
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
-              '*': {
-                '*': [ 'evm.bytecode' ]
-              }
-            }
-          },
-          'sources': {
-            'b.sol': {
-              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
-            }
-          }
-        };
-
-        function findImports (path) {
-          if (path === 'a.sol') {
-            return { contents: 'contract A { function f() public returns (uint) { return 7; } }' };
-          } else {
-            return { error: 'File not found' };
-          }
-        }
-
         var output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
         st.ok(expectNoError(output));
         var A = getBytecodeStandard(output, 'a.sol', 'A');
@@ -622,6 +584,7 @@ function runTests (solc, versionText) {
         var B = getBytecodeStandard(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
+        st.ok(Object.keys(linker.findLinkReferences(B)).length === 0);
         st.end();
       });
 
@@ -819,14 +782,6 @@ function runTests (solc, versionText) {
           st.ok(typeof x === 'string');
           st.ok(x.length > 0);
         });
-      });
-    });
-
-    tape('API backwards compatibility', function (t) {
-      t.test('compileStandard and compileStandardWrapper exists', function (st) {
-        st.equal(solc.compile, solc.compileStandard);
-        st.equal(solc.compile, solc.compileStandardWrapper);
-        st.end();
       });
     });
   }
