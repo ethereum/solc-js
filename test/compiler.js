@@ -145,7 +145,8 @@ function runTests (solc, versionText) {
           if (
             output.errors[error].indexOf('ParserError') !== -1 ||
         output.errors[error].indexOf('Error: Expected identifier') !== -1 ||
-        output.errors[error].indexOf('Parser error: Expected identifier') !== -1
+        output.errors[error].indexOf('Parser error: Expected identifier') !== -1 ||
+        output.errors[error].indexOf(': Expected identifier') !== -1 // 0.4.12
           ) {
             st.ok(true);
           }
@@ -228,6 +229,10 @@ function runTests (solc, versionText) {
           //   cont.sol:1:1: Error: Source "lib.sol" not found: File not found
           if (output.errors[error].indexOf('Error') !== -1 && output.errors[error].indexOf('File not found') !== -1) {
             st.ok(true);
+          } else if (output.errors[error].indexOf('not found: File not found') !== -1) {
+            // 0.4.12 had its own weird way:
+            //   b.sol:1:1: : Source "a.sol" not found: File not found
+            st.ok(true);
           }
         }
         st.end();
@@ -291,6 +296,10 @@ function runTests (solc, versionText) {
           //   cont.sol:1:1: ParserError: Source "lib.sol" not found: File import callback not supported
           //   cont.sol:1:1: Error: Source "lib.sol" not found: File import callback not supported
           if (output.errors[error].indexOf('Error') !== -1 && output.errors[error].indexOf('File import callback not supported') !== -1) {
+            st.ok(true);
+          } else if (output.errors[error].indexOf('not found: File import callback not supported') !== -1) {
+            // 0.4.12 had its own weird way:
+            //   b.sol:1:1: : Source "a.sol" not found: File import callback not supported
             st.ok(true);
           }
         }
@@ -799,6 +808,7 @@ const versions = [
   'v0.3.6+commit.3fc68da',
   'v0.4.0+commit.acd334c9',
   'v0.4.11+commit.68ef5810',
+  'v0.4.12+commit.194ff033',
   'v0.4.26+commit.4563c3fc'
 ];
 for (var version in versions) {
