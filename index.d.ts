@@ -20,5 +20,5 @@ declare module "solc" {
   export type ReadCallbackResult = { contents: string } | { error: string };
   export type ReadCallback = (path: string) => ReadCallbackResult;
   export type Callbacks = { import: ReadCallback };
-  export function compile(input: string, readCallback?: Callbacks | ReadCallback): string;
+  export function compile(input: string, readCallback?: Callbacks): string;
 }
