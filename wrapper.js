@@ -324,27 +324,31 @@ function setupMethods (soljson) {
       nativeStandardJSON: compileStandard !== null
     },
     compile: compileStandardWrapper,
-    // Loads the compiler of the given version from the github repository
-    // instead of from the local filesystem.
-    loadRemoteVersion: function (versionString, cb) {
-      var mem = new MemoryStream(null, {readable: false});
-      var url = 'https://ethereum.github.io/solc-bin/bin/soljson-' + versionString + '.js';
-      https.get(url, function (response) {
-        if (response.statusCode !== 200) {
-          cb(new Error('Error retrieving binary: ' + response.statusMessage));
-        } else {
-          response.pipe(mem);
-          response.on('end', function () {
-            cb(null, setupMethods(requireFromString(mem.toString(), 'soljson-' + versionString + '.js')));
-          });
-        }
-      }).on('error', function (error) {
-        cb(error);
-      });
-    },
     // Use this if you want to add wrapper functions around the pure module.
     setupMethods: setupMethods
   };
 }
 
-module.exports = setupMethods;
+// Loads the compiler of the given version from the github repository
+// instead of from the local filesystem.
+function loadRemoteVersion (versionString, cb) {
+  var mem = new MemoryStream(null, {readable: false});
+  var url = 'https://ethereum.github.io/solc-bin/bin/soljson-' + versionString + '.js';
+  https.get(url, function (response) {
+    if (response.statusCode !== 200) {
+      cb(new Error('Error retrieving binary: ' + response.statusMessage));
+    } else {
+      response.pipe(mem);
+      response.on('end', function () {
+        cb(null, setupMethods(requireFromString(mem.toString(), 'soljson-' + versionString + '.js')));
+      });
+    }
+  }).on('error', function (error) {
+    cb(error);
+  });
+}
+
+module.exports = {
+  load: setupMethods,
+  loadRemoteVersion: loadRemoteVersion
+};
