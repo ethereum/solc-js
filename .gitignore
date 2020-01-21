@@ -39,3 +39,8 @@ bin
 out
 *.bin
 *.abi
+
+# IDE's
+
+.vscode
+.idea
