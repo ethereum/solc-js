@@ -23,6 +23,9 @@
     "solidity",
     "compiler"
   ],
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "files": [
     "abi.js",
     "index.js",
