@@ -1,6 +1,6 @@
 {
   "name": "solc",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Solidity compiler",
   "main": "index.js",
   "bin": {
@@ -23,6 +23,9 @@
     "solidity",
     "compiler"
   ],
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "files": [
     "abi.js",
     "index.js",
