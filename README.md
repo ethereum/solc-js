@@ -214,6 +214,20 @@ solc.loadRemoteVersion('latest', function(err, solcSnapshot) {
 });
 ```
 
+### Overriding the Remote Repository
+
+When using the high-level API for downloading remote solc versions, by default the repository location is 
+the [solc-bin repository]((https://github.com/ethereum/solc-bin/tree/gh-pages/bin)) in GitHub. 
+
+When overriding, ensure the file structure & names are in the same format as the default repository. 
+
+This repository can be overridden to allow for pointing to internal/other repositories with the `SOLC_REPO` environment 
+variable.
+
+```bash
+SOLC_REPO=https://s3bucket.domain.com solcjs --help 
+``` 
+
 ### Linking Bytecode
 
 When using libraries, the resulting bytecode will contain placeholders for the real addresses of the referenced libraries. These have to be updated, via a process called linking, before deploying the contract.
