@@ -15,7 +15,7 @@
     "test": "tape ./test/index.js",
     "test:nyc": "nyc tape ./test/index.js | tap-nyc",
     "test:jest": "jest --verbose --detectOpenHandles",
-    "coverage:jest": "jest --coverage",
+    "coverage:jest": "jest --collect-coverage --maxWorkers 2",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info"
   },
@@ -71,7 +71,8 @@
     "tape": "^4.11.0",
     "tape-spawn": "^1.4.2",
     "ts-jest": "^24.3.0",
-    "typescript": "^3.7.5"
+    "typescript": "^3.7.5",
+    "weak": "^1.0.1"
   },
   "semistandard": {
     "ignore": [

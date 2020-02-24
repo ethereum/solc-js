@@ -33,7 +33,7 @@ function setupMethods (soljson) {
 
   var alloc;
   if ('_solidity_alloc' in soljson) {
-    alloc = soljson.cwrap('solidity_alloc', 'number', ['number']);
+    alloc = soljson.cwrap('solidity_alloc', 'number', [ 'number' ]);
   } else {
     alloc = soljson._malloc;
     assert(alloc, 'Expected malloc to be present.');
@@ -182,7 +182,7 @@ function setupMethods (soljson) {
     // input (jsontext), optimize (bool), callback (ptr) -> output (jsontext)
     var compileInternal = soljson.cwrap('compileJSONCallback', 'string', ['string', 'number', 'number']);
     compileJSONCallback = function (input, optimize, readCallback) {
-      return runWithCallbacks(readCallback, compileInternal, [input, optimize]);
+      return runWithCallbacks(readCallback, compileInternal, [ input, optimize ]);
     };
   }
 
@@ -191,7 +191,7 @@ function setupMethods (soljson) {
     // input (jsontext), callback (ptr) -> output (jsontext)
     var compileStandardInternal = soljson.cwrap('compileStandard', 'string', ['string', 'number']);
     compileStandard = function (input, readCallback) {
-      return runWithCallbacks(readCallback, compileStandardInternal, [input]);
+      return runWithCallbacks(readCallback, compileStandardInternal, [ input ]);
     };
   }
   if ('_solidity_compile' in soljson) {
@@ -204,7 +204,7 @@ function setupMethods (soljson) {
       solidityCompile = soljson.cwrap('solidity_compile', 'string', ['string', 'number']);
     }
     compileStandard = function (input, callbacks) {
-      return runWithCallbacks(callbacks, solidityCompile, [input]);
+      return runWithCallbacks(callbacks, solidityCompile, [ input ]);
     };
   }
 
@@ -218,11 +218,11 @@ function setupMethods (soljson) {
       return JSON.stringify({
         errors: [
           {
-            type: 'JSONError',
-            component: 'solcjs',
-            severity: 'error',
-            message: message,
-            formattedMessage: 'Error: ' + message
+            'type': 'JSONError',
+            'component': 'solcjs',
+            'severity': 'error',
+            'message': message,
+            'formattedMessage': 'Error: ' + message
           }
         ]
       });
@@ -234,24 +234,24 @@ function setupMethods (soljson) {
       return formatFatalError('Invalid JSON supplied: ' + e.message);
     }
 
-    if (input.language !== 'Solidity') {
+    if (input['language'] !== 'Solidity') {
       return formatFatalError('Only "Solidity" is supported as a language.');
     }
 
     // NOTE: this is deliberately `== null`
-    if (input.sources == null || input.sources.length === 0) {
+    if (input['sources'] == null || input['sources'].length === 0) {
       return formatFatalError('No input sources specified.');
     }
 
     function isOptimizerEnabled (input) {
-      return input.settings && input.settings.optimizer && input.settings.optimizer.enabled;
+      return input['settings'] && input['settings']['optimizer'] && input['settings']['optimizer']['enabled'];
     }
 
     function translateSources (input) {
       var sources = {};
-      for (var source in input.sources) {
-        if (input.sources[source].content !== null) {
-          sources[source] = input.sources[source].content;
+      for (var source in input['sources']) {
+        if (input['sources'][source]['content'] !== null) {
+          sources[source] = input['sources'][source]['content'];
         } else {
           // force failure
           return null;
@@ -261,8 +261,8 @@ function setupMethods (soljson) {
     }
 
     function librariesSupplied (input) {
-      if (input.settings) {
-        return input.settings.libraries;
+      if (input['settings']) {
+        return input['settings']['libraries'];
       }
     }
 
@@ -289,11 +289,11 @@ function setupMethods (soljson) {
 
     // Try to wrap around old versions
     if (compileJSONCallback !== null) {
-      return translateOutput(compileJSONCallback(JSON.stringify({ sources: sources }), isOptimizerEnabled(input), readCallback), libraries);
+      return translateOutput(compileJSONCallback(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input), readCallback), libraries);
     }
 
     if (compileJSONMulti !== null) {
-      return translateOutput(compileJSONMulti(JSON.stringify({ sources: sources }), isOptimizerEnabled(input)), libraries);
+      return translateOutput(compileJSONMulti(JSON.stringify({ 'sources': sources }), isOptimizerEnabled(input)), libraries);
     }
 
     // Try our luck with an ancient compiler
@@ -327,7 +327,7 @@ function setupMethods (soljson) {
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
     loadRemoteVersion: function (versionString, cb) {
-      var mem = new MemoryStream(null, { readable: false });
+      var mem = new MemoryStream(null, {readable: false});
       var url = 'https://ethereum.github.io/solc-bin/bin/soljson-' + versionString + '.js';
       https.get(url, function (response) {
         if (response.statusCode !== 200) {

@@ -15,7 +15,7 @@ function runTests (solc, versionText) {
       } else {
         outputContract = output.contracts[fileName + ':' + contractName];
       }
-      return outputContract.bytecode;
+      return outputContract['bytecode'];
     } catch (e) {
       return '';
     }
@@ -29,7 +29,7 @@ function runTests (solc, versionText) {
       } else {
         outputFile = output.contracts[fileName];
       }
-      return outputFile[contractName].evm.bytecode.object;
+      return outputFile[contractName]['evm']['bytecode']['object'];
     } catch (e) {
       return '';
     }
@@ -43,7 +43,7 @@ function runTests (solc, versionText) {
       } else {
         outputFile = output.contracts[fileName];
       }
-      return outputFile[contractName].evm.gasEstimates;
+      return outputFile[contractName]['evm']['gasEstimates'];
     } catch (e) {
       return '';
     }
@@ -166,7 +166,7 @@ function runTests (solc, versionText) {
           'a.sol': 'contract A { function f() public returns (uint) { return 7; } }',
           'b.sol': 'import "a.sol"; contract B is A { function g() public { f(); } }'
         };
-        var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({ sources: input })));
+        var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({sources: input})));
         var B = getBytecode(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
@@ -194,7 +194,7 @@ function runTests (solc, versionText) {
             return { error: 'File not found' };
           }
         }
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, { import: findImports }));
+        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports }));
         var B = getBytecode(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
@@ -218,7 +218,7 @@ function runTests (solc, versionText) {
         function findImports (path) {
           return { error: 'File not found' };
         }
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, { import: findImports }));
+        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports }));
         st.plan(3);
         st.ok('errors' in output);
         // Check if the ParserError exists, but allow others too
@@ -253,7 +253,7 @@ function runTests (solc, versionText) {
           throw new Error('Could not implement this interface properly...');
         }
         st.throws(function () {
-          solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, { import: findImports });
+          solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports });
         }, /^Error: Could not implement this interface properly.../);
         st.end();
       });
@@ -270,7 +270,7 @@ function runTests (solc, versionText) {
           'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
         };
         st.throws(function () {
-          solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, "this isn't a callback");
+          solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, "this isn't a callback");
         }, /Invalid callback object specified./);
         st.end();
       });
@@ -286,7 +286,7 @@ function runTests (solc, versionText) {
         var input = {
           'b.sol': 'import "a.sol"; contract B is A { function g() public { f(); } }'
         };
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({ sources: input })));
+        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input})));
         st.plan(3);
         st.ok('errors' in output);
         // Check if the ParserError exists, but allow others too
@@ -314,27 +314,27 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            outputSelection: {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode']
+                '*': [ 'evm.bytecode' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'a.sol': {
-              content: 'contract A { function f() public returns (uint) { return 7; } }'
+              'content': 'contract A { function f() public returns (uint) { return 7; } }'
             },
             'b.sol': {
-              content: 'import "a.sol"; contract B is A { function g() public { f(); } }'
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
 
         function bytecodeExists (output, fileName, contractName) {
           try {
-            return output.contracts[fileName][contractName].evm.bytecode.object.length > 0;
+            return output.contracts[fileName][contractName]['evm']['bytecode']['object'].length > 0;
           } catch (e) {
             return false;
           }
@@ -361,17 +361,17 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            outputSelection: {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode']
+                '*': [ 'evm.bytecode' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'x.sol': {
-              content: 'contract x { this is an invalid contract }'
+              'content': 'contract x { this is an invalid contract }'
             }
           }
         };
@@ -396,17 +396,17 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            outputSelection: {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode']
+                '*': [ 'evm.bytecode' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'b.sol': {
-              content: 'import "a.sol"; contract B is A { function g() public { f(); } }'
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
@@ -421,7 +421,7 @@ function runTests (solc, versionText) {
 
         function bytecodeExists (output, fileName, contractName) {
           try {
-            return output.contracts[fileName][contractName].evm.bytecode.object.length > 0;
+            return output.contracts[fileName][contractName]['evm']['bytecode']['object'].length > 0;
           } catch (e) {
             return false;
           }
@@ -435,17 +435,17 @@ function runTests (solc, versionText) {
 
       t.test('compiling standard JSON (single file)', function (st) {
         var input = {
-          language: 'Solidity',
-          settings: {
-            outputSelection: {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode', 'evm.gasEstimates']
+                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'c.sol': {
-              content: 'contract C { function g() public { } function h() internal {} }'
+              'content': 'contract C { function g() public { } function h() internal {} }'
             }
           }
         };
@@ -457,12 +457,12 @@ function runTests (solc, versionText) {
         st.ok(C.length > 0);
         var CGas = getGasEstimate(output, 'c.sol', 'C');
         st.ok(typeof CGas === 'object');
-        st.ok(typeof CGas.creation === 'object');
-        st.ok(typeof CGas.creation.codeDepositCost === 'string');
-        st.ok(typeof CGas.external === 'object');
-        st.ok(typeof CGas.external['g()'] === 'string');
-        st.ok(typeof CGas.internal === 'object');
-        st.ok(typeof CGas.internal['h()'] === 'string');
+        st.ok(typeof CGas['creation'] === 'object');
+        st.ok(typeof CGas['creation']['codeDepositCost'] === 'string');
+        st.ok(typeof CGas['external'] === 'object');
+        st.ok(typeof CGas['external']['g()'] === 'string');
+        st.ok(typeof CGas['internal'] === 'object');
+        st.ok(typeof CGas['internal']['h()'] === 'string');
         st.end();
       });
 
@@ -475,20 +475,20 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            outputSelection: {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode', 'evm.gasEstimates']
+                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'a.sol': {
-              content: 'contract A { function f() public returns (uint) { return 7; } }'
+              'content': 'contract A { function f() public returns (uint) { return 7; } }'
             },
             'b.sol': {
-              content: 'import "a.sol"; contract B is A { function g() public { f(); } function h() internal {} }'
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } function h() internal {} }'
             }
           }
         };
@@ -501,12 +501,12 @@ function runTests (solc, versionText) {
         st.ok(Object.keys(linker.findLinkReferences(B)).length === 0);
         var BGas = getGasEstimate(output, 'b.sol', 'B');
         st.ok(typeof BGas === 'object');
-        st.ok(typeof BGas.creation === 'object');
-        st.ok(typeof BGas.creation.codeDepositCost === 'string');
-        st.ok(typeof BGas.external === 'object');
-        st.ok(typeof BGas.external['g()'] === 'string');
-        st.ok(typeof BGas.internal === 'object');
-        st.ok(typeof BGas.internal['h()'] === 'string');
+        st.ok(typeof BGas['creation'] === 'object');
+        st.ok(typeof BGas['creation']['codeDepositCost'] === 'string');
+        st.ok(typeof BGas['external'] === 'object');
+        st.ok(typeof BGas['external']['g()'] === 'string');
+        st.ok(typeof BGas['internal'] === 'object');
+        st.ok(typeof BGas['internal']['h()'] === 'string');
         var A = getBytecodeStandard(output, 'a.sol', 'A');
         st.ok(typeof A === 'string');
         st.ok(A.length > 0);
@@ -530,17 +530,17 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            outputSelection: {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode', 'evm.gasEstimates']
+                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'c.sol': {
-              content: source
+              'content': source
             }
           }
         };
@@ -562,17 +562,17 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            outputSelection: {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode']
+                '*': [ 'evm.bytecode' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'b.sol': {
-              content: 'import "a.sol"; contract B is A { function g() public { f(); } }'
+              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
@@ -613,25 +613,25 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            libraries: {
+          'language': 'Solidity',
+          'settings': {
+            'libraries': {
               'lib.sol': {
-                L: '0x4200000000000000000000000000000000000001'
+                'L': '0x4200000000000000000000000000000000000001'
               }
             },
-            outputSelection: {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode']
+                '*': [ 'evm.bytecode' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'lib.sol': {
-              content: 'library L { function f() public returns (uint) { return 7; } }'
+              'content': 'library L { function f() public returns (uint) { return 7; } }'
             },
             'a.sol': {
-              content: 'import "lib.sol"; contract A { function g() public { L.f(); } }'
+              'content': 'import "lib.sol"; contract A { function g() public { L.f(); } }'
             }
           }
         };
@@ -657,17 +657,17 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            outputSelection: {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode']
+                '*': [ 'evm.bytecode' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'c.sol': {
-              content: 'contract C { function f() public { } }'
+              'content': 'contract C { function f() public { } }'
             }
           }
         };
@@ -692,25 +692,25 @@ function runTests (solc, versionText) {
         }
 
         var input = {
-          language: 'Solidity',
-          settings: {
-            libraries: {
+          'language': 'Solidity',
+          'settings': {
+            'libraries': {
               'lib.sol': {
-                L: '0x4200000000000000000000000000000000000001'
+                'L': '0x4200000000000000000000000000000000000001'
               }
             },
-            outputSelection: {
+            'outputSelection': {
               '*': {
-                '*': ['evm.bytecode']
+                '*': [ 'evm.bytecode' ]
               }
             }
           },
-          sources: {
+          'sources': {
             'lib.sol': {
-              content: 'library L { function f() public returns (uint) { return 7; } }'
+              'content': 'library L { function f() public returns (uint) { return 7; } }'
             },
             'a.sol': {
-              content: 'import "lib.sol"; contract A { function g() public { L.f(); } }'
+              'content': 'import "lib.sol"; contract A { function g() public { L.f(); } }'
             }
           }
         };
@@ -772,17 +772,17 @@ function runTests (solc, versionText) {
             return;
           }
           var input = {
-            language: 'Solidity',
-            settings: {
-              outputSelection: {
+            'language': 'Solidity',
+            'settings': {
+              'outputSelection': {
                 '*': {
-                  '*': ['evm.bytecode']
+                  '*': [ 'evm.bytecode' ]
                 }
               }
             },
-            sources: {
+            'sources': {
               'cont.sol': {
-                content: 'contract x { function g() public {} }'
+                'content': 'contract x { function g() public {} }'
               }
             }
           };

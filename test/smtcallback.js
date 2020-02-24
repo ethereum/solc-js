@@ -57,7 +57,7 @@ tape('SMTCheckerCallback', function (t) {
       return { error: 'Fake SMT solver error.' };
     };
 
-    var input = { a: { content: pragmaSol + pragmaSMT + 'contract C { function f(uint x) public pure { assert(x > 0); } }' } };
+    var input = { 'a': { content: pragmaSol + pragmaSMT + 'contract C { function f(uint x) public pure { assert(x > 0); } }' } };
     var inputJSON = JSON.stringify({
       language: 'Solidity',
       sources: input

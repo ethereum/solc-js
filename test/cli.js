@@ -64,17 +64,17 @@ tape('CLI', function (t) {
 
   t.test('standard json', function (st) {
     var input = {
-      language: 'Solidity',
-      settings: {
-        outputSelection: {
+      'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
           '*': {
-            '*': ['evm.bytecode', 'userdoc']
+            '*': [ 'evm.bytecode', 'userdoc' ]
           }
         }
       },
-      sources: {
+      'sources': {
         'Contract.sol': {
-          content: 'pragma solidity >=0.5.0; contract Contract { function f() pure public {} }'
+          'content': 'pragma solidity >=0.5.0; contract Contract { function f() pure public {} }'
         }
       }
     };

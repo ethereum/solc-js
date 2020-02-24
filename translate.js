@@ -66,17 +66,17 @@ function translateGasEstimates (gasEstimates) {
 function translateJsonCompilerOutput (output, libraries) {
   var ret = {};
 
-  ret.errors = [];
+  ret['errors'] = [];
   var errors;
-  if (output.error) {
-    errors = [output.error];
+  if (output['error']) {
+    errors = [ output['error'] ];
   } else {
-    errors = output.errors;
+    errors = output['errors'];
   }
-  translateErrors(ret.errors, errors);
+  translateErrors(ret['errors'], errors);
 
-  ret.contracts = {};
-  for (var contract in output.contracts) {
+  ret['contracts'] = {};
+  for (var contract in output['contracts']) {
     // Split name first, can be `contract`, `:contract` or `filename:contract`
     var tmp = contract.match(/^(([^:]*):)?([^:]+)$/);
     if (tmp.length !== 4) {
@@ -90,62 +90,62 @@ function translateJsonCompilerOutput (output, libraries) {
     }
     var contractName = tmp[3];
 
-    var contractInput = output.contracts[contract];
+    var contractInput = output['contracts'][contract];
 
-    var gasEstimates = contractInput.gasEstimates;
+    var gasEstimates = contractInput['gasEstimates'];
     var translatedGasEstimates = {};
 
-    if (gasEstimates.creation) {
-      translatedGasEstimates.creation = {
-        codeDepositCost: translateGasEstimates(gasEstimates.creation[1]),
-        executionCost: translateGasEstimates(gasEstimates.creation[0])
+    if (gasEstimates['creation']) {
+      translatedGasEstimates['creation'] = {
+        'codeDepositCost': translateGasEstimates(gasEstimates['creation'][1]),
+        'executionCost': translateGasEstimates(gasEstimates['creation'][0])
       };
     }
-    if (gasEstimates.internal) {
-      translatedGasEstimates.internal = translateGasEstimates(gasEstimates.internal);
+    if (gasEstimates['internal']) {
+      translatedGasEstimates['internal'] = translateGasEstimates(gasEstimates['internal']);
     }
-    if (gasEstimates.external) {
-      translatedGasEstimates.external = translateGasEstimates(gasEstimates.external);
+    if (gasEstimates['external']) {
+      translatedGasEstimates['external'] = translateGasEstimates(gasEstimates['external']);
     }
 
     var contractOutput = {
-      abi: JSON.parse(contractInput.interface),
-      metadata: contractInput.metadata,
-      evm: {
-        legacyAssembly: contractInput.assembly,
-        bytecode: {
-          object: contractInput.bytecode && linker.linkBytecode(contractInput.bytecode, libraries || {}),
-          opcodes: contractInput.opcodes,
-          sourceMap: contractInput.srcmap,
-          linkReferences: contractInput.bytecode && linker.findLinkReferences(contractInput.bytecode)
+      'abi': JSON.parse(contractInput['interface']),
+      'metadata': contractInput['metadata'],
+      'evm': {
+        'legacyAssembly': contractInput['assembly'],
+        'bytecode': {
+          'object': contractInput['bytecode'] && linker.linkBytecode(contractInput['bytecode'], libraries || {}),
+          'opcodes': contractInput['opcodes'],
+          'sourceMap': contractInput['srcmap'],
+          'linkReferences': contractInput['bytecode'] && linker.findLinkReferences(contractInput['bytecode'])
         },
-        deployedBytecode: {
-          object: contractInput.runtimeBytecode && linker.linkBytecode(contractInput.runtimeBytecode, libraries || {}),
-          sourceMap: contractInput.srcmapRuntime,
-          linkReferences: contractInput.runtimeBytecode && linker.findLinkReferences(contractInput.runtimeBytecode)
+        'deployedBytecode': {
+          'object': contractInput['runtimeBytecode'] && linker.linkBytecode(contractInput['runtimeBytecode'], libraries || {}),
+          'sourceMap': contractInput['srcmapRuntime'],
+          'linkReferences': contractInput['runtimeBytecode'] && linker.findLinkReferences(contractInput['runtimeBytecode'])
         },
-        methodIdentifiers: contractInput.functionHashes,
-        gasEstimates: translatedGasEstimates
+        'methodIdentifiers': contractInput['functionHashes'],
+        'gasEstimates': translatedGasEstimates
       }
     };
 
-    if (!ret.contracts[fileName]) {
-      ret.contracts[fileName] = {};
+    if (!ret['contracts'][fileName]) {
+      ret['contracts'][fileName] = {};
     }
 
-    ret.contracts[fileName][contractName] = contractOutput;
+    ret['contracts'][fileName][contractName] = contractOutput;
   }
 
   var sourceMap = {};
-  for (var sourceId in output.sourceList) {
-    sourceMap[output.sourceList[sourceId]] = sourceId;
+  for (var sourceId in output['sourceList']) {
+    sourceMap[output['sourceList'][sourceId]] = sourceId;
   }
 
-  ret.sources = {};
-  for (var source in output.sources) {
-    ret.sources[source] = {
+  ret['sources'] = {};
+  for (var source in output['sources']) {
+    ret['sources'][source] = {
       id: sourceMap[source],
-      legacyAST: output.sources[source].AST
+      legacyAST: output['sources'][source].AST
     };
   }
 
