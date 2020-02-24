@@ -1,4 +1,4 @@
-import linker = require("../linker.js");
+import linker = require("../src/linker");
 import {
   initialize,
   expectError,
@@ -6,7 +6,7 @@ import {
   getBytecode,
   getBytecodeStandard,
   getGasEstimate
-} from "../helpers/helpers";
+} from "../src/helpers";
 import * as semver from "semver";
 
 // This is here so jest finds tests

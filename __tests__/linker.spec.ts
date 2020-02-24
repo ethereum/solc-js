@@ -1,4 +1,4 @@
-import linker = require('../linker.js');
+import linker = require('../src/linker');
 
 describe('Link references', () => {
   test('Empty bytecode', () => {

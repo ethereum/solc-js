@@ -7,8 +7,8 @@
     "solcjs": "solcjs"
   },
   "scripts": {
-    "eslint": "eslint .",
-    "eslint:fix": "eslint . --fix",
+    "eslint": "eslint src/**/*.ts",
+    "eslint:fix": "eslint src/**/*.ts --fix",
     "lint": "node ./node_modules/semistandard/bin/cmd.js",
     "prepublish": "node downloadCurrentVersion.js && node verifyVersion.js",
     "pretest": "npm run lint",
@@ -59,6 +59,8 @@
   "devDependencies": {
     "@types/jest": "^24.9.0",
     "@types/node": "^13.1.8",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "@typescript-eslint/parser": "^2.20.0",
     "coveralls": "^3.0.0",
     "eslint": "^6.8.0",
     "jest": "^24.9.0",
