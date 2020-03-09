@@ -31,6 +31,9 @@ function expectErrors (errors, expectations) {
   }
 
   for (var i in errors) {
+    if (errors[i].includes('Error trying to invoke SMT solver') || expectations[i].includes('Error trying to invoke SMT solver')) {
+      continue;
+    }
     if (!errors[i].includes(expectations[i])) {
       return false;
     }
