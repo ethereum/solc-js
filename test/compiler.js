@@ -4,6 +4,8 @@ const solc = require('../index.js');
 const linker = require('../linker.js');
 const execSync = require('child_process').execSync;
 
+var noRemoteVersions = (process.argv.indexOf('--no-remote-versions') >= 0);
+
 function runTests (solc, versionText) {
   console.log(`Running tests with ${versionText} ${solc.version()}`);
 
@@ -759,7 +761,7 @@ function runTests (solc, versionText) {
   });
 
   // Only run on the latest version.
-  if (versionText === 'latest') {
+  if (versionText === 'latest' && !noRemoteVersions) {
     tape('Loading Legacy Versions', function (t) {
       t.test('loading remote version - development snapshot', function (st) {
         // getting the development snapshot
@@ -798,22 +800,24 @@ function runTests (solc, versionText) {
 
 runTests(solc, 'latest');
 
-// New compiler interface features 0.1.6, 0.2.1, 0.4.11, 0.5.0, etc.
-// 0.4.0 added pragmas (used in tests above)
-const versions = [
-  'v0.1.1+commit.6ff4cd6',
-  'v0.1.6+commit.d41f8b7',
-  'v0.2.0+commit.4dc2445',
-  'v0.2.1+commit.91a6b35',
-  'v0.3.6+commit.3fc68da',
-  'v0.4.0+commit.acd334c9',
-  'v0.4.11+commit.68ef5810',
-  'v0.4.12+commit.194ff033',
-  'v0.4.26+commit.4563c3fc'
-];
-for (var version in versions) {
-  version = versions[version];
-  execSync(`curl -L -o /tmp/${version}.js https://solc-bin.ethereum.org/bin/soljson-${version}.js`);
-  const newSolc = require('../wrapper.js')(require(`/tmp/${version}.js`));
-  runTests(newSolc, version);
+if (!noRemoteVersions) {
+  // New compiler interface features 0.1.6, 0.2.1, 0.4.11, 0.5.0, etc.
+  // 0.4.0 added pragmas (used in tests above)
+  const versions = [
+    'v0.1.1+commit.6ff4cd6',
+    'v0.1.6+commit.d41f8b7',
+    'v0.2.0+commit.4dc2445',
+    'v0.2.1+commit.91a6b35',
+    'v0.3.6+commit.3fc68da',
+    'v0.4.0+commit.acd334c9',
+    'v0.4.11+commit.68ef5810',
+    'v0.4.12+commit.194ff033',
+    'v0.4.26+commit.4563c3fc'
+  ];
+  for (var version in versions) {
+    version = versions[version];
+    execSync(`curl -L -o /tmp/${version}.js https://solc-bin.ethereum.org/bin/soljson-${version}.js`);
+    const newSolc = require('../wrapper.js')(require(`/tmp/${version}.js`));
+    runTests(newSolc, version);
+  }
 }
