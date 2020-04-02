@@ -56,5 +56,5 @@ function solve (query) {
 
 module.exports = {
   smtSolver: solve,
-  availableSolvers: solvers.length
+  availableSolvers: solvers
 };

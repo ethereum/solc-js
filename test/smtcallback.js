@@ -102,7 +102,7 @@ tape('SMTCheckerCallback', function (t) {
       return;
     }
 
-    if (smtsolver.availableSolvers === 0) {
+    if (smtsolver.availableSolvers.length === 0) {
       st.skip('No SMT solver available.');
       st.end();
       return;
@@ -132,23 +132,46 @@ tape('SMTCheckerCallback', function (t) {
       st.comment('Collecting ' + sources[i] + '...');
       var source = fs.readFileSync(sources[i], 'utf8');
       var expected = [];
+
       var delimiter = '// ----';
       if (source.includes(delimiter)) {
-        expected = source.substring(source.indexOf('// ----') + 8, source.length).split('\n');
+        expected = source.substring(source.indexOf(delimiter) + 8, source.length).split('\n');
         // Sometimes the last expectation line ends with a '\n'
         if (expected.length > 0 && expected[expected.length - 1] === '') {
           expected.pop();
         }
       }
+
+      var solvers = 'all';
+      if (source.includes('// SMTSolvers:')) {
+        let solverIndex = source.indexOf('// SMTSolvers:') + 15;
+        let endIndex = source.includes(delimiter) ? source.indexOf(delimiter) : source.length;
+        solvers = source.substring(solverIndex, endIndex).split(' ').join('');
+      }
       tests[sources[i]] = {
         expectations: expected,
-        solidity: { test: { content: preamble + source } }
+        solidity: { test: { content: preamble + source } },
+        enabledSolvers: solvers
       };
     }
 
     // Run all tests
     for (i in tests) {
       var test = tests[i];
+
+      if (test.enabledSolvers === 'none') {
+        st.skip('Test set to use no SMT solvers.');
+        continue;
+      } else if (test.enabledSolvers !== 'all') {
+        var availableSolvers = smtsolver.availableSolvers.map(solver => {
+          return solver.name;
+        });
+        if (!availableSolvers.includes(solvers)) {
+          st.skip('Test requires unavailable solver.');
+          continue;
+        }
+      }
+
       var output = JSON.parse(solc.compile(
         JSON.stringify({
           language: 'Solidity',
