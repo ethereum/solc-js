@@ -6,7 +6,7 @@ const solc = require('../index.js');
 const smtchecker = require('../smtchecker.js');
 const smtsolver = require('../smtsolver.js');
 
-var pragmaSol = 'pragma solidity >=0.0;\n';
+var preamble = 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n';
 var pragmaSMT = 'pragma experimental SMTChecker;\n';
 
 function collectErrors (solOutput) {
@@ -60,7 +60,7 @@ tape('SMTCheckerCallback', function (t) {
       return { error: 'Fake SMT solver error.' };
     };
 
-    var input = { 'a': { content: pragmaSol + pragmaSMT + 'contract C { function f(uint x) public pure { assert(x > 0); } }' } };
+    var input = { 'a': { content: preamble + pragmaSMT + 'contract C { function f(uint x) public pure { assert(x > 0); } }' } };
     var inputJSON = JSON.stringify({
       language: 'Solidity',
       sources: input
@@ -130,7 +130,7 @@ tape('SMTCheckerCallback', function (t) {
       }
       tests[sources[i]] = {
         expectations: expected,
-        solidity: { test: { content: pragmaSol + source } }
+        solidity: { test: { content: preamble + source } }
       };
     }
 
