@@ -65,11 +65,23 @@ tape('SMTCheckerCallback', function (t) {
       language: 'Solidity',
       sources: input
     });
-    var tests = [
-      { cb: satCallback, expectations: ['Assertion violation happens here'] },
-      { cb: unsatCallback, expectations: [] },
-      { cb: errorCallback, expectations: ['BMC analysis was not possible'] }
-    ];
+
+    // Solidity 0.6.9 comes with z3
+    var tests;
+    if (!semver.gt(solc.semver(), '0.6.8')) {
+      tests = [
+        { cb: satCallback, expectations: ['Assertion violation happens here'] },
+        { cb: unsatCallback, expectations: [] },
+        { cb: errorCallback, expectations: ['BMC analysis was not possible'] }
+      ];
+    } else {
+      tests = [
+        { cb: satCallback, expectations: ['Assertion violation happens here'] },
+        { cb: unsatCallback, expectations: ['At least two SMT solvers provided conflicting answers. Results might not be sound.'] },
+        { cb: errorCallback, expectations: ['Assertion violation happens here'] }
+      ];
+    }
+
     for (var i in tests) {
       var test = tests[i];
       var output = JSON.parse(solc.compile(
