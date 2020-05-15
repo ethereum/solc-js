@@ -22,6 +22,7 @@ program
   .option('--bin', 'Binary of the contracts in hex.')
   .option('--abi', 'ABI of the contracts.')
   .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
+  .option('--base-path', 'Specifies the root of the source tree (default value: "/").')
   .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.');
 program.parse(process.argv);
 
@@ -80,7 +81,7 @@ for (var i = 0; i < files.length; i++) {
   }
 }
 
-var output = JSON.parse(solc.compile(JSON.stringify({
+let options = {
   language: 'Solidity',
   settings: {
     optimizer: {
@@ -93,7 +94,13 @@ var output = JSON.parse(solc.compile(JSON.stringify({
     }
   },
   sources: sources
-})));
+}
+
+if (program.basePath) {
+  options.settings.basePath = basePath
+}
+
+var output = JSON.parse(solc.compile(JSON.stringify(options)));
 
 let hasError = false;
 
