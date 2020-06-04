@@ -22,6 +22,7 @@ program
   .option('--bin', 'Binary of the contracts in hex.')
   .option('--abi', 'ABI of the contracts.')
   .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
+  .option('--base-path <path>', 'Automatically resolve all imports inside the given path.')
   .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.');
 program.parse(process.argv);
 
@@ -33,14 +34,36 @@ function abort (msg) {
   process.exit(1);
 }
 
+function readFileCallback(path) {
+  path = program.basePath + '/' + path;
+  if (fs.existsSync(path)) {
+    try {
+      return { 'contents': fs.readFileSync(path).toString('utf8') }
+    } catch (e) {
+      return { error: 'Error reading ' + path + ': ' + e };
+    }
+  } else
+    return { error: 'File not found at ' + path}
+}
+function stripBasePath(path) {
+  if (program.basePath && path.startsWith(program.basePath))
+    return path.slice(program.basePath.length);
+  else
+    return path;
+}
+
+var callbacks = undefined
+if (program.basePath)
+  callbacks = {'import': readFileCallback};
+
 if (program.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
-  var output = solc.compile(input);
+  var output = solc.compile(input, callbacks);
 
   try {
     var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
     if (inputJSON) {
-      output = solc.compile(JSON.stringify(inputJSON));
+      output = solc.compile(JSON.stringify(inputJSON), callbacks);
     }
   }
   catch (e) {
@@ -74,7 +97,7 @@ var sources = {};
 
 for (var i = 0; i < files.length; i++) {
   try {
-    sources[ files[i] ] = { content: fs.readFileSync(files[i]).toString() };
+    sources[stripBasePath(files[i])] = { content: fs.readFileSync(files[i]).toString() };
   } catch (e) {
     abort('Error reading ' + files[i] + ': ' + e);
   }
@@ -93,7 +116,7 @@ var output = JSON.parse(solc.compile(JSON.stringify({
     }
   },
   sources: sources
-})));
+}), callbacks));
 
 let hasError = false;
 

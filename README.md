@@ -26,12 +26,17 @@ To see all the supported features, execute:
 solcjs --help
 ```
 
+To compile a contract that imports other contracts via relative paths:
+```bash
+solcjs --bin --base-path . ./MainContract.sol
+```
+The option ``--base-path`` enables automatic loading of imports from the filesystem and
+takes a path as argument that contains the source files.
+
 Note: this commandline interface is not compatible with `solc` provided by the Solidity compiler package and thus cannot be
 used in combination with an Ethereum client via the `eth.compile.solidity()` RPC method. Please refer to the
 [Solidity compiler documentation](https://solidity.readthedocs.io/) for instructions to install `solc`.
 Furthermore, the commandline interface to solc-js provides fewer features than the binary release.
-One of the missing features is automatic loading of files from the filesystem if they are not explicitly
-mentioned on the command line.
 
 ### Usage in Projects
 
