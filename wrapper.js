@@ -140,7 +140,7 @@ function setupMethods (soljson) {
     var addFunction = soljson.addFunction || soljson.Runtime.addFunction;
     var removeFunction = soljson.removeFunction || soljson.Runtime.removeFunction;
 
-    var cb = addFunction(singleCallback);
+    var cb = addFunction(singleCallback, 'viiiii');
     var output;
     try {
       args.push(cb);
