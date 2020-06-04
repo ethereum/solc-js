@@ -62,6 +62,19 @@ tape('CLI', function (t) {
     spt.end();
   });
 
+  t.test('no-base-path', function (st) {
+    var spt = spawn(st, './solcjs --bin test/resources/importA.sol');
+    spt.stderr.match(/not found: File import callback not supported/);
+    spt.end();
+  });
+
+  t.test('base-path', function (st) {
+    var spt = spawn(st, './solcjs --bin --base-path test/resources test/resources/importA.sol');
+    spt.stderr.empty();
+    spt.succeeds();
+    spt.end();
+  });
+
   t.test('standard json', function (st) {
     var input = {
       'language': 'Solidity',
@@ -86,6 +99,35 @@ tape('CLI', function (t) {
       spt.stderr.empty();
       spt.stdout.match(/Contract.sol/);
       spt.stdout.match(/userdoc/);
+      spt.succeeds();
+      spt.end();
+    });
+  });
+
+  t.test('standard json base path', function (st) {
+    var input = {
+      'language': 'Solidity',
+      'settings': {
+        'outputSelection': {
+          '*': {
+            '*': [ 'metadata' ]
+          }
+        }
+      },
+      'sources': {
+        'importA.sol': {
+          'content': 'import "./importB.sol";'
+        }
+      }
+    };
+    var spt = spawn(st, './solcjs --standard-json --base-path test/resources');
+    spt.stdin.setEncoding('utf-8');
+    spt.stdin.write(JSON.stringify(input));
+    spt.stdin.end();
+    spt.stdin.on('finish', function () {
+      spt.stderr.empty();
+      console.log(spt.stdout);
+      spt.stdout.match(/{"contracts":{"importB.sol":{"D":{"metadata":/);
       spt.succeeds();
       spt.end();
     });
