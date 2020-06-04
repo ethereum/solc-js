@@ -126,7 +126,6 @@ tape('CLI', function (t) {
     spt.stdin.end();
     spt.stdin.on('finish', function () {
       spt.stderr.empty();
-      console.log(spt.stdout);
       spt.stdout.match(/{"contracts":{"importB.sol":{"D":{"metadata":/);
       spt.succeeds();
       spt.end();
