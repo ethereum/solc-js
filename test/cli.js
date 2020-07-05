@@ -75,6 +75,12 @@ tape('CLI', function (t) {
     spt.end();
   });
 
+  t.test('--warn-as-error', function (st) {
+    var spt = spawn(st, './solcjs --bin --warn-as-error test/resources/fixtureSmoke.sol');
+    spt.stderr.match(/Warning/);
+    spt.end();
+  });
+
   t.test('standard json', function (st) {
     var input = {
       'language': 'Solidity',
