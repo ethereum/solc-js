@@ -3,6 +3,8 @@
 // This is used to download the correct binary version
 // as part of the prepublish step.
 
+const SOLC_REPO = process.env.SOLC_REPO || 'https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin';
+
 var pkg = require('./package.json');
 var fs = require('fs');
 var https = require('https');
@@ -13,7 +15,7 @@ function getVersionList (cb) {
   console.log('Retrieving available version list...');
 
   var mem = new MemoryStream(null, { readable: false });
-  https.get('https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.json', function (response) {
+  https.get(SOLC_REPO + '/list.json', function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
       process.exit(1);
@@ -40,7 +42,7 @@ function downloadBinary (outputName, version, expectedHash) {
   });
 
   var file = fs.createWriteStream(outputName, { encoding: 'binary' });
-  https.get('https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/' + version, function (response) {
+  https.get(SOLC_REPO + '/' + version, function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
       process.exit(1);
