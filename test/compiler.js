@@ -813,7 +813,7 @@ const versions = [
 ];
 for (var version in versions) {
   version = versions[version];
-  execSync(`curl -o /tmp/${version}.js https://solc-bin.ethereum.org/bin/soljson-${version}.js`);
+  execSync(`curl -L -o /tmp/${version}.js https://solc-bin.ethereum.org/bin/soljson-${version}.js`);
   const newSolc = require('../wrapper.js')(require(`/tmp/${version}.js`));
   runTests(newSolc, version);
 }
