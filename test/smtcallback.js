@@ -66,18 +66,26 @@ tape('SMTCheckerCallback', function (t) {
       sources: input
     });
 
-    // Solidity 0.6.9 comes with z3
     var tests;
     if (!semver.gt(solc.semver(), '0.6.8')) {
+      // Up to version 0.6.8 there were no embedded solvers.
       tests = [
         { cb: satCallback, expectations: ['Assertion violation happens here'] },
         { cb: unsatCallback, expectations: [] },
         { cb: errorCallback, expectations: ['BMC analysis was not possible'] }
       ];
-    } else {
+    } else if (!semver.gt(solc.semver(), '0.6.12')) {
+      // Solidity 0.6.9 comes with z3.
       tests = [
         { cb: satCallback, expectations: ['Assertion violation happens here'] },
         { cb: unsatCallback, expectations: ['At least two SMT solvers provided conflicting answers. Results might not be sound.'] },
+        { cb: errorCallback, expectations: ['Assertion violation happens here'] }
+      ];
+    } else {
+      // Solidity 0.7.0 reports assertion violations via CHC.
+      tests = [
+        { cb: satCallback, expectations: ['Assertion violation happens here'] },
+        { cb: unsatCallback, expectations: ['Assertion violation happens here'] },
         { cb: errorCallback, expectations: ['Assertion violation happens here'] }
       ];
     }
