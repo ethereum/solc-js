@@ -1,7 +1,7 @@
 var assert = require('assert');
 var translate = require('./translate.js');
 var requireFromString = require('require-from-string');
-var https = require('https');
+var https = require('follow-redirects').https;
 var MemoryStream = require('memorystream');
 var semver = require('semver');
 
