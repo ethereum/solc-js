@@ -5,7 +5,7 @@
 
 var pkg = require('./package.json');
 var fs = require('fs');
-var https = require('https');
+var https = require('follow-redirects').https;
 var MemoryStream = require('memorystream');
 var keccak256 = require('js-sha3').keccak256;
 
