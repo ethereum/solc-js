@@ -27,7 +27,6 @@ build/Release
 node_modules
 
 # solc-js
-soljson.js
 test_DAO_Token_sol_Token.abi
 test_DAO_Token_sol_Token.bin
 test_DAO_Token_sol_TokenInterface.abi
