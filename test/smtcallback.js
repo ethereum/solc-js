@@ -34,6 +34,7 @@ function expectErrors (errors, expectations) {
     if (errors[i].includes('Error trying to invoke SMT solver') || expectations[i].includes('Error trying to invoke SMT solver')) {
       continue;
     }
+    expectations[i] = expectations[i].replace('happens here.', 'happens here');
     if (!errors[i].includes(expectations[i])) {
       return false;
     }
