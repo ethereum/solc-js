@@ -158,6 +158,15 @@ tape('SMTCheckerCallback', function (t) {
     // Run all tests
     for (i in tests) {
       var test = tests[i];
+
+      // Z3's nondeterminism sometimes causes a test to timeout in one context but not in the other,
+      // so if we see timeout we skip a potentially misleading run.
+      var findError = (errorMsg) => { return errorMsg.includes('Error trying to invoke SMT solver'); };
+      if (test.expectations.find(findError) !== undefined) {
+        st.skip('Test contains timeout which may have been caused by nondeterminism.');
+        continue;
+      }
+
       var output = JSON.parse(solc.compile(
         JSON.stringify({
           language: 'Solidity',
@@ -177,6 +186,11 @@ tape('SMTCheckerCallback', function (t) {
 
       // These are due to CHC not being supported via SMTLib2Interface yet.
       if (test.expectations.length !== test.errors.length) {
+        continue;
+      }
+
+      if (test.errors.find(findError) !== undefined) {
+        st.skip('Test contains timeout which may have been caused by nondeterminism.');
         continue;
       }
 
