@@ -8,7 +8,7 @@ const timeout = 10000;
 var potentialSolvers = [
   {
     name: 'z3',
-    params: '-smt2 -t:' + timeout
+    params: '-smt2 rlimit=20000000 rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
   },
   {
     name: 'cvc4',
@@ -33,7 +33,7 @@ function solve (query) {
   try {
     solverOutput = execSync(
       solvers[0].name + ' ' + solvers[0].params + ' ' + tmpFile.name, {
-        timeout: 10000
+        stdio: 'pipe'
       }
     ).toString();
   } catch (e) {
