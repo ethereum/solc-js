@@ -1,14 +1,14 @@
 {
-  "name": "solc",
-  "version": "0.7.0",
-  "description": "Solidity compiler",
+  "name": "@eth-optimism/solc",
+  "version": "0.5.16-alpha.0",
+  "description": "Optimism Solidity compiler",
   "main": "index.js",
   "bin": {
     "solcjs": "solcjs"
   },
   "scripts": {
     "lint": "node ./node_modules/semistandard/bin/cmd.js",
-    "prepublish": "node downloadCurrentVersion.js && node verifyVersion.js",
+    "prepublish": "node verifyVersion.js",
     "pretest": "npm run lint",
     "test": "tape ./test/index.js",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethereum/solc-js.git"
+    "url": "git+https://github.com/ethereum-optimism/solc-js.git"
   },
   "keywords": [
     "ethereum",
@@ -40,9 +40,9 @@
   "author": "chriseth",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ethereum/solc-js/issues"
+    "url": "https://github.com/ethereum-optimism/solc-js/issues"
   },
-  "homepage": "https://github.com/ethereum/solc-js#readme",
+  "homepage": "https://github.com/ethereum-optimism/solc-js#readme",
   "dependencies": {
     "command-exists": "^1.2.8",
     "commander": "3.0.2",

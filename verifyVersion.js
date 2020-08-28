@@ -8,7 +8,7 @@ var solcVersion = require('./index.js').version();
 console.log('solcVersion: ' + solcVersion);
 console.log('packageVersion: ' + packageVersion);
 
-if (semver.eq(packageVersion, solcVersion)) {
+if (semver.eq(packageVersion.split("-")[0], solcVersion)) {
   console.log('Version matching');
   process.exit(0);
 } else {
