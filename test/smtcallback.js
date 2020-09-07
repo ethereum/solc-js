@@ -167,6 +167,7 @@ tape('SMTCheckerCallback', function (t) {
         continue;
       }
 
+      console.log('Running ' + i);
       var output = JSON.parse(solc.compile(
         JSON.stringify({
           language: 'Solidity',
