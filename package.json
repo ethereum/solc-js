@@ -1,6 +1,6 @@
 {
   "name": "@eth-optimism/solc",
-  "version": "0.5.16-alpha.0",
+  "version": "0.5.16-alpha.3",
   "description": "Optimism Solidity compiler",
   "main": "index.js",
   "bin": {
