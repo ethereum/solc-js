@@ -140,6 +140,12 @@ tape('SMTCheckerCallback', function (t) {
     for (i in sources) {
       st.comment('Collecting ' + sources[i] + '...');
       var source = fs.readFileSync(sources[i], 'utf8');
+
+      if (source.includes('// SMTEngine')) {
+        st.skip('Test requires specific SMTChecker engine.');
+        continue;
+      }
+
       var expected = [];
       var delimiter = '// ----';
       if (source.includes(delimiter)) {
