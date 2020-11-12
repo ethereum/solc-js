@@ -19,8 +19,8 @@ function update (compilerVersion, abi) {
     }
 
     if (item.type !== 'event') {
-      // add 'payable' to everything
-      if (semver.lt(compilerVersion, '0.4.0')) {
+      // add 'payable' to everything, except constant functions
+      if (!item.constant && semver.lt(compilerVersion, '0.4.0')) {
         item.payable = true;
       }
 

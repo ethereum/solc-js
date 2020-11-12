@@ -22,7 +22,7 @@ tape('ABI translator', function (t) {
   });
   t.test('0.3.6 (constant function)', function (st) {
     var input = [ { inputs: [], type: 'function', constant: true } ];
-    st.deepEqual(abi.update('0.3.6', input), [ { inputs: [], payable: true, constant: true, stateMutability: 'payable', type: 'function' }, { payable: true, stateMutability: 'payable', type: 'fallback' } ]);
+    st.deepEqual(abi.update('0.3.6', input), [ { inputs: [], constant: true, stateMutability: 'view', type: 'function' }, { payable: true, stateMutability: 'payable', type: 'fallback' } ]);
     st.end();
   });
   t.test('0.3.6 (event)', function (st) {
