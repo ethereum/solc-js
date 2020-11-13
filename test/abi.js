@@ -15,9 +15,14 @@ tape('ABI translator', function (t) {
     st.deepEqual(abi.update('0.3.6', input), [ { inputs: [], payable: true, stateMutability: 'payable', type: 'constructor' }, { payable: true, stateMutability: 'payable', type: 'fallback' } ]);
     st.end();
   });
-  t.test('0.3.6 (function)', function (st) {
+  t.test('0.3.6 (non-constant function)', function (st) {
     var input = [ { inputs: [], type: 'function' } ];
     st.deepEqual(abi.update('0.3.6', input), [ { inputs: [], payable: true, stateMutability: 'payable', type: 'function' }, { payable: true, stateMutability: 'payable', type: 'fallback' } ]);
+    st.end();
+  });
+  t.test('0.3.6 (constant function)', function (st) {
+    var input = [ { inputs: [], type: 'function', constant: true } ];
+    st.deepEqual(abi.update('0.3.6', input), [ { inputs: [], constant: true, stateMutability: 'view', type: 'function' }, { payable: true, stateMutability: 'payable', type: 'fallback' } ]);
     st.end();
   });
   t.test('0.3.6 (event)', function (st) {
@@ -35,9 +40,19 @@ tape('ABI translator', function (t) {
     st.deepEqual(abi.update('0.4.0', input), [ { inputs: [], type: 'constructor', payable: true, stateMutability: 'payable' }, { type: 'fallback', stateMutability: 'nonpayable' } ]);
     st.end();
   });
+  t.test('0.4.0 (non-constant function)', function (st) {
+    var input = [ { inputs: [], type: 'function' } ];
+    st.deepEqual(abi.update('0.4.0', input), [ { inputs: [], stateMutability: 'nonpayable', type: 'function' } ]);
+    st.end();
+  });
   t.test('0.4.0 (constant function)', function (st) {
     var input = [ { inputs: [], type: 'function', constant: true } ];
     st.deepEqual(abi.update('0.4.0', input), [ { inputs: [], constant: true, stateMutability: 'view', type: 'function' } ]);
+    st.end();
+  });
+  t.test('0.4.0 (payable function)', function (st) {
+    var input = [ { inputs: [], payable: true, type: 'function' } ];
+    st.deepEqual(abi.update('0.4.0', input), [ { inputs: [], payable: true, stateMutability: 'payable', type: 'function' } ]);
     st.end();
   });
   t.test('0.4.1 (constructor not payable)', function (st) {
