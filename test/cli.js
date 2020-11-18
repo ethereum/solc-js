@@ -1,4 +1,5 @@
 const tape = require('tape');
+const semver = require('semver');
 const spawn = require('tape-spawn');
 const pkg = require('../package.json');
 
@@ -44,7 +45,11 @@ tape('CLI', function (t) {
 
   t.test('incorrect source source', function (st) {
     var spt = spawn(st, './solcjs --bin test/resources/fixtureIncorrectSource.sol');
-    spt.stderr.match(/^test\/resources\/fixtureIncorrectSource.sol:1:1: SyntaxError: Invalid pragma "contract"/);
+    if (semver.lt(pkg.version, '0.4.16')) {
+      spt.stderr.match(/^test\/resources\/fixtureIncorrectSource.sol:1:1:.* Unknown pragma "contract"/);
+    } else {
+      spt.stderr.match(/^test\/resources\/fixtureIncorrectSource.sol:1:1: SyntaxError: Invalid pragma "contract"/);
+    }
     spt.end();
   });
 
@@ -76,6 +81,8 @@ tape('CLI', function (t) {
   });
 
   t.test('standard json', function (st) {
+    var pure = semver.lt(pkg.version, '0.4.17') ? '' : 'pure';
+    var pragma = semver.lt(pkg.version, '0.4.0') ? '' : 'pragma solidity >=0.4.0; ';
     var input = {
       'language': 'Solidity',
       'settings': {
@@ -87,7 +94,7 @@ tape('CLI', function (t) {
       },
       'sources': {
         'Contract.sol': {
-          'content': 'pragma solidity >=0.5.0; contract Contract { function f() pure public {} }'
+          'content': pragma + 'contract Contract { function f() ' + pure + ' public {} }'
         }
       }
     };
@@ -98,7 +105,10 @@ tape('CLI', function (t) {
     spt.stdin.on('finish', function () {
       spt.stderr.empty();
       spt.stdout.match(/Contract.sol/);
-      spt.stdout.match(/userdoc/);
+      if (semver.gt(pkg.version, '0.4.6')) {
+        // TODO: is it legit to skip this for <=0.4.6?
+        spt.stdout.match(/userdoc/);
+      }
       spt.succeeds();
       spt.end();
     });
