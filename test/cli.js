@@ -44,7 +44,7 @@ tape('CLI', function (t) {
 
   t.test('incorrect source source', function (st) {
     var spt = spawn(st, './solcjs --bin test/resources/fixtureIncorrectSource.sol');
-    spt.stderr.match(/^test\/resources\/fixtureIncorrectSource.sol:1:1: SyntaxError: Invalid pragma "contract"/);
+    spt.stderr.match(/SyntaxError: Invalid pragma "contract"/);
     spt.end();
   });
 
