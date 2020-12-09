@@ -25,7 +25,7 @@ function collectErrors (solOutput) {
   return errors;
 }
 
-function expectErrors (errors, expectations) {
+function expectErrors (expectations, errors, ignoreCex) {
   if (errors.length !== expectations.length) {
     return false;
   }
@@ -34,8 +34,19 @@ function expectErrors (errors, expectations) {
     if (errors[i].includes('Error trying to invoke SMT solver') || expectations[i].includes('Error trying to invoke SMT solver')) {
       continue;
     }
-    expectations[i] = expectations[i].replace('happens here.', 'happens here');
-    if (!errors[i].includes(expectations[i])) {
+    // Expectations containing counterexamples might have many '\n' in a single line.
+    // These are stored escaped in the test format (as '\\n'), whereas the actual error from the compiler has '\n'.
+    // Therefore we need to replace '\\n' by '\n' in the expectations.
+    // Function `replace` only replaces the first occurrence, and `replaceAll` is not standard yet.
+    // Replace all '\\n' by '\n' via split & join.
+    expectations[i] = expectations[i].split('\\n').join('\n');
+    if (ignoreCex) {
+      expectations[i] = expectations[i].split('\nCounterexample')[0];
+      errors[i] = errors[i].split('\nCounterexample')[0];
+    }
+    // `expectations` have "// Warning ... " before the actual message,
+    // whereas `errors` have only the message.
+    if (!expectations[i].includes(errors[i])) {
       return false;
     }
   }
@@ -157,7 +168,8 @@ tape('SMTCheckerCallback', function (t) {
       }
       tests[sources[i]] = {
         expectations: expected,
-        solidity: { test: { content: preamble + source } }
+        solidity: { test: { content: preamble + source } },
+        ignoreCex: source.includes('// SMTIgnoreCex: yes')
       };
     }
 
@@ -201,7 +213,7 @@ tape('SMTCheckerCallback', function (t) {
       }
 
       // Compare expected vs obtained errors
-      st.ok(expectErrors(test.expectations, test.errors));
+      st.ok(expectErrors(test.expectations, test.errors, test.ignoreCex));
     }
 
     st.end();
