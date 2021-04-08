@@ -1,3 +1,4 @@
+const assert = require('assert');
 const tape = require('tape');
 const fs = require('fs');
 const path = require('path');
@@ -7,7 +8,6 @@ const smtchecker = require('../smtchecker.js');
 const smtsolver = require('../smtsolver.js');
 
 var preamble = 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n';
-var pragmaSMT = 'pragma experimental SMTChecker;\n';
 
 function collectErrors (solOutput) {
   if (solOutput === undefined) {
@@ -72,10 +72,20 @@ tape('SMTCheckerCallback', function (t) {
       return { error: 'Fake SMT solver error.' };
     };
 
+    var pragmaSMT = '';
+    var settings = {};
+    // `pragma experimental SMTChecker;` was deprecated in 0.8.4
+    if (!semver.gt(solc.semver(), '0.8.3')) {
+      pragmaSMT = 'pragma experimental SMTChecker;\n';
+    } else {
+      settings = { modelChecker: { engine: 'all' } };
+    }
+
     var input = { 'a': { content: preamble + pragmaSMT + 'contract C { function f(uint x) public pure { assert(x > 0); } }' } };
     var inputJSON = JSON.stringify({
       language: 'Solidity',
-      sources: input
+      sources: input,
+      settings: settings
     });
 
     var tests;
@@ -152,9 +162,20 @@ tape('SMTCheckerCallback', function (t) {
       st.comment('Collecting ' + sources[i] + '...');
       var source = fs.readFileSync(sources[i], 'utf8');
 
-      if (source.includes('// SMTEngine')) {
-        st.skip('Test requires specific SMTChecker engine.');
-        continue;
+      var engine;
+      var option = '// SMTEngine: ';
+      if (source.includes(option)) {
+        let idx = source.indexOf(option);
+        if (source.indexOf(option, idx + 1) !== -1) {
+          st.skip('SMTEngine option given multiple times.');
+          st.end();
+          return;
+        }
+        let re = new RegExp(option + '(\\w+)');
+        let m = source.match(re);
+        assert(m !== undefined);
+        assert(m.length >= 2);
+        engine = m[1];
       }
 
       var expected = [];
@@ -169,7 +190,8 @@ tape('SMTCheckerCallback', function (t) {
       tests[sources[i]] = {
         expectations: expected,
         solidity: { test: { content: preamble + source } },
-        ignoreCex: source.includes('// SMTIgnoreCex: yes')
+        ignoreCex: source.includes('// SMTIgnoreCex: yes'),
+        engine: engine
       };
     }
 
@@ -185,10 +207,17 @@ tape('SMTCheckerCallback', function (t) {
         continue;
       }
 
+      var settings = {};
+      // `pragma experimental SMTChecker;` was deprecated in 0.8.4
+      if (semver.gt(solc.semver(), '0.8.3')) {
+        let engine = test.engine !== undefined ? test.engine : 'all';
+        settings = { modelChecker: { engine: engine } };
+      }
       var output = JSON.parse(solc.compile(
         JSON.stringify({
           language: 'Solidity',
-          sources: test.solidity
+          sources: test.solidity,
+          settings: settings
         }),
         { smtSolver: smtchecker.smtCallback(smtsolver.smtSolver) }
       ));
