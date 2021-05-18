@@ -25,10 +25,10 @@ function handleSMTQueries (inputJSON, outputJSON, solver) {
   return inputJSON;
 }
 
-function smtCallback (solver) {
+function smtCallback (solverFunction, solver) {
   return function (query) {
     try {
-      var result = solver(query);
+      var result = solverFunction(query, solver);
       return { contents: result };
     } catch (err) {
       return { error: err };

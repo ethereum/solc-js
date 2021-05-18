@@ -7,7 +7,7 @@ const solc = require('../index.js');
 const smtchecker = require('../smtchecker.js');
 const smtsolver = require('../smtsolver.js');
 
-let preamble = 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n';
+let preamble = '';
 
 function collectErrors (solOutput) {
   if (solOutput === undefined) {
@@ -17,30 +17,83 @@ function collectErrors (solOutput) {
   let errors = [];
   for (let i in solOutput.errors) {
     let error = solOutput.errors[i];
-    //if (error.message.includes('This is a pre-release compiler version')) {
-    if (!error.message.includes('CHC')) {
+    if (!error.message.includes('CHC: ')) {
       continue;
     }
-    errors.push(error.message);
+   let msg = '// ' + error.type + ' ' + error.errorCode + ': (' + error.sourceLocation.start + '-' + error.sourceLocation.end + '): ' + error.message
+    errors.push(msg);
   }
   return errors;
 }
 
-function expectErrors (expectations, errors, ignoreCex) {
-  if (errors.length !== expectations.length) {
-    return false;
+function parseError (message) {
+  let re = new RegExp('// Warning (\\w+):');
+  let m = message.match(re);
+  assert(m !== undefined);
+  assert(m.length >= 2);
+  errorCode = m[1];
+
+  let res;
+  if (message.includes('Error trying to invoke')) {
+    res = 'error';
+  } else if (message.includes('might happen')) {
+    res = 'notsolved';
+  } else if (message.includes('happens here')) {
+    res = 'solved';
+  } else {
+    assert(false);
   }
 
-  for (let i in errors) {
-    if (errors[i].includes('Error trying to invoke SMT solver') || expectations[i].includes('Error trying to invoke SMT solver')) {
-      continue;
-    }
+  return { code: errorCode, res: res };
+}
+
+function expectErrors (expectations, errors, ignoreCex) {
+	let d = {}
+	for (let i in expectations) {
+		let e = parseError(expectations[i])
+		d[e.code] = { res1: e.res }
+	}
+	for (let i in errors) {
+		let e = parseError(errors[i])
+		if (e.code in d) {
+			d[e.code].res2 = e.res
+		} else {
+			d[e.code] = { res2: e.res }
+		}
+	}
+
+	let w1 = 0;
+	let w2 = 0;
+	for (let code in d) {
+		let o = d[code];
+		if (o.res1 == o.res2) {
+			continue;
+		} else if ((o.res1 === undefined && o.res2 === 'solved') ||	(o.res2 === undefined && o.res1 === 'solved')) {
+			assert(false);
+		} else if (o.res1 === undefined || o.res1 === 'solved') {
+			w1 += 1;
+		} else if (o.res2 === undefined || o.res2 === 'solved') {
+			w2 += 1;
+		}
+	}
+
+	return { w1: w1, w2: w2 };
+
+//  if (errors.length !== expectations.length) {
+  //  return false;
+//  }
+
+  //for (let i in errors) {
+   // if (errors[i].includes('Error trying to invoke SMT solver') || expectations[i].includes('Error trying to invoke SMT solver')) {
+    //  continue;
+   // }
     // Expectations containing counterexamples might have many '\n' in a single line.
     // These are stored escaped in the test format (as '\\n'), whereas the actual error from the compiler has '\n'.
     // Therefore we need to replace '\\n' by '\n' in the expectations.
     // Function `replace` only replaces the first occurrence, and `replaceAll` is not standard yet.
     // Replace all '\\n' by '\n' via split & join.
-    expectations[i] = expectations[i].split('\\n').join('\n');
+    //expectations[i] = expectations[i].split('\\n').join('\n');
+	/*
     if (ignoreCex) {
       expectations[i] = expectations[i].split('\nCounterexample')[0];
       errors[i] = errors[i].split('\nCounterexample')[0];
@@ -50,9 +103,10 @@ function expectErrors (expectations, errors, ignoreCex) {
     if (!expectations[i].includes(errors[i])) {
       return false;
     }
-  }
+	*/
+  //}
 
-  return true;
+  //return true;
 }
 
 tape('SMTCheckerCallback', function (t) {
@@ -203,6 +257,12 @@ tape('SMTCheckerCallback', function (t) {
       };
     }
 
+	let wTests1 = 0;
+	let wTests2 = 0;
+    let wTies = 0;
+    let wBoth = 0;
+	let wProperties1 = 0;
+	let wProperties2 = 0;
     // Run all tests
     for (i in tests) {
       console.log('Running test ' + i + '\n');
@@ -222,7 +282,8 @@ tape('SMTCheckerCallback', function (t) {
         let engine = test.engine !== undefined ? test.engine : 'chc';
         settings = { modelChecker: {
           engine: engine,
-          targets: ['assert']
+		  divModWithSlacks: false
+          //targets: ['assert']
         }};
       }
       let output = JSON.parse(solc.compile(
@@ -254,14 +315,37 @@ tape('SMTCheckerCallback', function (t) {
       //}
 
       // Compare expected vs obtained errors
-      let r = expectErrors(test.expectations, test.errors, test.ignoreCex);
+      let score = expectErrors(test.expectations, test.errors, test.ignoreCex);
+	  let w1 = score.w1;
+	  let w2 = score.w2;
+		wProperties1 += score.w1
+		wProperties2 += score.w2
+		if (w1 > 0 && w2 == 0) {
+			wTests1 += 1;
+		} else if (w2 > 0 && w1 == 0) {
+			wTests2 += 1;
+		} else if (w1 == 0 && w2 == 0) {
+			wTies += 1;
+		} else if (w1 > 0 && w2 > 0) {
+			wBot += 1;
+		} else {
+			assert(false);
+		}
+		/*
       if (!r) {
         console.log(test.expectations);
         console.log(test.errors);
         console.log('\n\n');
       }
       st.ok(r);
+	  */
     }
+	console.log('Solver 1 won in ' + wProperties1 + ' properties.')
+	console.log('Solver 2 won in ' + wProperties2 + ' properties.')
+	console.log('Solver 1 won in ' + wTests1+ ' tests.')
+	console.log('Solver 2 won in ' + wTests2+ ' tests.')
+	console.log('Solvers were equal in ' + wTies+ ' tests.')
+	console.log('Solvers both won and lost in ' + wBoth+ ' tests.')
     st.end();
   });
 });

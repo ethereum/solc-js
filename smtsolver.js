@@ -3,36 +3,47 @@ var execSync = require('child_process').execSync;
 var fs = require('fs');
 var tmp = require('tmp');
 
-const timeout = 10000;
+// Timeout per query in seconds.
+const timeout = 10;
 
 var potentialSolvers = [
   {
-    name: 'z3',
-    params: '-smt2 rlimit=20000000 rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
+    name: 'Eldarica Vanilla',
+    command: 'eld',
+    params: '-horn -t:' + timeout
+  },
+  /*
+  {
+    name: 'Eldarica No Abstraction',
+    command: 'eld',
+    params: '-horn -t:' + timeout + ' -abstract:off'
   },
   {
-    name: 'cvc4',
-    params: '--lang=smt2 --tlimit=' + timeout
+    name: 'Spacer Vanilla',
+    command: 'z3',
+    params: '-smt2 timeout=' + (timeout * 1000) + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
+  },
+  {
+    name: 'Spacer Quant',
+    command: 'z3',
+    params: '-smt2 timeout=' + (timeout * 1000) + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
   }
+  */
 ];
-var solvers = potentialSolvers.filter(solver => commandExistsSync(solver.name));
+var solvers = potentialSolvers.filter(solver => commandExistsSync(solver.command));
 
-function solve (query) {
-  if (solvers.length === 0) {
+function solve (query, solver) {
+  if (solver === undefined) {
     throw new Error('No SMT solver available. Assertion checking will not be performed.');
   }
 
+	console.log(query)
   var tmpFile = tmp.fileSync({ postfix: '.smt2' });
   fs.writeFileSync(tmpFile.name, query);
-  // TODO For now only the first SMT solver found is used.
-  // At some point a computation similar to the one done in
-  // SMTPortfolio::check should be performed, where the results
-  // given by different solvers are compared and an error is
-  // reported if solvers disagree (i.e. SAT vs UNSAT).
   var solverOutput;
   try {
     solverOutput = execSync(
-      solvers[0].name + ' ' + solvers[0].params + ' ' + tmpFile.name, {
+      solver.command + ' ' + solver.params + ' ' + tmpFile.name, {
         stdio: 'pipe'
       }
     ).toString();
@@ -46,15 +57,18 @@ function solve (query) {
       !solverOutput.startsWith('unsat') &&
       !solverOutput.startsWith('unknown')
     ) {
+      console.log(solverOutput);
+      console.log(e.stderr.toString());
       throw new Error('Failed to solve SMT query. ' + e.toString());
     }
   }
   // Trigger early manual cleanup
   tmpFile.removeCallback();
+  console.log(solverOutput);
   return solverOutput;
 }
 
 module.exports = {
   smtSolver: solve,
-  availableSolvers: solvers.length
+  availableSolvers: solvers
 };
