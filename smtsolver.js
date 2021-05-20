@@ -3,12 +3,13 @@ var execSync = require('child_process').execSync;
 var fs = require('fs');
 var tmp = require('tmp');
 
+// Timeout in ms.
 const timeout = 10000;
 
 var potentialSolvers = [
   {
     name: 'z3',
-    params: '-smt2 rlimit=20000000 rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
+    params: '-smt2 timeout=' + timeout + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
   },
   {
     name: 'cvc4',

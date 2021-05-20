@@ -7,73 +7,215 @@ const solc = require('../index.js');
 const smtchecker = require('../smtchecker.js');
 const smtsolver = require('../smtsolver.js');
 
-var preamble = 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n';
-
-function collectErrors (solOutput) {
-  if (solOutput === undefined) {
-    return [];
-  }
-
-  var errors = [];
-  for (var i in solOutput.errors) {
-    var error = solOutput.errors[i];
-    if (error.message.includes('This is a pre-release compiler version')) {
-      continue;
-    }
-    errors.push(error.message);
-  }
-  return errors;
+function isSMTCheckerErrorMessage (message) {
+  return message.includes('BMC: ') || message.includes('CHC: ');
 }
 
-function expectErrors (expectations, errors, ignoreCex) {
-  if (errors.length !== expectations.length) {
-    return false;
-  }
+function isSMTCheckerError (error) {
+  return isSMTCheckerErrorMessage(error.message);
+}
 
-  for (var i in errors) {
-    if (errors[i].includes('Error trying to invoke SMT solver') || expectations[i].includes('Error trying to invoke SMT solver')) {
+function collectErrors (solOutput) {
+  assert(solOutput !== undefined);
+  return solOutput.errors.filter(error => isSMTCheckerError(error));
+}
+
+function stringToSolverStatus (message) {
+  if (message.includes('Error trying to invoke')) {
+    return 'error';
+  } else if (message.includes('might happen')) {
+    return 'notsolved';
+  } else {
+    return 'solved';
+  }
+}
+
+function errorFromExpectation (line) {
+  let re = new RegExp('// Warning (\\w+): \\((\\d+)-(\\d+)\\): ');
+  let m = line.match(re);
+  assert(m !== undefined);
+  // m = [match, error code, location start, location end, ...]
+  assert(m.length >= 4);
+  let message = line.split(':');
+  // message = [warning, location, bmc/chc, message]
+  assert(message.length >= 4);
+  // message = 'BMC/CHC: message'
+  message = message[2].replace(' ', '') + ':' + message[3];
+  return { errorCode: m[1], sourceLocation: { start: m[2], end: m[3] }, message: message };
+}
+
+function errorData (error) {
+  assert(isSMTCheckerError(error));
+  // The source location represents the property.
+  const loc = error.sourceLocation.start + ':' + error.sourceLocation.end;
+  const res = stringToSolverStatus(error.message);
+  return { loc: loc, res: res };
+}
+
+function buildErrorsDict (errors) {
+  let d = {};
+  for (let i in errors) {
+    const e = errorData(errors[i]);
+    const engine = errors[i].message.split(':')[0];
+    d[engine + '-' + e.loc] = e.res;
+  }
+  return d;
+}
+
+function compareResults (results) {
+  console.log(results);
+  assert(results.length >= 2);
+  const allProperties = results.reduce((acc, v) => { return {...acc, ...v}; });
+  const isSafe = (d, r) => !(r in d);
+  const isUnsafe = (d, r) => (r in d) && d[r] === 'solved';
+
+  let solvedProperties = new Array(results.length).fill(0);
+
+  for (let loc in allProperties) {
+    // If one solver does not have the location, the property is safe.
+    const safe = results.reduce((acc, v) => acc || isSafe(v, loc), false);
+    // If one solver reports the location as solved, the property is unsafe.
+    const unsafe = !safe && results.reduce((acc, v) => acc || isUnsafe(v, loc), false);
+
+    const info = loc.split('-'); // [bmc or chc, start:end]
+    // Contradiction found.
+    if (safe && unsafe) {
+      // But maybe one solver solved 'safe' via CHC,
+      // and another solved reported a false positive 'unsafe' via BMC.
+      let falsePositive = false;
+      if (info[0] === 'BMC') {
+        // If that's the case, at least one solver must have proved CHC safe.
+        const keyCHC = 'CHC-' + info[1];
+        const safeCHC = results.reduce((acc, v) => acc || isSafe(v, keyCHC), false);
+        if (safeCHC) {
+          falsePositive = true;
+        }
+      }
+      if (!falsePositive) {
+        return { ok: false, score: [] };
+      }
+    }
+
+    // We only keep track of scores for CHC because BMC has too many
+    // false positives.
+    if (info[0] === 'CHC') {
+      const score = results.map(s =>
+        (safe && isSafe(s, loc)) || (unsafe && isUnsafe(s, loc))
+      );
+
+      assert(score.length === solvedProperties.length);
+      for (let j in score) {
+        if (score[j]) {
+          solvedProperties[j] += 1;
+        }
+      }
+    }
+  }
+  return { ok: true, score: solvedProperties };
+}
+
+function collectFiles (testdir) {
+  let sources = [];
+  // BFS to get all test files
+  let dirs = [testdir];
+  while (dirs.length > 0) {
+    const dir = dirs.shift();
+    const files = fs.readdirSync(dir);
+    for (let i in files) {
+      const file = path.join(dir, files[i]);
+      if (fs.statSync(file).isDirectory()) {
+        dirs.push(file);
+      } else {
+        sources.push(file);
+      }
+    }
+  }
+  return sources;
+}
+
+function createTests (sources, st) {
+  // Read tests and collect expectations
+  let tests = {};
+  for (let i in sources) {
+    st.comment('Collecting ' + sources[i] + '...');
+    const source = fs.readFileSync(sources[i], 'utf8');
+
+    let engine;
+    const option = '// SMTEngine: ';
+    if (source.includes(option)) {
+      let idx = source.indexOf(option);
+      if (source.indexOf(option, idx + 1) !== -1) {
+        st.skip('SMTEngine option given multiple times.');
+        continue;
+      }
+      const re = new RegExp(option + '(\\w+)');
+      let m = source.match(re);
+      assert(m !== undefined);
+      assert(m.length >= 2);
+      engine = m[1];
+    }
+
+    if (source.includes('==== Source')) {
+      st.skip('Test requires soltest in source imports.');
       continue;
     }
-    // Expectations containing counterexamples might have many '\n' in a single line.
-    // These are stored escaped in the test format (as '\\n'), whereas the actual error from the compiler has '\n'.
-    // Therefore we need to replace '\\n' by '\n' in the expectations.
-    // Function `replace` only replaces the first occurrence, and `replaceAll` is not standard yet.
-    // Replace all '\\n' by '\n' via split & join.
-    expectations[i] = expectations[i].split('\\n').join('\n');
-    if (ignoreCex) {
-      expectations[i] = expectations[i].split('\nCounterexample')[0];
-      errors[i] = errors[i].split('\nCounterexample')[0];
+
+    let expected = [];
+    const delimiter = '// ----';
+    if (source.includes(delimiter)) {
+      expected = source.substring(source.indexOf('// ----') + 8, source.length).split('\n');
+      expected = expected.filter(line => isSMTCheckerErrorMessage(line));
+      expected = expected.map(line => errorFromExpectation(line));
     }
-    // `expectations` have "// Warning ... " before the actual message,
-    // whereas `errors` have only the message.
-    if (!expectations[i].includes(errors[i])) {
+    tests[sources[i]] = {
+      expectations: expected,
+      solidity: { test: { content: source } },
+      engine: engine
+    };
+  }
+  return tests;
+}
+
+function collectStringErrors (solOutput) {
+  assert(solOutput !== undefined);
+  return solOutput.errors.filter(error => !error.message.includes('This is a pre-release')).map(error => error.message);
+}
+
+function expectStringErrors (a, b) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; ++i) {
+    if (!a[i].includes(b[i])) {
       return false;
     }
   }
-
   return true;
 }
 
 tape('SMTCheckerCallback', function (t) {
   t.test('Interface via callback', function (st) {
+    // This test does not use a solver and is used only to test
+    // the callback mechanism.
+
     if (!semver.gt(solc.semver(), '0.5.99')) {
       st.skip('SMT callback not implemented by this compiler version.');
       st.end();
       return;
     }
 
-    var satCallback = function (query) {
+    const satCallback = function (query) {
       return { contents: 'sat\n' };
     };
-    var unsatCallback = function (query) {
+    const unsatCallback = function (query) {
       return { contents: 'unsat\n' };
     };
-    var errorCallback = function (query) {
+    const errorCallback = function (query) {
       return { error: 'Fake SMT solver error.' };
     };
 
-    var pragmaSMT = '';
-    var settings = {};
+    let pragmaSMT = '';
+    let settings = {};
     // `pragma experimental SMTChecker;` was deprecated in 0.8.4
     if (!semver.gt(solc.semver(), '0.8.3')) {
       pragmaSMT = 'pragma experimental SMTChecker;\n';
@@ -81,14 +223,14 @@ tape('SMTCheckerCallback', function (t) {
       settings = { modelChecker: { engine: 'all' } };
     }
 
-    var input = { 'a': { content: preamble + pragmaSMT + 'contract C { function f(uint x) public pure { assert(x > 0); } }' } };
-    var inputJSON = JSON.stringify({
+    const input = { 'a': { content: pragmaSMT + 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\ncontract C { function f(uint x) public pure { assert(x > 0); } }' } };
+    const inputJSON = JSON.stringify({
       language: 'Solidity',
       sources: input,
       settings: settings
     });
 
-    var tests;
+    let tests;
     if (!semver.gt(solc.semver(), '0.6.8')) {
       // Up to version 0.6.8 there were no embedded solvers.
       tests = [
@@ -112,20 +254,27 @@ tape('SMTCheckerCallback', function (t) {
       ];
     }
 
-    for (var i in tests) {
-      var test = tests[i];
-      var output = JSON.parse(solc.compile(
+    for (let i in tests) {
+      const test = tests[i];
+      const output = JSON.parse(solc.compile(
         inputJSON,
         { smtSolver: test.cb }
       ));
-      var errors = collectErrors(output);
-      st.ok(expectErrors(errors, test.expectations));
+      st.ok(expectStringErrors(collectStringErrors(output), test.expectations));
     }
     st.end();
   });
 
   t.test('Solidity smtCheckerTests', function (st) {
-    var testdir = path.resolve(__dirname, 'smtCheckerTests/');
+    // 0.7.2 added `BMC:` and `CHC:` as prefixes to the error messages.
+    // This format is rewquired for this test.
+    if (!semver.gt(solc.semver(), '0.7.1')) {
+      st.skip('SMTChecker output format will not match.');
+      st.end();
+      return;
+    }
+
+    const testdir = path.resolve(__dirname, 'smtCheckerTests/');
     if (!fs.existsSync(testdir)) {
       st.skip('SMT checker tests not present.');
       st.end();
@@ -138,111 +287,64 @@ tape('SMTCheckerCallback', function (t) {
       return;
     }
 
-    var sources = [];
-
-    // BFS to get all test files
-    var dirs = [testdir];
-    var i;
-    while (dirs.length > 0) {
-      var dir = dirs.shift();
-      var files = fs.readdirSync(dir);
-      for (i in files) {
-        var file = path.join(dir, files[i]);
-        if (fs.statSync(file).isDirectory()) {
-          dirs.push(file);
-        } else {
-          sources.push(file);
-        }
-      }
-    }
-
-    // Read tests and collect expectations
-    var tests = [];
-    for (i in sources) {
-      st.comment('Collecting ' + sources[i] + '...');
-      var source = fs.readFileSync(sources[i], 'utf8');
-
-      var engine;
-      var option = '// SMTEngine: ';
-      if (source.includes(option)) {
-        let idx = source.indexOf(option);
-        if (source.indexOf(option, idx + 1) !== -1) {
-          st.skip('SMTEngine option given multiple times.');
-          st.end();
-          return;
-        }
-        let re = new RegExp(option + '(\\w+)');
-        let m = source.match(re);
-        assert(m !== undefined);
-        assert(m.length >= 2);
-        engine = m[1];
-      }
-
-      var expected = [];
-      var delimiter = '// ----';
-      if (source.includes(delimiter)) {
-        expected = source.substring(source.indexOf('// ----') + 8, source.length).split('\n');
-        // Sometimes the last expectation line ends with a '\n'
-        if (expected.length > 0 && expected[expected.length - 1] === '') {
-          expected.pop();
-        }
-      }
-      tests[sources[i]] = {
-        expectations: expected,
-        solidity: { test: { content: preamble + source } },
-        ignoreCex: source.includes('// SMTIgnoreCex: yes'),
-        engine: engine
-      };
-    }
+    const sources = collectFiles(testdir);
+    const tests = createTests(sources, st);
 
     // Run all tests
-    for (i in tests) {
-      var test = tests[i];
-
-      // Z3's nondeterminism sometimes causes a test to timeout in one context but not in the other,
-      // so if we see timeout we skip a potentially misleading run.
-      var findError = (errorMsg) => { return errorMsg.includes('Error trying to invoke SMT solver'); };
-      if (test.expectations.find(findError) !== undefined) {
-        st.skip('Test contains timeout which may have been caused by nondeterminism.');
-        continue;
+    for (let i in tests) {
+      const test = tests[i];
+      st.comment('Running ' + i + ' ...');
+      let results = [];
+      let solvers = ['z3'];
+      // 0.8.5 introduced the `solvers` option,
+      // so we can test the statica z3 inside soljson
+      // and a local solver as well.
+      if (semver.gt(solc.semver(), '0.8.4')) {
+        solvers.push('smtlib2');
       }
+      for (let s in solvers) {
+        st.comment('... with solver ' + solvers[s]);
+        let settings = {};
+        // `pragma experimental SMTChecker;` was deprecated in 0.8.4
+        if (semver.gt(solc.semver(), '0.8.3')) {
+          const engine = test.engine !== undefined ? test.engine : 'all';
+          settings = { modelChecker: { engine: engine } };
 
-      var settings = {};
-      // `pragma experimental SMTChecker;` was deprecated in 0.8.4
-      if (semver.gt(solc.semver(), '0.8.3')) {
-        let engine = test.engine !== undefined ? test.engine : 'all';
-        settings = { modelChecker: { engine: engine } };
+          // 0.8.5 introduced the `solvers` option.
+          if (semver.gt(solc.semver(), '0.8.4')) {
+            settings.modelChecker.solvers = [solvers[s]];
+          }
+        }
+        const output = JSON.parse(solc.compile(
+          JSON.stringify({
+            language: 'Solidity',
+            sources: test.solidity,
+            settings: settings
+          }),
+          { smtSolver: smtchecker.smtCallback(smtsolver.smtSolver) }
+        ));
+        st.ok(output);
+
+        results.push(buildErrorsDict(collectErrors(output)));
       }
-      var output = JSON.parse(solc.compile(
-        JSON.stringify({
-          language: 'Solidity',
-          sources: test.solidity,
-          settings: settings
-        }),
-        { smtSolver: smtchecker.smtCallback(smtsolver.smtSolver) }
-      ));
-      st.ok(output);
+      results.push(buildErrorsDict(test.expectations));
 
-      // Collect obtained error messages
-      test.errors = collectErrors(output);
-
-      // These are errors in the SMTLib2Interface encoding.
-      if (test.errors.length > 0 && test.errors[test.errors.length - 1].includes('BMC analysis was not possible')) {
-        continue;
+      const res = compareResults(results);
+      if (res.ok) {
+        solvers.push('C++ Spacer');
+        assert(res.score.length === solvers.length);
+        const max = Math.max(...res.score);
+        for (let j = 0; j < solvers.length; ++j) {
+          if (res.score[j] === max) {
+            st.comment('Solver ' + solvers[j] + ' = best.');
+          } else {
+            st.comment('Solver ' + solvers[j] + ' was not the best, but also not inconsistent.');
+          }
+        }
+      } else {
+        st.comment('Solver discrepancy found.');
       }
-
-      // These are due to CHC not being supported via SMTLib2Interface yet.
-      if (test.expectations.length !== test.errors.length) {
-        continue;
-      }
-
-      if (test.errors.find(findError) !== undefined) {
-        st.skip('Test contains timeout which may have been caused by nondeterminism.');
-        continue;
-      }
-
-      // Compare expected vs obtained errors
-      st.ok(expectErrors(test.expectations, test.errors, test.ignoreCex));
+      st.ok(res.ok);
     }
 
     st.end();
