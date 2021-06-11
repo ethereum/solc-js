@@ -18,7 +18,7 @@ program.name('solcjs');
 program.version(solc.version());
 program
   .option('--version', 'Show version and exit.')
-  .option('--optimize', 'Enable bytecode optimizer.')
+  .option('--optimize', 'Enable bytecode optimizer.', false)
   .option('--bin', 'Binary of the contracts in hex.')
   .option('--abi', 'ABI of the contracts.')
   .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
