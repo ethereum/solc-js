@@ -4,7 +4,7 @@ var fs = require('fs');
 var tmp = require('tmp');
 
 // Timeout in ms.
-const timeout = 10000;
+const timeout = 1000;
 
 var potentialSolvers = [
   {
