@@ -23,6 +23,7 @@ program
   .option('--abi', 'ABI of the contracts.')
   .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
   .option('--base-path <path>', 'Automatically resolve all imports inside the given path.')
+  .option('--warn-as-error', 'Return warnings as error.')
   .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.');
 program.parse(process.argv);
 
@@ -126,7 +127,12 @@ if (!output) {
   for (var error in output['errors']) {
     var message = output['errors'][error]
     if (message.severity === 'warning') {
-      console.log(message.formattedMessage)
+      if (program.warnAsError) {
+        console.error(message.formattedMessage)
+        hasError = true
+      } else {
+        console.log(message.formattedMessage)
+      }
     } else {
       console.error(message.formattedMessage)
       hasError = true
