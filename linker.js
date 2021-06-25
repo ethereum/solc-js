@@ -70,16 +70,22 @@ var findLinkReferences = function (bytecode) {
     // trim trailing underscores
     // NOTE: this has no way of knowing if the trailing underscore was part of the name
     var libraryName = found[1].replace(/_+$/gm, '');
-
-    if (!linkReferences[libraryName]) {
-      linkReferences[libraryName] = [];
+    var fileName = libraryName;
+    var nameExtraction = /(.*):(.*)/.exec(libraryName);
+    if (nameExtraction) {
+      fileName = nameExtraction[1];
+      libraryName = nameExtraction[2];
     }
 
-    linkReferences[libraryName].push({
+    if (!linkReferences[fileName]) {
+      linkReferences[fileName] = {};
+    }
+
+    linkReferences[fileName][libraryName] = {
       // offsets are in bytes in binary representation (and not hex)
       start: (offset + start) / 2,
       length: 20
-    });
+    };
 
     offset += start + 20;
 
