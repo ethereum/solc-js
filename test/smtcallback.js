@@ -75,7 +75,7 @@ function compareResults (results) {
     // If one solver does not have the location, the property is safe.
     const safe = results.reduce((acc, v) => acc || isSafe(v, loc), false);
     // If one solver reports the location as solved, the property is unsafe.
-    const unsafe = !safe && results.reduce((acc, v) => acc || isUnsafe(v, loc), false);
+    const unsafe = results.reduce((acc, v) => acc || isUnsafe(v, loc), false);
 
     const info = loc.split('-'); // [bmc or chc, start:end]
     // Contradiction found.

@@ -45,7 +45,9 @@ function solve (query) {
     if (
       !solverOutput.startsWith('sat') &&
       !solverOutput.startsWith('unsat') &&
-      !solverOutput.startsWith('unknown')
+      !solverOutput.startsWith('unknown') &&
+      !solverOutput.startsWith('(error') &&
+      !solverOutput.startsWith('error')
     ) {
       throw new Error('Failed to solve SMT query. ' + e.toString());
     }
