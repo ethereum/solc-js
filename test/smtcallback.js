@@ -63,7 +63,6 @@ function buildErrorsDict (errors) {
 }
 
 function compareResults (results) {
-  console.log(results);
   assert(results.length >= 2);
   const allProperties = results.reduce((acc, v) => { return {...acc, ...v}; });
   const isSafe = (d, r) => !(r in d);
@@ -80,16 +79,18 @@ function compareResults (results) {
     const info = loc.split('-'); // [bmc or chc, start:end]
     // Contradiction found.
     if (safe && unsafe) {
-      // But maybe one solver solved 'safe' via CHC,
+      // But maybe one solver solved via CHC,
       // and another solved reported a false positive 'unsafe' via BMC.
       let falsePositive = false;
-      if (info[0] === 'BMC') {
-        // If that's the case, at least one solver must have proved CHC safe.
-        const keyCHC = 'CHC-' + info[1];
-        const safeCHC = results.reduce((acc, v) => acc || isSafe(v, keyCHC), false);
-        if (safeCHC) {
-          falsePositive = true;
-        }
+      const keyBMC = 'BMC-' + info[1];
+      const keyCHC = 'CHC-' + info[1];
+      // If that's the case, at least one solver must have proved CHC safe or unsafe.
+      const safeCHC = results.reduce((acc, v) => acc || isSafe(v, keyCHC), false);
+      const unsafeCHC = results.reduce((acc, v) => acc || isUnsafe(v, keyCHC), false);
+      // And at least one solver must have proved BMC unsafe.
+      const unsafeBMC = results.reduce((acc, v) => acc || isUnsafe(v, keyBMC), false);
+      if ((safeCHC || unsafeCHC) && unsafeBMC) {
+        falsePositive = true;
       }
       if (!falsePositive) {
         return { ok: false, score: [] };
