@@ -34,22 +34,22 @@ function abort (msg) {
   process.exit(1);
 }
 
-function readFileCallback(path) {
-  path = program.basePath + '/' + path;
-  if (fs.existsSync(path)) {
+function readFileCallback(sourcePath) {
+  sourcePath = program.basePath + '/' + sourcePath;
+  if (fs.existsSync(sourcePath)) {
     try {
-      return { 'contents': fs.readFileSync(path).toString('utf8') }
+      return { 'contents': fs.readFileSync(sourcePath).toString('utf8') }
     } catch (e) {
-      return { error: 'Error reading ' + path + ': ' + e };
+      return { error: 'Error reading ' + sourcePath + ': ' + e };
     }
   } else
-    return { error: 'File not found at ' + path}
+    return { error: 'File not found at ' + sourcePath}
 }
-function stripBasePath(path) {
-  if (program.basePath && path.startsWith(program.basePath))
-    return path.slice(program.basePath.length);
+function stripBasePath(sourcePath) {
+  if (program.basePath && sourcePath.startsWith(program.basePath))
+    return sourcePath.slice(program.basePath.length);
   else
-    return path;
+    return sourcePath;
 }
 
 var callbacks = undefined
