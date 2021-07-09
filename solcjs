@@ -38,7 +38,8 @@ program
   .option('--abi', 'ABI of the contracts.')
   .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
   .option('--base-path <path>', 'Automatically resolve all imports inside the given path.')
-  .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.');
+  .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.')
+  .option('-p, --pretty-json', 'Pretty-print all JSON output.', false);
 
 program.parse(process.argv);
 const options = program.opts();
@@ -91,18 +92,26 @@ function stripBasePath(sourcePath) {
   return withUnixPathSeparators(relativeSourcePath);
 }
 
+function toFormattedJson(input) {
+  return JSON.stringify(input, null, program.prettyJson ? 4 : 0);
+}
+
+function reformatJsonIfRequested(inputJson) {
+  return (program.prettyJson ? toFormattedJson(JSON.parse(inputJson)) : inputJson);
+}
+
 var callbacks = undefined
 if (options.basePath || !options.standardJson)
   callbacks = {'import': readFileCallback};
 
 if (options.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
-  var output = solc.compile(input, callbacks);
+  var output = reformatJsonIfRequested(solc.compile(input, callbacks));
 
   try {
     var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
     if (inputJSON) {
-      output = solc.compile(JSON.stringify(inputJSON), callbacks);
+      output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
     }
   }
   catch (e) {
@@ -118,7 +127,7 @@ if (options.standardJson) {
       outputJSON.errors = []
     }
     outputJSON.errors.push(addError);
-    output = JSON.stringify(outputJSON);
+    output = toFormattedJson(outputJSON);
   }
 
   console.log(output);
@@ -195,7 +204,7 @@ for (var fileName in output.contracts) {
     }
 
     if (options.abi) {
-      writeFile(contractFileName + '.abi', JSON.stringify(output.contracts[fileName][contractName].abi));
+      writeFile(contractFileName + '.abi', toFormattedJson(output.contracts[fileName][contractName].abi));
     }
   }
 }
