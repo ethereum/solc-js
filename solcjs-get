@@ -11,28 +11,28 @@ var path = require('path');
 var compilerDir = 'bin';
 
 var yargs = require('yargs')
-  .usage('Usage: [options| version]')
+  .usage('Usage: solcjs-get [options] [version]')
   .option('list', {
-    describe: 'List all the versions',
+    describe: 'List all the versions available for download.',
     type: 'bool'
   })
   .option('all', {
-    describe: 'Download all the versions. Additionnaly, use --nightly to get the nightly builds.',
+    describe: 'Download all the versions. Additionally, use --nightly to get the nightly builds.',
     type: 'bool'
   })
   .option('nightly', {
-    describe: 'Combined with --all, it adds the nightly to the list',
+    describe: 'Combined with --all, it adds the nightly builds to the list.',
     type: 'bool'
   })
   .option('releases', {
-    describe: 'Get all the release builds',
+    describe: 'Get all the release builds.',
     type: 'bool'
   })
   .option('clean', {
-    describe: 'Delete all the compiler in ./bin',
+    describe: 'Delete all the compiler binaries from ./bin.',
     type: 'bool'
   })
-  .showHelpOnFail(false, 'Specify --help for available options')
+  .showHelpOnFail(false, 'Specify --help for available options.')
   .help();
 
 var argv = yargs.argv;
