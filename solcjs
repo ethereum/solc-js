@@ -36,7 +36,8 @@ function abort (msg) {
 }
 
 function readFileCallback(sourcePath) {
-  sourcePath = program.basePath + '/' + sourcePath;
+  if (program.basePath)
+    sourcePath = program.basePath + '/' + sourcePath;
   if (fs.existsSync(sourcePath)) {
     try {
       return { 'contents': fs.readFileSync(sourcePath).toString('utf8') }
@@ -75,7 +76,7 @@ function stripBasePath(sourcePath) {
 }
 
 var callbacks = undefined
-if (program.basePath)
+if (program.basePath || !program.standardJson)
   callbacks = {'import': readFileCallback};
 
 if (program.standardJson) {

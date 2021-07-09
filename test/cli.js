@@ -69,9 +69,7 @@ tape('CLI', function (t) {
       './solcjs --bin ' +
         'test/resources/importA.sol ' +
         './test/resources//importA.sol ' +
-        path.resolve('test/resources/importA.sol') + ' ' +
-        // Adding importB explicitly here should make compiler find it despite the lack of callback
-        'test/resources/importB.sol '
+        path.resolve('test/resources/importA.sol')
     );
     spt.stderr.empty();
     spt.succeeds();
