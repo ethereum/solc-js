@@ -8,6 +8,7 @@ var fs = require('fs-extra');
 var https = require('follow-redirects').https;
 var MemoryStream = require('memorystream');
 var path = require('path');
+
 var compilerDir = 'bin';
 
 var yargs = require('yargs')
@@ -72,7 +73,8 @@ function downloadBinary (version, cb) {
     file.on('finish', function () {
       file.close(function () {
         console.log('Done.');
-        if (cb) cb(targetPath);
+        if (cb)
+          cb(targetPath);
       });
     });
   });
@@ -90,7 +92,8 @@ if (argv.list) {
 } else if (argv.clean) {
   console.log('Removing all local compilers in ' + compilerDir + ' ...');
   fs.remove(compilerDir, function (err) {
-    if (err) return console.error(err);
+    if (err)
+      return console.error(err);
 
     console.log('Success! Cleaned ' + compilerDir);
     process.exit(0);
@@ -101,7 +104,8 @@ if (argv.list) {
     list = JSON.parse(list).builds;
     for (var i = list.length - 1; i >= 0; i--) {
       var target = list[i].path;
-      if (target.indexOf('nightly') > 0 && !argv.nightly) continue;
+      if (target.indexOf('nightly') > 0 && !argv.nightly)
+        continue;
 
       downloadBinary(target);
     }
@@ -128,7 +132,7 @@ if (argv.list) {
     }
 
     downloadBinary(wanted, function (file) {
-      if (!requestedVersion){
+      if (!requestedVersion) {
         fs.copy(file, 'soljson.js'); // for backward compatibility
       }
     });
