@@ -1,5 +1,6 @@
 const tape = require('tape');
 const spawn = require('tape-spawn');
+const path = require('path');
 const pkg = require('../package.json');
 
 tape('CLI', function (t) {
@@ -62,14 +63,58 @@ tape('CLI', function (t) {
     spt.end();
   });
 
-  t.test('no-base-path', function (st) {
-    var spt = spawn(st, './solcjs --bin test/resources/importA.sol');
-    spt.stderr.match(/not found: File import callback not supported/);
+  t.test('no base path', function (st) {
+    var spt = spawn(
+      st,
+      './solcjs --bin ' +
+        'test/resources/importA.sol ' +
+        './test/resources//importA.sol ' +
+        path.resolve('test/resources/importA.sol') + ' ' +
+        // Adding importB explicitly here should make compiler find it despite the lack of callback
+        'test/resources/importB.sol '
+    );
+    spt.stderr.empty();
+    spt.succeeds();
     spt.end();
   });
 
-  t.test('base-path', function (st) {
-    var spt = spawn(st, './solcjs --bin --base-path test/resources test/resources/importA.sol');
+  t.test('relative base path', function (st) {
+    // NOTE: This and other base path tests rely on the relative ./importB.sol import in importA.sol.
+    // If base path is not stripped correctly from all source paths below, they will not be found
+    // by the import callback when it appends the base path back.
+    var spt = spawn(
+      st,
+      './solcjs --bin --base-path test/resources ' +
+        'test/resources/importA.sol ' +
+        './test/resources//importA.sol ' +
+        path.resolve('test/resources/importA.sol')
+    );
+    spt.stderr.empty();
+    spt.succeeds();
+    spt.end();
+  });
+
+  t.test('relative non canonical base path', function (st) {
+    var spt = spawn(
+      st,
+      './solcjs --bin --base-path ./test/resources ' +
+        'test/resources/importA.sol ' +
+        './test/resources//importA.sol ' +
+        path.resolve('test/resources/importA.sol')
+    );
+    spt.stderr.empty();
+    spt.succeeds();
+    spt.end();
+  });
+
+  t.test('absolute base path', function (st) {
+    var spt = spawn(
+      st,
+      './solcjs --bin --base-path ' + path.resolve('test/resources') + ' ' +
+        'test/resources/importA.sol ' +
+        './test/resources//importA.sol ' +
+        path.resolve('test/resources/importA.sol')
+    );
     spt.stderr.empty();
     spt.succeeds();
     spt.end();

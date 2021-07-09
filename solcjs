@@ -4,6 +4,7 @@
 var originalUncaughtExceptionListeners = process.listeners("uncaughtException");
 
 var fs = require('fs-extra');
+var os = require('os');
 var path = require('path');
 var solc = require('./index.js');
 var smtchecker = require('./smtchecker.js');
@@ -45,11 +46,32 @@ function readFileCallback(sourcePath) {
   } else
     return { error: 'File not found at ' + sourcePath}
 }
+
+function withUnixPathSeparators(filePath) {
+  if (os.platform !== 'win32')
+    // On UNIX-like systems forward slashes in paths are just a part of the file name.
+    return filePath;
+
+  return filePath.replace(/\\/g, "/");
+}
+
 function stripBasePath(sourcePath) {
-  if (program.basePath && sourcePath.startsWith(program.basePath))
-    return sourcePath.slice(program.basePath.length);
-  else
-    return sourcePath;
+  const absoluteBasePath = (program.basePath ? path.resolve(program.basePath) : path.resolve('.'));
+
+  // Compared to base path stripping logic in solc this is much simpler because path.resolve()
+  // handles symlinks correctly (does not resolve them except in work dir) and strips .. segments
+  // from paths going beyond root (e.g. `/../../a/b/c` -> `/a/b/c/`). It's simpler also because it
+  // ignores less important corner cases: drive letters are not stripped from absolute paths on
+  // Windows and UNC paths are not handled in a special way (at least on Linux). Finally, it has
+  // very little test coverage so there might be more differences that we are just not aware of.
+  const absoluteSourcePath = path.resolve(sourcePath);
+  const relativeSourcePath = path.relative(absoluteBasePath, absoluteSourcePath);
+
+  if (relativeSourcePath.startsWith('../'))
+    // Path can't be made relative without stepping outside of base path so return absolute one.
+    return withUnixPathSeparators(absoluteSourcePath);
+
+  return withUnixPathSeparators(relativeSourcePath);
 }
 
 var callbacks = undefined
