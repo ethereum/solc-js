@@ -8,10 +8,11 @@ var fs = require('fs-extra');
 var https = require('follow-redirects').https;
 var MemoryStream = require('memorystream');
 var path = require('path');
+var yargs = require('yargs')
 
 var localBinaryDir = 'bin';
 
-var yargs = require('yargs')
+yargs
   .usage('Usage: solcjs-get [options] [version]')
   .option('list', {
     describe: 'List all the versions available for download.',
