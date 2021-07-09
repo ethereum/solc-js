@@ -39,7 +39,8 @@ program
   .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
   .option('--base-path <path>', 'Automatically resolve all imports inside the given path.')
   .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.')
-  .option('-p, --pretty-json', 'Pretty-print all JSON output.', false);
+  .option('-p, --pretty-json', 'Pretty-print all JSON output.', false)
+  .option('-v, --verbose', 'More detailed console output.', false);
 
 program.parse(process.argv);
 const options = program.opts();
@@ -106,11 +107,15 @@ if (options.basePath || !options.standardJson)
 
 if (options.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
+  if (program.verbose)
+    console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + "\n")
   var output = reformatJsonIfRequested(solc.compile(input, callbacks));
 
   try {
     var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
     if (inputJSON) {
+      if (program.verbose)
+        console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + "\n")
       output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
     }
   }
@@ -130,6 +135,8 @@ if (options.standardJson) {
     output = toFormattedJson(outputJSON);
   }
 
+  if (program.verbose)
+    console.log('>>> Compilation result:')
   console.log(output);
   process.exit(0);
 } else if (files.length === 0) {
@@ -151,7 +158,7 @@ for (var i = 0; i < files.length; i++) {
   }
 }
 
-var output = JSON.parse(solc.compile(JSON.stringify({
+const cliInput = {
   language: 'Solidity',
   settings: {
     optimizer: {
@@ -165,7 +172,10 @@ var output = JSON.parse(solc.compile(JSON.stringify({
     }
   },
   sources: sources
-}), callbacks));
+};
+if (program.verbose)
+  console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + "\n")
+var output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));
 
 let hasError = false;
 
