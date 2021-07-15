@@ -3,12 +3,13 @@ var execSync = require('child_process').execSync;
 var fs = require('fs');
 var tmp = require('tmp');
 
-const timeout = 10000;
+// Timeout in ms.
+const timeout = 1000;
 
 var potentialSolvers = [
   {
     name: 'z3',
-    params: '-smt2 rlimit=20000000 rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
+    params: '-smt2 timeout=' + timeout + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
   },
   {
     name: 'cvc4',
@@ -44,7 +45,9 @@ function solve (query) {
     if (
       !solverOutput.startsWith('sat') &&
       !solverOutput.startsWith('unsat') &&
-      !solverOutput.startsWith('unknown')
+      !solverOutput.startsWith('unknown') &&
+      !solverOutput.startsWith('(error') &&
+      !solverOutput.startsWith('error')
     ) {
       throw new Error('Failed to solve SMT query. ' + e.toString());
     }
