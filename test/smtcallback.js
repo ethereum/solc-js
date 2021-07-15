@@ -63,6 +63,7 @@ function buildErrorsDict (errors) {
 }
 
 function compareResults (results) {
+  console.log(results);
   assert(results.length >= 2);
   const allProperties = results.reduce((acc, v) => { return {...acc, ...v}; });
   const isSafe = (d, r) => !(r in d);
