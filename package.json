@@ -8,8 +8,8 @@
   },
   "scripts": {
     "lint": "node ./node_modules/semistandard/bin/cmd.js",
-    "prepublish": "node downloadCurrentVersion.js && node verifyVersion.js",
-    "pretest": "npm run lint",
+    "prepublishOnly": "node downloadCurrentVersion.js && node verifyVersion.js",
+    "pretest": "npm run lint && npm run prepublishOnly",
     "test": "tape ./test/index.js",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info"
