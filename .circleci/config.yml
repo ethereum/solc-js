@@ -28,6 +28,9 @@ jobs:
           name: install-npm
           command: npm install
       - run:
+          name: updateBinary
+          command: npm run updateBinary
+      - run:
           name: test
           command: npm run test
       - when:

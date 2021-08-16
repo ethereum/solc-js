@@ -10,7 +10,7 @@
     "lint": "node ./node_modules/semistandard/bin/cmd.js",
     "updateBinary": "node downloadCurrentVersion.js && node verifyVersion.js",
     "prepublishOnly": "npm run updateBinary",
-    "pretest": "npm run lint && npm run updateBinary",
+    "pretest": "npm run lint",
     "test": "tape ./test/index.js",
     "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
     "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info"
