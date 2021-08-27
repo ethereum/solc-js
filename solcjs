@@ -14,7 +14,7 @@ var smtsolver = require('./smtsolver.js');
 process.removeAllListeners('uncaughtException');
 var commander = require('commander');
 
-var program = new commander.Command();
+const program = new commander.Command();
 program.name('solcjs');
 program.version(solc.version());
 program
@@ -26,9 +26,10 @@ program
   .option('--base-path <path>', 'Automatically resolve all imports inside the given path.')
   .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.');
 program.parse(process.argv);
+const options = program.opts();
 
 var files = program.args;
-var destination = program.outputDir || '.'
+var destination = options.outputDir || '.'
 
 function abort (msg) {
   console.error(msg || 'Error occured');
@@ -36,8 +37,8 @@ function abort (msg) {
 }
 
 function readFileCallback(sourcePath) {
-  if (program.basePath)
-    sourcePath = program.basePath + '/' + sourcePath;
+  if (options.basePath)
+    sourcePath = options.basePath + '/' + sourcePath;
   if (fs.existsSync(sourcePath)) {
     try {
       return { 'contents': fs.readFileSync(sourcePath).toString('utf8') }
@@ -57,7 +58,7 @@ function withUnixPathSeparators(filePath) {
 }
 
 function stripBasePath(sourcePath) {
-  const absoluteBasePath = (program.basePath ? path.resolve(program.basePath) : path.resolve('.'));
+  const absoluteBasePath = (options.basePath ? path.resolve(options.basePath) : path.resolve('.'));
 
   // Compared to base path stripping logic in solc this is much simpler because path.resolve()
   // handles symlinks correctly (does not resolve them except in work dir) and strips .. segments
@@ -76,10 +77,10 @@ function stripBasePath(sourcePath) {
 }
 
 var callbacks = undefined
-if (program.basePath || !program.standardJson)
+if (options.basePath || !options.standardJson)
   callbacks = {'import': readFileCallback};
 
-if (program.standardJson) {
+if (options.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
   var output = solc.compile(input, callbacks);
 
@@ -112,7 +113,7 @@ if (program.standardJson) {
   process.exit(1);
 }
 
-if (!(program.bin || program.abi)) {
+if (!(options.bin || options.abi)) {
   abort('Invalid option selected, must specify either --bin or --abi');
 }
 
@@ -130,7 +131,7 @@ var output = JSON.parse(solc.compile(JSON.stringify({
   language: 'Solidity',
   settings: {
     optimizer: {
-      enabled: program.optimize
+      enabled: options.optimize
     },
     outputSelection: {
       '*': {
@@ -173,11 +174,11 @@ for (var fileName in output.contracts) {
     var contractFileName = fileName + ':' + contractName;
     contractFileName = contractFileName.replace(/[:./\\]/g, '_');
 
-    if (program.bin) {
+    if (options.bin) {
       writeFile(contractFileName + '.bin', output.contracts[fileName][contractName].evm.bytecode.object);
     }
 
-    if (program.abi) {
+    if (options.abi) {
       writeFile(contractFileName + '.abi', JSON.stringify(output.contracts[fileName][contractName].abi));
     }
   }
