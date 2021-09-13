@@ -37,6 +37,19 @@ tape('CLI', function (t) {
     spt.end();
   });
 
+  t.test('--bin --optimize-runs 666', function (st) {
+    var spt = spawn(st, './solcjs --bin --optimize-runs 666 test/resources/fixtureSmoke.sol');
+    spt.stderr.empty();
+    spt.succeeds();
+    spt.end();
+  });
+
+  t.test('--bin --optimize-runs not-a-number', function (st) {
+    var spt = spawn(st, './solcjs --bin --optimize-runs not-a-number test/resources/fixtureSmoke.sol');
+    spt.stderr.match(/^error: option '--optimize-runs <optimize-runs>' argument 'not-a-number' is invalid/);
+    spt.end();
+  });
+
   t.test('invalid file specified', function (st) {
     var spt = spawn(st, './solcjs --bin test/fileNotFound.sol');
     spt.stderr.match(/^Error reading /);
