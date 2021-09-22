@@ -15,16 +15,31 @@ process.removeAllListeners('uncaughtException');
 var commander = require('commander');
 
 const program = new commander.Command();
+const commanderParseInt = function(value) {
+  const parsedValue = parseInt(value, 10);
+  if (isNaN(parsedValue)) {
+    throw new commander.InvalidArgumentError("Not a valid integer.");
+  }
+  return parsedValue;
+};
+
 program.name('solcjs');
 program.version(solc.version());
 program
   .option('--version', 'Show version and exit.')
   .option('--optimize', 'Enable bytecode optimizer.', false)
+  .option(
+    '--optimize-runs <optimize-runs>',
+    'The number of runs specifies roughly how often each opcode of the deployed code will be executed across the lifetime of the contract. ' +
+    'Lower values will optimize more for initial deployment cost, higher values will optimize more for high-frequency usage.',
+    commanderParseInt
+  )
   .option('--bin', 'Binary of the contracts in hex.')
   .option('--abi', 'ABI of the contracts.')
   .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
   .option('--base-path <path>', 'Automatically resolve all imports inside the given path.')
   .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.');
+
 program.parse(process.argv);
 const options = program.opts();
 
@@ -131,7 +146,8 @@ var output = JSON.parse(solc.compile(JSON.stringify({
   language: 'Solidity',
   settings: {
     optimizer: {
-      enabled: options.optimize
+      enabled: options.optimize,
+      runs: options.optimizeRuns,
     },
     outputSelection: {
       '*': {
