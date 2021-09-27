@@ -254,7 +254,7 @@ tape('CLI', function (t) {
     spt.stdin.end();
     spt.stdin.on('finish', function () {
       spt.stderr.empty();
-      spt.stdout.match(/{"sources":{"contractA.sol":{"id":0},"contractB.sol":{"id":1},"libX.sol":{"id":2},"libY.sol":{"id":3},"libZ.sol":{"id":4},"utils.sol":{"id":5}}}/);
+      spt.stdout.match(/"sources":{"contractA.sol":{"id":0},"contractB.sol":{"id":1},"libX.sol":{"id":2},"libY.sol":{"id":3},"libZ.sol":{"id":4},"utils.sol":{"id":5}}}/);
       spt.succeeds();
       spt.end();
     });
