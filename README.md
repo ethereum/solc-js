@@ -27,10 +27,17 @@ solcjs --help
 
 To compile a contract that imports other contracts via relative paths:
 ```bash
-solcjs --bin --base-path . ./MainContract.sol
+solcjs --bin --include-path node_modules/ --base-path . MainContract.sol
 ```
-The option ``--base-path`` enables automatic loading of imports from the filesystem and
-takes a path as argument that contains the source files.
+Use the ``--base-path`` and ``--include-path`` options to describe the layout of your project.
+``--base-path`` represents the root of your own source tree while ``--include-path`` allows you to
+specify extra locations containing external code (e.g. libraries installed with a package manager).
+
+Note: ensure that all the files you specify on the command line are located inside the base path or
+one of the include paths.
+The compiler refers to files from outside of these directories using absolute paths.
+Having absolute paths in contract metadata will result in your bytecode being reproducible only
+when it's placed in these exact absolute locations.
 
 Note: this commandline interface is not compatible with `solc` provided by the Solidity compiler package and thus cannot be
 used in combination with an Ethereum client via the `eth.compile.solidity()` RPC method. Please refer to the

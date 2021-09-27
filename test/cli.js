@@ -131,6 +131,48 @@ tape('CLI', function (t) {
     spt.end();
   });
 
+  t.test('include paths', function (st) {
+    const spt = spawn(
+      st,
+      './solcjs --bin ' +
+        'test/resources/importCallback/base/contractB.sol ' +
+        'test/resources/importCallback/includeA/libY.sol ' +
+        './test/resources/importCallback/includeA//libY.sol ' +
+        path.resolve('test/resources/importCallback/includeA/libY.sol') + ' ' +
+        '--base-path test/resources/importCallback/base ' +
+        '--include-path test/resources/importCallback/includeA ' +
+        '--include-path ' + path.resolve('test/resources/importCallback/includeB/')
+    );
+    spt.stderr.empty();
+    spt.succeeds();
+    spt.end();
+  });
+
+  t.test('include paths without base path', function (st) {
+    const spt = spawn(
+      st,
+      './solcjs --bin ' +
+        'test/resources/importCallback/contractC.sol ' +
+        '--include-path test/resources/importCallback/includeA'
+    );
+    spt.stderr.match(/--include-path option requires a non-empty base path\./);
+    spt.fails();
+    spt.end();
+  });
+
+  t.test('empty include paths', function (st) {
+    const spt = spawn(
+      st,
+      './solcjs --bin ' +
+        'test/resources/importCallback/contractC.sol ' +
+        '--base-path test/resources/importCallback/base ' +
+        '--include-path='
+    );
+    spt.stderr.match(/Empty values are not allowed in --include-path\./);
+    spt.fails();
+    spt.end();
+  });
+
   t.test('standard json', function (st) {
     var input = {
       'language': 'Solidity',
@@ -183,6 +225,36 @@ tape('CLI', function (t) {
     spt.stdin.on('finish', function () {
       spt.stderr.empty();
       spt.stdout.match(/{"contracts":{"importB.sol":{"D":{"metadata":/);
+      spt.succeeds();
+      spt.end();
+    });
+  });
+
+  t.test('standard json include paths', function (st) {
+    var input = {
+      'language': 'Solidity',
+      'sources': {
+        'contractB.sol': {
+          'content':
+            '// SPDX-License-Identifier: GPL-3.0\n' +
+            'pragma solidity >=0.0;\n' +
+            'import "./contractA.sol";\n'
+        }
+      }
+    };
+    var spt = spawn(
+      st,
+      './solcjs --standard-json ' +
+        '--base-path test/resources/importCallback/base ' +
+        '--include-path test/resources/importCallback/includeA ' +
+        '--include-path ' + path.resolve('test/resources/importCallback/includeB/')
+    );
+    spt.stdin.setEncoding('utf-8');
+    spt.stdin.write(JSON.stringify(input));
+    spt.stdin.end();
+    spt.stdin.on('finish', function () {
+      spt.stderr.empty();
+      spt.stdout.match(/{"sources":{"contractA.sol":{"id":0},"contractB.sol":{"id":1},"libX.sol":{"id":2},"libY.sol":{"id":3},"libZ.sol":{"id":4},"utils.sol":{"id":5}}}/);
       spt.succeeds();
       spt.end();
     });

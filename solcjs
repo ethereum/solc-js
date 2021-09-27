@@ -37,7 +37,13 @@ program
   .option('--bin', 'Binary of the contracts in hex.')
   .option('--abi', 'ABI of the contracts.')
   .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
-  .option('--base-path <path>', 'Automatically resolve all imports inside the given path.')
+  .option('--base-path <path>', 'Root of the project source tree. ' +
+    'The import callback will attempt to interpret all import paths as relative to this directory.'
+  )
+  .option('--include-path <path...>', 'Extra source directories available to the import callback. ' +
+    'When using a package manager to install libraries, use this option to specify directories where packages are installed. ' +
+    'Can be used multiple times to provide multiple locations.'
+  )
   .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.')
   .option('-p, --pretty-json', 'Pretty-print all JSON output.', false)
   .option('-v, --verbose', 'More detailed console output.', false);
@@ -54,16 +60,21 @@ function abort (msg) {
 }
 
 function readFileCallback(sourcePath) {
-  if (options.basePath)
-    sourcePath = options.basePath + '/' + sourcePath;
-  if (fs.existsSync(sourcePath)) {
-    try {
-      return { 'contents': fs.readFileSync(sourcePath).toString('utf8') }
-    } catch (e) {
-      return { error: 'Error reading ' + sourcePath + ': ' + e };
+  const prefixes = [options.basePath ? options.basePath : ""].concat(
+    options.includePath ? options.includePath : []
+  );
+  for (const prefix of prefixes) {
+    const prefixedSourcePath = (prefix ? prefix + '/' : "") + sourcePath;
+
+    if (fs.existsSync(prefixedSourcePath)) {
+      try {
+        return {'contents': fs.readFileSync(prefixedSourcePath).toString('utf8')}
+      } catch (e) {
+        return {error: 'Error reading ' + prefixedSourcePath + ': ' + e};
+      }
     }
-  } else
-    return { error: 'File not found at ' + sourcePath}
+  }
+  return {error: 'File not found inside the base path or any of the include paths.'}
 }
 
 function withUnixPathSeparators(filePath) {
@@ -74,8 +85,13 @@ function withUnixPathSeparators(filePath) {
   return filePath.replace(/\\/g, "/");
 }
 
-function stripBasePath(sourcePath) {
+function makeSourcePathRelativeIfPossible(sourcePath) {
   const absoluteBasePath = (options.basePath ? path.resolve(options.basePath) : path.resolve('.'));
+  const absoluteIncludePaths = (
+    options.includePath ?
+    options.includePath.map((prefix) => { return path.resolve(prefix); }) :
+    []
+  );
 
   // Compared to base path stripping logic in solc this is much simpler because path.resolve()
   // handles symlinks correctly (does not resolve them except in work dir) and strips .. segments
@@ -84,13 +100,16 @@ function stripBasePath(sourcePath) {
   // Windows and UNC paths are not handled in a special way (at least on Linux). Finally, it has
   // very little test coverage so there might be more differences that we are just not aware of.
   const absoluteSourcePath = path.resolve(sourcePath);
-  const relativeSourcePath = path.relative(absoluteBasePath, absoluteSourcePath);
 
-  if (relativeSourcePath.startsWith('../'))
-    // Path can't be made relative without stepping outside of base path so return absolute one.
-    return withUnixPathSeparators(absoluteSourcePath);
+  for (const absolutePrefix of [absoluteBasePath].concat(absoluteIncludePaths)) {
+    const relativeSourcePath = path.relative(absolutePrefix, absoluteSourcePath);
 
-  return withUnixPathSeparators(relativeSourcePath);
+    if (!relativeSourcePath.startsWith('../'))
+      return withUnixPathSeparators(relativeSourcePath);
+  }
+
+  // File is not located inside base path or include paths so use its absolute path.
+  return withUnixPathSeparators(absoluteSourcePath);
 }
 
 function toFormattedJson(input) {
@@ -148,11 +167,22 @@ if (!(options.bin || options.abi)) {
   abort('Invalid option selected, must specify either --bin or --abi');
 }
 
+if (!options.basePath && options.includePath && options.includePath.length > 0) {
+  abort('--include-path option requires a non-empty base path.');
+}
+
+if (options.includePath)
+  for (const includePath of options.includePath)
+    if (!includePath)
+      abort('Empty values are not allowed in --include-path.');
+
 var sources = {};
 
 for (var i = 0; i < files.length; i++) {
   try {
-    sources[stripBasePath(files[i])] = { content: fs.readFileSync(files[i]).toString() };
+    sources[makeSourcePathRelativeIfPossible(files[i])] = {
+      content: fs.readFileSync(files[i]).toString()
+    };
   } catch (e) {
     abort('Error reading ' + files[i] + ': ' + e);
   }
