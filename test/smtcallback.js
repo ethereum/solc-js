@@ -196,6 +196,7 @@ function expectStringErrors (a, b) {
 }
 
 tape('SMTCheckerCallback', function (t) {
+  /*
   t.test('Interface via callback', function (st) {
     // This test does not use a solver and is used only to test
     // the callback mechanism.
@@ -266,7 +267,7 @@ tape('SMTCheckerCallback', function (t) {
     }
     st.end();
   });
-
+  */
   t.test('Solidity smtCheckerTests', function (st) {
     // 0.7.2 added `BMC:` and `CHC:` as prefixes to the error messages.
     // This format is rewquired for this test.
@@ -283,7 +284,7 @@ tape('SMTCheckerCallback', function (t) {
       return;
     }
 
-    if (smtsolver.availableSolvers === 0) {
+    if (smtsolver.availableSolvers.length === 0) {
       st.skip('No SMT solver available.');
       st.end();
       return;
@@ -292,35 +293,46 @@ tape('SMTCheckerCallback', function (t) {
     const sources = collectFiles(testdir);
     const tests = createTests(sources, st);
 
+    const spacer = {
+      name: 'C++ Spacer',
+      command: 'z3',
+      params: ''
+    };
+    let solvers = smtsolver.availableSolvers;
+    solvers.push(spacer);
+
+    let endResults = {};
+
     // Run all tests
     for (let i in tests) {
       const test = tests[i];
       st.comment('Running ' + i + ' ...');
       let results = [];
-      let solvers = [];
+      //let solvers = [];
       // 0.8.5 introduced the `solvers` option,
       // so we can test the static z3 inside soljson
       // and a local solver as well.
-      if (semver.gt(solc.semver(), '0.8.4')) {
-        solvers.push('smtlib2');
-      }
+      //if (semver.gt(solc.semver(), '0.8.4')) {
+      //  solvers.push('smtlib2');
+      //}
+      //for (let s in solvers) {
       for (let s in solvers) {
-        st.comment('... with solver ' + solvers[s]);
+        st.comment('... with solver ' + solvers[s].name);
         let settings = {};
         // `pragma experimental SMTChecker;` was deprecated in 0.8.4
         if (semver.gt(solc.semver(), '0.8.3')) {
-          const engine = test.engine !== undefined ? test.engine : 'all';
+          //const engine = test.engine !== undefined ? test.engine : 'all';
           settings = { modelChecker: {
-            engine: engine,
-            targets: ['assert'],
-            divModWithSlacks: false,
-            showUnproved: true
+            engine: 'chc',
+            //targets: ['assert'],
+            divModNoSlacks: solvers[s].command == 'eld',
+            showUnproved: true,
+            solvers: (solvers[s].name == 'C++ Spacer' ? ['z3'] : ['smtlib2'])
           } };
-
           // 0.8.5 introduced the `solvers` option.
-          if (semver.gt(solc.semver(), '0.8.4')) {
-            settings.modelChecker.solvers = [solvers[s]];
-          }
+          //if (semver.gt(solc.semver(), '0.8.4')) {
+          //  settings.modelChecker.solvers = [solvers[s]];
+          //}
         }
         const output = JSON.parse(solc.compile(
           JSON.stringify({
@@ -328,24 +340,26 @@ tape('SMTCheckerCallback', function (t) {
             sources: test.solidity,
             settings: settings
           }),
-          { smtSolver: smtchecker.smtCallback(smtsolver.smtSolver) }
+          { smtSolver: smtchecker.smtCallback(smtsolver.smtSolver, solvers[s]) }
         ));
         st.ok(output);
 
         results.push(buildErrorsDict(collectErrors(output)));
       }
-      results.push(buildErrorsDict(test.expectations));
+      //results.push(buildErrorsDict(test.expectations));
 
+      endResults[i] = [];
       const res = compareResults(results);
       if (res.ok) {
-        solvers.push('C++ Spacer');
         assert(res.score.length === solvers.length);
         const max = Math.max(...res.score);
         for (let j = 0; j < solvers.length; ++j) {
           if (res.score[j] === max) {
-            st.comment('Solver ' + solvers[j] + ' = best.');
+            endResults[i].push(true);
+            st.comment('Solver ' + solvers[j].name + ' = best.');
           } else {
-            st.comment('Solver ' + solvers[j] + ' was not the best, but also not inconsistent.');
+            endResults[i].push(false);
+            st.comment('Solver ' + solvers[j].name + ' was not the best, but also not inconsistent.');
           }
         }
       } else {
@@ -353,6 +367,8 @@ tape('SMTCheckerCallback', function (t) {
       }
       st.ok(res.ok);
     }
+
+    console.log(endResults);
 
     st.end();
   });

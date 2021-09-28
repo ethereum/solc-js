@@ -3,10 +3,36 @@ var execSync = require('child_process').execSync;
 var fs = require('fs');
 var tmp = require('tmp');
 
-// Timeout in ms.
-const timeout = 1000;
+// Timeout in seconds.
+const timeout = 10;
 
 var potentialSolvers = [
+  {
+    name: 'Eldarica No Abstraction',
+    command: 'eld',
+    params: '-horn -t:' + timeout + ' -abstract:off'
+  },
+  {
+    name: 'Eldarica Term Abstraction',
+    command: 'eld',
+    params: '-horn -t:' + timeout + ' -abstract:term'
+  },
+  {
+    name: 'Eldarica Oct Abstraction',
+    command: 'eld',
+    params: '-horn -t:' + timeout + ' -abstract:oct'
+  },
+  {
+    name: 'Spacer Vanilla',
+    command: 'z3',
+    params: '-smt2 timeout=' + (timeout * 1000) + ' rewriter.pull_cheap_ite=true'
+  },
+  {
+    name: 'Spacer Quant',
+    command: 'z3',
+    params: '-smt2 timeout=' + (timeout * 1000) + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
+  }
+/*
   {
     name: 'z3',
     params: ' timeout=' + timeout + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
@@ -15,26 +41,21 @@ var potentialSolvers = [
     name: 'cvc4',
     params: '--lang=smt2 --tlimit=' + timeout
   }
+*/
 ];
-var solvers = potentialSolvers.filter(solver => commandExistsSync(solver.name));
+var solvers = potentialSolvers.filter(solver => commandExistsSync(solver.command));
 
-function solve (query) {
-  if (solvers.length === 0) {
+function solve (query, solver) {
+  if (solver === undefined) {
     throw new Error('No SMT solver available. Assertion checking will not be performed.');
   }
 
   var tmpFile = tmp.fileSync({ postfix: '.smt2' });
   fs.writeFileSync(tmpFile.name, query);
-  console.log(query);
-  // TODO For now only the first SMT solver found is used.
-  // At some point a computation similar to the one done in
-  // SMTPortfolio::check should be performed, where the results
-  // given by different solvers are compared and an error is
-  // reported if solvers disagree (i.e. SAT vs UNSAT).
   var solverOutput;
   try {
     solverOutput = execSync(
-      solvers[0].name + ' ' + solvers[0].params + ' ' + tmpFile.name, {
+      solvers[0].command + ' ' + solvers[0].params + ' ' + tmpFile.name, {
         stdio: 'pipe'
       }
     ).toString();
@@ -55,12 +76,12 @@ function solve (query) {
   }
   // Trigger early manual cleanup
   tmpFile.removeCallback();
-  console.log("OUTPUT IS");
-  console.log(solverOutput);
+  //console.log("OUTPUT IS");
+  //console.log(solverOutput);
   return solverOutput;
 }
 
 module.exports = {
   smtSolver: solve,
-  availableSolvers: solvers.length
+  availableSolvers: solvers
 };
