@@ -297,9 +297,9 @@ tape('SMTCheckerCallback', function (t) {
       const test = tests[i];
       st.comment('Running ' + i + ' ...');
       let results = [];
-      let solvers = ['z3'];
+      let solvers = [];
       // 0.8.5 introduced the `solvers` option,
-      // so we can test the statica z3 inside soljson
+      // so we can test the static z3 inside soljson
       // and a local solver as well.
       if (semver.gt(solc.semver(), '0.8.4')) {
         solvers.push('smtlib2');
@@ -310,7 +310,12 @@ tape('SMTCheckerCallback', function (t) {
         // `pragma experimental SMTChecker;` was deprecated in 0.8.4
         if (semver.gt(solc.semver(), '0.8.3')) {
           const engine = test.engine !== undefined ? test.engine : 'all';
-          settings = { modelChecker: { engine: engine } };
+          settings = { modelChecker: {
+            engine: engine,
+            targets: ['assert'],
+            divModWithSlacks: false,
+            showUnproved: true
+          } };
 
           // 0.8.5 introduced the `solvers` option.
           if (semver.gt(solc.semver(), '0.8.4')) {

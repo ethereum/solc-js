@@ -9,7 +9,7 @@ const timeout = 1000;
 var potentialSolvers = [
   {
     name: 'z3',
-    params: '-smt2 timeout=' + timeout + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
+    params: ' timeout=' + timeout + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
   },
   {
     name: 'cvc4',
@@ -25,6 +25,7 @@ function solve (query) {
 
   var tmpFile = tmp.fileSync({ postfix: '.smt2' });
   fs.writeFileSync(tmpFile.name, query);
+  console.log(query);
   // TODO For now only the first SMT solver found is used.
   // At some point a computation similar to the one done in
   // SMTPortfolio::check should be performed, where the results
@@ -54,6 +55,8 @@ function solve (query) {
   }
   // Trigger early manual cleanup
   tmpFile.removeCallback();
+  console.log("OUTPUT IS");
+  console.log(solverOutput);
   return solverOutput;
 }
 
