@@ -1,3 +1,4 @@
+const assert = require('assert');
 const tape = require('tape');
 const semver = require('semver');
 const solc = require('../index.js');
@@ -8,6 +9,16 @@ var noRemoteVersions = (process.argv.indexOf('--no-remote-versions') >= 0);
 
 function runTests (solc, versionText) {
   console.log(`Running tests with ${versionText} ${solc.version()}`);
+
+  function resplitFileNameOnFirstColon (fileName, contractName) {
+    assert(!contractName.includes(':'));
+
+    let contractNameComponents = fileName.split(':');
+    const truncatedFileName = contractNameComponents.shift();
+    contractNameComponents.push(contractName);
+
+    return [truncatedFileName, contractNameComponents.join(':')];
+  }
 
   function getBytecode (output, fileName, contractName) {
     try {
@@ -29,6 +40,9 @@ function runTests (solc, versionText) {
       if (semver.lt(solc.semver(), '0.4.9')) {
         outputFile = output.contracts[''];
       } else {
+        if (semver.gt(solc.semver(), '0.4.10') && semver.lt(solc.semver(), '0.4.20')) {
+          [fileName, contractName] = resplitFileNameOnFirstColon(fileName, contractName);
+        }
         outputFile = output.contracts[fileName];
       }
       return outputFile[contractName]['evm']['bytecode']['object'];
@@ -43,6 +57,9 @@ function runTests (solc, versionText) {
       if (semver.lt(solc.semver(), '0.4.9')) {
         outputFile = output.contracts[''];
       } else {
+        if (semver.gt(solc.semver(), '0.4.10') && semver.gt(solc.semver(), '0.4.20')) {
+          [fileName, contractName] = resplitFileNameOnFirstColon(fileName, contractName);
+        }
         outputFile = output.contracts[fileName];
       }
       return outputFile[contractName]['evm']['gasEstimates'];
@@ -782,6 +799,31 @@ function runTests (solc, versionText) {
         st.ok(C.length > 0);
         st.end();
       });
+
+      t.test('compiling standard JSON (file names containing multiple semicolons)', function (st) {
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': ['evm.bytecode']
+              }
+            }
+          },
+          'sources': {
+            'a:b:c:d:e:f:G.sol': {
+              'content': 'contract G {}'
+            }
+          }
+        };
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectNoError(output));
+        var G = getBytecodeStandard(output, 'a:b:c:d:e:f:G.sol', 'G');
+        st.ok(typeof G === 'string');
+        st.ok(G.length > 0);
+        st.end();
+      });
     });
   });
 
@@ -835,9 +877,12 @@ if (!noRemoteVersions) {
     'v0.2.1+commit.91a6b35',
     'v0.3.6+commit.3fc68da',
     'v0.4.0+commit.acd334c9',
+    'v0.4.9+commit.364da425',
     'v0.4.10+commit.f0d539ae',
     'v0.4.11+commit.68ef5810',
     'v0.4.12+commit.194ff033',
+    'v0.4.19+commit.c4cbbb05',
+    'v0.4.20+commit.3155dd80',
     'v0.4.26+commit.4563c3fc'
   ];
   for (var version in versions) {
