@@ -757,6 +757,31 @@ function runTests (solc, versionText) {
         }
         st.end();
       });
+
+      t.test('compiling standard JSON (file names containing symbols)', function (st) {
+        var input = {
+          'language': 'Solidity',
+          'settings': {
+            'outputSelection': {
+              '*': {
+                '*': ['evm.bytecode']
+              }
+            }
+          },
+          'sources': {
+            '!@#$%^&*()_+-=[]{}\\|"\';:~`<>,.?/': {
+              'content': 'contract C {}'
+            }
+          }
+        };
+
+        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        st.ok(expectNoError(output));
+        var C = getBytecodeStandard(output, '!@#$%^&*()_+-=[]{}\\|"\';:~`<>,.?/', 'C');
+        st.ok(typeof C === 'string');
+        st.ok(C.length > 0);
+        st.end();
+      });
     });
   });
 
@@ -810,6 +835,7 @@ if (!noRemoteVersions) {
     'v0.2.1+commit.91a6b35',
     'v0.3.6+commit.3fc68da',
     'v0.4.0+commit.acd334c9',
+    'v0.4.10+commit.f0d539ae',
     'v0.4.11+commit.68ef5810',
     'v0.4.12+commit.194ff033',
     'v0.4.26+commit.4563c3fc'
