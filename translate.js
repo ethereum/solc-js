@@ -78,7 +78,7 @@ function translateJsonCompilerOutput (output, libraries) {
   ret['contracts'] = {};
   for (var contract in output['contracts']) {
     // Split name first, can be `contract`, `:contract` or `filename:contract`
-    var tmp = contract.match(/^(([^:]*):)?([^:]+)$/);
+    var tmp = contract.match(/^((.*):)?([^:]+)$/);
     if (tmp.length !== 4) {
       // Force abort
       return null;
