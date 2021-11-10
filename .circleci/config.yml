@@ -4,10 +4,10 @@ workflows:
     jobs:
       - node-v8
       - node-v10
-      - node-v12:
-          run_coveralls: true
+      - node-v12
       - node-v14
-      - node-v16
+      - node-v16:
+          run_coveralls: true
       - node-v17
 
 version: 2.1
