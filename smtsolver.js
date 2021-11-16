@@ -4,14 +4,20 @@ var fs = require('fs');
 var tmp = require('tmp');
 
 // Timeout in seconds.
-const timeout = 10;
+const timeout = 1000;
 
 var potentialSolvers = [
   {
+    name: 'Eldarica Vanilla',
+    command: 'eld',
+    params: '-horn -t:' + timeout
+  },
+  {
     name: 'Eldarica No Abstraction',
     command: 'eld',
-    params: '-horn -t:' + timeout + ' -abstract:off'
-  },
+    params: '-horn -ssol -t:' + timeout + ' -abstract:off'
+  }
+  /*
   {
     name: 'Eldarica Term Abstraction',
     command: 'eld',
@@ -32,6 +38,7 @@ var potentialSolvers = [
     command: 'z3',
     params: '-smt2 timeout=' + (timeout * 1000) + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
   }
+  */
 /*
   {
     name: 'z3',
@@ -50,12 +57,14 @@ function solve (query, solver) {
     throw new Error('No SMT solver available. Assertion checking will not be performed.');
   }
 
+  console.log("Running solver " + solver.name);
   var tmpFile = tmp.fileSync({ postfix: '.smt2' });
   fs.writeFileSync(tmpFile.name, query);
+  console.log(query);
   var solverOutput;
   try {
     solverOutput = execSync(
-      solvers[0].command + ' ' + solvers[0].params + ' ' + tmpFile.name, {
+      solver.command + ' ' + solver.params + ' ' + tmpFile.name, {
         stdio: 'pipe'
       }
     ).toString();
@@ -76,8 +85,8 @@ function solve (query, solver) {
   }
   // Trigger early manual cleanup
   tmpFile.removeCallback();
-  //console.log("OUTPUT IS");
-  //console.log(solverOutput);
+  console.log("OUTPUT IS");
+  console.log(solverOutput);
   return solverOutput;
 }
 

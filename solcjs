@@ -53,8 +53,12 @@ function stripBasePath(path) {
 }
 
 var callbacks = undefined
-if (program.basePath)
-  callbacks = {'import': readFileCallback};
+if (program.basePath) {
+  callbacks = {
+    'import': readFileCallback,
+    'smtSolver': smtchecker.smtCallback(smtsolver.smtSolver, smtsolver.availableSolvers[1])
+  };
+}
 
 if (program.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
