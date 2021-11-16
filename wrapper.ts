@@ -1,9 +1,10 @@
-const assert = require('assert');
-const translate = require('./translate.js');
-const Module = module.constructor;
-const https = require('follow-redirects').https;
-const MemoryStream = require('memorystream');
-const semver = require('semver');
+import translate from './translate';
+import { https } from 'follow-redirects';
+import * as MemoryStream from 'memorystream';
+import * as assert from 'assert';
+import * as semver from 'semver';
+
+const Module = module.constructor as any;
 
 function setupMethods (soljson) {
   let version;
@@ -209,7 +210,7 @@ function setupMethods (soljson) {
   }
 
   // Expects a Standard JSON I/O but supports old compilers
-  const compileStandardWrapper = function (input, readCallback) {
+  const compileStandardWrapper = function (input, readCallback?: any) {
     if (compileStandard !== null) {
       return compileStandard(input, readCallback);
     }
@@ -356,4 +357,4 @@ function setupMethods (soljson) {
   };
 }
 
-module.exports = setupMethods;
+export default setupMethods;

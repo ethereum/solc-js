@@ -1,8 +1,8 @@
-const tape = require('tape');
-const semver = require('semver');
-const solc = require('../index.js');
-const smtchecker = require('../smtchecker.js');
-const smtsolver = require('../smtsolver.js');
+import * as tape from 'tape';
+import * as semver from 'semver';
+import solc from '../';
+import smtchecker from '../smtchecker';
+import smtsolver from '../smtsolver';
 
 const preamble = 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n';
 //

@@ -1,4 +1,4 @@
-const linker = require('./linker.js');
+import linker from './linker';
 
 /// Translate old style version numbers to semver.
 /// Old style: 0.3.6-3fc68da5/Release-Emscripten/clang
@@ -28,7 +28,7 @@ function versionToSemver (version) {
 function translateErrors (ret, errors) {
   for (const error in errors) {
     let type = 'error';
-    let extractType = /^(.*):(\d+):(\d+):(.*):/;
+    let extractType: any = /^(.*):(\d+):(\d+):(.*):/;
     extractType = extractType.exec(errors[error]);
     if (extractType) {
       type = extractType[4].trim();
@@ -64,7 +64,7 @@ function translateGasEstimates (gasEstimates) {
 }
 
 function translateJsonCompilerOutput (output, libraries) {
-  const ret = {};
+  const ret: any = {};
 
   ret.errors = [];
   let errors;
@@ -93,7 +93,7 @@ function translateJsonCompilerOutput (output, libraries) {
     const contractInput = output.contracts[contract];
 
     const gasEstimates = contractInput.gasEstimates;
-    const translatedGasEstimates = {};
+    const translatedGasEstimates: any = {};
 
     if (gasEstimates.creation) {
       translatedGasEstimates.creation = {
@@ -193,8 +193,8 @@ function prettyPrintLegacyAssemblyJSON (assembly, source) {
   return formatAssemblyText(assembly, '', source);
 }
 
-module.exports = {
-  versionToSemver: versionToSemver,
-  translateJsonCompilerOutput: translateJsonCompilerOutput,
-  prettyPrintLegacyAssemblyJSON: prettyPrintLegacyAssemblyJSON
+export default {
+  versionToSemver,
+  translateJsonCompilerOutput,
+  prettyPrintLegacyAssemblyJSON
 };

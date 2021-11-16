@@ -1,7 +1,7 @@
-const commandExistsSync = require('command-exists').sync;
-const execSync = require('child_process').execSync;
-const fs = require('fs');
-const tmp = require('tmp');
+import { sync as commandExistsSync } from 'command-exists';
+import { execSync } from 'child_process';
+import * as fs from 'fs';
+import tmp from 'tmp';
 
 // Timeout in ms.
 const timeout = 10000;
@@ -67,7 +67,7 @@ function solve (query, solver) {
   return solverOutput;
 }
 
-module.exports = {
+export default {
   smtSolver: solve,
   availableSolvers: solvers
 };

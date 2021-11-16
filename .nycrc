@@ -1,0 +1,17 @@
+{
+    "exclude": [
+        "coverage",
+        "dist/soljson.js",
+        "**/test/**"
+    ],
+    "extensions": [
+        ".js"
+    ],
+    "report-dir": "./coverage",
+    "reporter": [
+        "lcov",
+        "html",
+        "text-summary"
+    ],
+    "temp-directory": "./coverage/.nyc_output"
+}

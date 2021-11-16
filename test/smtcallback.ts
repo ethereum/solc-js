@@ -1,11 +1,11 @@
-const assert = require('assert');
-const tape = require('tape');
-const fs = require('fs');
-const path = require('path');
-const semver = require('semver');
-const solc = require('../index.js');
-const smtchecker = require('../smtchecker.js');
-const smtsolver = require('../smtsolver.js');
+import * as assert from 'assert';
+import * as tape from 'tape';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as semver from 'semver';
+import solc from '../';
+import smtchecker from '../smtchecker';
+import smtsolver from '../smtsolver';
 
 const preamble = 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n';
 

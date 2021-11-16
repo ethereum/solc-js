@@ -2,19 +2,22 @@
   "name": "solc",
   "version": "0.8.11",
   "description": "Solidity compiler",
-  "main": "index.js",
+  "main": "dist/index.js",
   "bin": {
-    "solcjs": "solc.js"
+    "solcjs": "dist/solc.js"
   },
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix .",
-    "updateBinary": "node downloadCurrentVersion.js && node verifyVersion.js",
-    "prepublishOnly": "npm run updateBinary",
-    "pretest": "npm run lint",
-    "test": "tape ./test/index.js",
-    "coverage": "node ./node_modules/nyc/bin/nyc.js --reporter=lcov --reporter=text-summary ./node_modules/tape/bin/tape ./test/index.js",
-    "coveralls": "npm run coverage && node ./node_modules/coveralls/bin/coveralls.js <coverage/lcov.info"
+    "build": "tsc",
+    "postbuild": "node build/postbuild.js",
+    "lint": "eslint --ext .js,.ts .",
+    "lint:fix": "eslint --fix --ext .js,.ts .",
+    "updateBinary": "node build/clean.js && ts-node ./downloadCurrentVersion.ts && ts-node ./verifyVersion.ts",
+    "prepublishOnly": "npm run updateBinary npm && npm run build",
+    "copyTestFiles": "cp -r ./test/resources ./dist/test/",
+    "pretest": "npm run lint && npm run build && npm run copyTestFiles",
+    "test": "cd dist && tape ./test/index.js",
+    "coverage": "nyc npm run test",
+    "coveralls": "npm run coverage && coveralls <coverage/lcov.info"
   },
   "repository": {
     "type": "git",
@@ -29,15 +32,15 @@
     "node": ">=10.0.0"
   },
   "files": [
-    "abi.js",
-    "index.js",
-    "linker.js",
-    "smtchecker.js",
-    "smtsolver.js",
-    "solc.js",
-    "soljson.js",
-    "translate.js",
-    "wrapper.js"
+    "dist/abi.js",
+    "dist/index.js",
+    "dist/linker.js",
+    "dist/smtchecker.js",
+    "dist/smtsolver.js",
+    "dist/solc.js",
+    "dist/soljson.js",
+    "dist/translate.js",
+    "dist/wrapper.js"
   ],
   "author": "chriseth",
   "license": "MIT",
@@ -55,19 +58,27 @@
     "tmp": "0.0.33"
   },
   "devDependencies": {
+    "@types/node": "^16.11.7",
+    "@types/semver": "^7.3.9",
+    "@types/tape": "^4.13.2",
+    "@typescript-eslint/eslint-plugin": "^5.8.0",
+    "@typescript-eslint/parser": "^5.8.0",
     "coveralls": "^3.0.0",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.1",
-    "nyc": "^14.1.0",
+    "nyc": "^15.1.0",
     "tape": "^4.11.0",
-    "tape-spawn": "^1.4.2"
+    "tape-spawn": "^1.4.2",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
   },
   "nyc": {
     "exclude": [
-      "soljson.js"
+      "soljson.js",
+      "dist"
     ]
   }
 }

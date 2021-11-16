@@ -3,11 +3,11 @@
 // This is used to download the correct binary version
 // as part of the prepublish step.
 
-const pkg = require('./package.json');
-const fs = require('fs');
-const https = require('follow-redirects').https;
-const MemoryStream = require('memorystream');
-const keccak256 = require('js-sha3').keccak256;
+import * as pkg from './package.json';
+import * as fs from 'fs';
+import { https } from 'follow-redirects';
+import * as MemoryStream from 'memorystream';
+import { keccak256 } from 'js-sha3';
 
 function getVersionList (cb) {
   console.log('Retrieving available version list...');
