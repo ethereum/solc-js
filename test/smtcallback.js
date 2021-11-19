@@ -7,16 +7,16 @@ const solc = require('../index.js');
 const smtchecker = require('../smtchecker.js');
 const smtsolver = require('../smtsolver.js');
 
-var preamble = 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n';
+const preamble = 'pragma solidity >=0.0;\n// SPDX-License-Identifier: GPL-3.0\n';
 
 function collectErrors (solOutput) {
   if (solOutput === undefined) {
     return [];
   }
 
-  var errors = [];
-  for (var i in solOutput.errors) {
-    var error = solOutput.errors[i];
+  const errors = [];
+  for (const i in solOutput.errors) {
+    const error = solOutput.errors[i];
     if (error.message.includes('This is a pre-release compiler version')) {
       continue;
     }
@@ -30,7 +30,7 @@ function expectErrors (expectations, errors, ignoreCex) {
     return false;
   }
 
-  for (var i in errors) {
+  for (const i in errors) {
     if (errors[i].includes('Error trying to invoke SMT solver') || expectations[i].includes('Error trying to invoke SMT solver')) {
       continue;
     }
@@ -62,18 +62,18 @@ tape('SMTCheckerCallback', function (t) {
       return;
     }
 
-    var satCallback = function (query) {
+    const satCallback = function (query) {
       return { contents: 'sat\n' };
     };
-    var unsatCallback = function (query) {
+    const unsatCallback = function (query) {
       return { contents: 'unsat\n' };
     };
-    var errorCallback = function (query) {
+    const errorCallback = function (query) {
       return { error: 'Fake SMT solver error.' };
     };
 
-    var pragmaSMT = '';
-    var settings = {};
+    let pragmaSMT = '';
+    let settings = {};
     // `pragma experimental SMTChecker;` was deprecated in 0.8.4
     if (!semver.gt(solc.semver(), '0.8.3')) {
       pragmaSMT = 'pragma experimental SMTChecker;\n';
@@ -81,14 +81,14 @@ tape('SMTCheckerCallback', function (t) {
       settings = { modelChecker: { engine: 'all' } };
     }
 
-    var input = { 'a': { content: preamble + pragmaSMT + 'contract C { function f(uint x) public pure { assert(x > 0); } }' } };
-    var inputJSON = JSON.stringify({
+    const input = { a: { content: preamble + pragmaSMT + 'contract C { function f(uint x) public pure { assert(x > 0); } }' } };
+    const inputJSON = JSON.stringify({
       language: 'Solidity',
       sources: input,
       settings: settings
     });
 
-    var tests;
+    let tests;
     if (!semver.gt(solc.semver(), '0.6.8')) {
       // Up to version 0.6.8 there were no embedded solvers.
       tests = [
@@ -112,20 +112,20 @@ tape('SMTCheckerCallback', function (t) {
       ];
     }
 
-    for (var i in tests) {
-      var test = tests[i];
-      var output = JSON.parse(solc.compile(
+    for (const i in tests) {
+      const test = tests[i];
+      const output = JSON.parse(solc.compile(
         inputJSON,
         { smtSolver: test.cb }
       ));
-      var errors = collectErrors(output);
+      const errors = collectErrors(output);
       st.ok(expectErrors(errors, test.expectations));
     }
     st.end();
   });
 
   t.test('Solidity smtCheckerTests', function (st) {
-    var testdir = path.resolve(__dirname, 'smtCheckerTests/');
+    const testdir = path.resolve(__dirname, 'smtCheckerTests/');
     if (!fs.existsSync(testdir)) {
       st.skip('SMT checker tests not present.');
       st.end();
@@ -138,16 +138,16 @@ tape('SMTCheckerCallback', function (t) {
       return;
     }
 
-    var sources = [];
+    const sources = [];
 
     // BFS to get all test files
-    var dirs = [testdir];
-    var i;
+    const dirs = [testdir];
+    let i;
     while (dirs.length > 0) {
-      var dir = dirs.shift();
-      var files = fs.readdirSync(dir);
+      const dir = dirs.shift();
+      const files = fs.readdirSync(dir);
       for (i in files) {
-        var file = path.join(dir, files[i]);
+        const file = path.join(dir, files[i]);
         if (fs.statSync(file).isDirectory()) {
           dirs.push(file);
         } else {
@@ -157,29 +157,29 @@ tape('SMTCheckerCallback', function (t) {
     }
 
     // Read tests and collect expectations
-    var tests = [];
+    const tests = [];
     for (i in sources) {
       st.comment('Collecting ' + sources[i] + '...');
-      var source = fs.readFileSync(sources[i], 'utf8');
+      const source = fs.readFileSync(sources[i], 'utf8');
 
-      var engine;
-      var option = '// SMTEngine: ';
+      let engine;
+      const option = '// SMTEngine: ';
       if (source.includes(option)) {
-        let idx = source.indexOf(option);
+        const idx = source.indexOf(option);
         if (source.indexOf(option, idx + 1) !== -1) {
           st.skip('SMTEngine option given multiple times.');
           st.end();
           return;
         }
-        let re = new RegExp(option + '(\\w+)');
-        let m = source.match(re);
+        const re = new RegExp(option + '(\\w+)');
+        const m = source.match(re);
         assert(m !== undefined);
         assert(m.length >= 2);
         engine = m[1];
       }
 
-      var expected = [];
-      var delimiter = '// ----';
+      let expected = [];
+      const delimiter = '// ----';
       if (source.includes(delimiter)) {
         expected = source.substring(source.indexOf('// ----') + 8, source.length).split('\n');
         // Sometimes the last expectation line ends with a '\n'
@@ -197,23 +197,23 @@ tape('SMTCheckerCallback', function (t) {
 
     // Run all tests
     for (i in tests) {
-      var test = tests[i];
+      const test = tests[i];
 
       // Z3's nondeterminism sometimes causes a test to timeout in one context but not in the other,
       // so if we see timeout we skip a potentially misleading run.
-      var findError = (errorMsg) => { return errorMsg.includes('Error trying to invoke SMT solver'); };
+      const findError = (errorMsg) => { return errorMsg.includes('Error trying to invoke SMT solver'); };
       if (test.expectations.find(findError) !== undefined) {
         st.skip('Test contains timeout which may have been caused by nondeterminism.');
         continue;
       }
 
-      var settings = {};
+      let settings = {};
       // `pragma experimental SMTChecker;` was deprecated in 0.8.4
       if (semver.gt(solc.semver(), '0.8.3')) {
-        let engine = test.engine !== undefined ? test.engine : 'all';
+        const engine = test.engine !== undefined ? test.engine : 'all';
         settings = { modelChecker: { engine: engine } };
       }
-      var output = JSON.parse(solc.compile(
+      const output = JSON.parse(solc.compile(
         JSON.stringify({
           language: 'Solidity',
           sources: test.solidity,

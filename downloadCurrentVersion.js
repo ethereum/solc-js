@@ -3,16 +3,16 @@
 // This is used to download the correct binary version
 // as part of the prepublish step.
 
-var pkg = require('./package.json');
-var fs = require('fs');
-var https = require('follow-redirects').https;
-var MemoryStream = require('memorystream');
-var keccak256 = require('js-sha3').keccak256;
+const pkg = require('./package.json');
+const fs = require('fs');
+const https = require('follow-redirects').https;
+const MemoryStream = require('memorystream');
+const keccak256 = require('js-sha3').keccak256;
 
 function getVersionList (cb) {
   console.log('Retrieving available version list...');
 
-  var mem = new MemoryStream(null, { readable: false });
+  const mem = new MemoryStream(null, { readable: false });
   https.get('https://solc-bin.ethereum.org/bin/list.json', function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
@@ -39,7 +39,7 @@ function downloadBinary (outputName, version, expectedHash) {
     process.exit(1);
   });
 
-  var file = fs.createWriteStream(outputName, { encoding: 'binary' });
+  const file = fs.createWriteStream(outputName, { encoding: 'binary' });
   https.get('https://solc-bin.ethereum.org/bin/' + version, function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
@@ -48,7 +48,7 @@ function downloadBinary (outputName, version, expectedHash) {
     response.pipe(file);
     file.on('finish', function () {
       file.close(function () {
-        var hash = '0x' + keccak256(fs.readFileSync(outputName, { encoding: 'binary' }));
+        const hash = '0x' + keccak256(fs.readFileSync(outputName, { encoding: 'binary' }));
         if (expectedHash !== hash) {
           console.log('Hash mismatch: ' + expectedHash + ' vs ' + hash);
           process.exit(1);
@@ -63,13 +63,13 @@ console.log('Downloading correct solidity binary...');
 
 getVersionList(function (list) {
   list = JSON.parse(list);
-  var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
-  var releaseFileName = list.releases[wanted];
-  var expectedFile = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0];
+  const wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
+  const releaseFileName = list.releases[wanted];
+  const expectedFile = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0];
   if (!expectedFile) {
     console.log('Version list is invalid or corrupted?');
     process.exit(1);
   }
-  var expectedHash = expectedFile.keccak256;
+  const expectedHash = expectedFile.keccak256;
   downloadBinary('soljson.js', releaseFileName, expectedHash);
 });
