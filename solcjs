@@ -1,17 +1,11 @@
 #!/usr/bin/env node
 
-// hold on to any exception handlers that existed prior to this script running, we'll be adding them back at the end
-var originalUncaughtExceptionListeners = process.listeners("uncaughtException");
-
 var fs = require('fs-extra');
 var os = require('os');
 var path = require('path');
 var solc = require('./index.js');
 var smtchecker = require('./smtchecker.js');
 var smtsolver = require('./smtsolver.js');
-// FIXME: remove annoying exception catcher of Emscripten
-//        see https://github.com/chriseth/browser-solidity/issues/167
-process.removeAllListeners('uncaughtException');
 var commander = require('commander');
 
 const program = new commander.Command();
@@ -248,11 +242,6 @@ for (var fileName in output.contracts) {
     }
   }
 }
-
-// Put back original exception handlers.
-originalUncaughtExceptionListeners.forEach(function (listener) {
-  process.addListener('uncaughtException', listener);
-});
 
 if (hasError) {
   process.exit(1);
