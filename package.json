@@ -48,7 +48,6 @@
     "command-exists": "^1.2.8",
     "commander": "^8.1.0",
     "follow-redirects": "^1.12.1",
-    "fs-extra": "^0.30.0",
     "js-sha3": "0.8.0",
     "memorystream": "^0.3.1",
     "require-from-string": "^2.0.0",
