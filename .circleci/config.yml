@@ -2,7 +2,6 @@ workflows:
   version: 2.1
   node-multi-build:
     jobs:
-      - node-v8
       - node-v10
       - node-v12
       - node-v14
@@ -47,18 +46,6 @@ jobs:
           paths:
             - ./node_modules
 
-  node-v4:
-    <<: *node-base
-    docker:
-      - image: circleci/node:4
-  node-v6:
-    <<: *node-base
-    docker:
-      - image: circleci/node:6
-  node-v8:
-    <<: *node-base
-    docker:
-      - image: circleci/node:8
   node-v10:
     <<: *node-base
     docker:
