@@ -1,4 +1,4 @@
-var linker = require('./linker.js');
+const linker = require('./linker.js');
 
 /// Translate old style version numbers to semver.
 /// Old style: 0.3.6-3fc68da5/Release-Emscripten/clang
@@ -11,7 +11,7 @@ var linker = require('./linker.js');
 /// New style: 0.4.5+commit.b318366e.Emscripten.clang
 function versionToSemver (version) {
   // FIXME: parse more detail, but this is a good start
-  var parsed = version.match(/^([0-9]+\.[0-9]+\.[0-9]+)-([0-9a-f]{8})[/*].*$/);
+  const parsed = version.match(/^([0-9]+\.[0-9]+\.[0-9]+)-([0-9a-f]{8})[/*].*$/);
   if (parsed) {
     return parsed[1] + '+commit.' + parsed[2];
   }
@@ -26,9 +26,9 @@ function versionToSemver (version) {
 }
 
 function translateErrors (ret, errors) {
-  for (var error in errors) {
-    var type = 'error';
-    var extractType = /^(.*):(\d+):(\d+):(.*):/;
+  for (const error in errors) {
+    let type = 'error';
+    let extractType = /^(.*):(\d+):(\d+):(.*):/;
     extractType = extractType.exec(errors[error]);
     if (extractType) {
       type = extractType[4].trim();
@@ -56,96 +56,96 @@ function translateGasEstimates (gasEstimates) {
     return gasEstimates.toString();
   }
 
-  var gasEstimatesTranslated = {};
-  for (var func in gasEstimates) {
+  const gasEstimatesTranslated = {};
+  for (const func in gasEstimates) {
     gasEstimatesTranslated[func] = translateGasEstimates(gasEstimates[func]);
   }
   return gasEstimatesTranslated;
 }
 
 function translateJsonCompilerOutput (output, libraries) {
-  var ret = {};
+  const ret = {};
 
-  ret['errors'] = [];
-  var errors;
-  if (output['error']) {
-    errors = [ output['error'] ];
+  ret.errors = [];
+  let errors;
+  if (output.error) {
+    errors = [output.error];
   } else {
-    errors = output['errors'];
+    errors = output.errors;
   }
-  translateErrors(ret['errors'], errors);
+  translateErrors(ret.errors, errors);
 
-  ret['contracts'] = {};
-  for (var contract in output['contracts']) {
+  ret.contracts = {};
+  for (const contract in output.contracts) {
     // Split name first, can be `contract`, `:contract` or `filename:contract`
-    var tmp = contract.match(/^((.*):)?([^:]+)$/);
+    const tmp = contract.match(/^((.*):)?([^:]+)$/);
     if (tmp.length !== 4) {
       // Force abort
       return null;
     }
-    var fileName = tmp[2];
+    let fileName = tmp[2];
     if (fileName === undefined) {
       // this is the case of `contract`
       fileName = '';
     }
-    var contractName = tmp[3];
+    const contractName = tmp[3];
 
-    var contractInput = output['contracts'][contract];
+    const contractInput = output.contracts[contract];
 
-    var gasEstimates = contractInput['gasEstimates'];
-    var translatedGasEstimates = {};
+    const gasEstimates = contractInput.gasEstimates;
+    const translatedGasEstimates = {};
 
-    if (gasEstimates['creation']) {
-      translatedGasEstimates['creation'] = {
-        'codeDepositCost': translateGasEstimates(gasEstimates['creation'][1]),
-        'executionCost': translateGasEstimates(gasEstimates['creation'][0])
+    if (gasEstimates.creation) {
+      translatedGasEstimates.creation = {
+        codeDepositCost: translateGasEstimates(gasEstimates.creation[1]),
+        executionCost: translateGasEstimates(gasEstimates.creation[0])
       };
     }
-    if (gasEstimates['internal']) {
-      translatedGasEstimates['internal'] = translateGasEstimates(gasEstimates['internal']);
+    if (gasEstimates.internal) {
+      translatedGasEstimates.internal = translateGasEstimates(gasEstimates.internal);
     }
-    if (gasEstimates['external']) {
-      translatedGasEstimates['external'] = translateGasEstimates(gasEstimates['external']);
+    if (gasEstimates.external) {
+      translatedGasEstimates.external = translateGasEstimates(gasEstimates.external);
     }
 
-    var contractOutput = {
-      'abi': JSON.parse(contractInput['interface']),
-      'metadata': contractInput['metadata'],
-      'evm': {
-        'legacyAssembly': contractInput['assembly'],
-        'bytecode': {
-          'object': contractInput['bytecode'] && linker.linkBytecode(contractInput['bytecode'], libraries || {}),
-          'opcodes': contractInput['opcodes'],
-          'sourceMap': contractInput['srcmap'],
-          'linkReferences': contractInput['bytecode'] && linker.findLinkReferences(contractInput['bytecode'])
+    const contractOutput = {
+      abi: JSON.parse(contractInput.interface),
+      metadata: contractInput.metadata,
+      evm: {
+        legacyAssembly: contractInput.assembly,
+        bytecode: {
+          object: contractInput.bytecode && linker.linkBytecode(contractInput.bytecode, libraries || {}),
+          opcodes: contractInput.opcodes,
+          sourceMap: contractInput.srcmap,
+          linkReferences: contractInput.bytecode && linker.findLinkReferences(contractInput.bytecode)
         },
-        'deployedBytecode': {
-          'object': contractInput['runtimeBytecode'] && linker.linkBytecode(contractInput['runtimeBytecode'], libraries || {}),
-          'sourceMap': contractInput['srcmapRuntime'],
-          'linkReferences': contractInput['runtimeBytecode'] && linker.findLinkReferences(contractInput['runtimeBytecode'])
+        deployedBytecode: {
+          object: contractInput.runtimeBytecode && linker.linkBytecode(contractInput.runtimeBytecode, libraries || {}),
+          sourceMap: contractInput.srcmapRuntime,
+          linkReferences: contractInput.runtimeBytecode && linker.findLinkReferences(contractInput.runtimeBytecode)
         },
-        'methodIdentifiers': contractInput['functionHashes'],
-        'gasEstimates': translatedGasEstimates
+        methodIdentifiers: contractInput.functionHashes,
+        gasEstimates: translatedGasEstimates
       }
     };
 
-    if (!ret['contracts'][fileName]) {
-      ret['contracts'][fileName] = {};
+    if (!ret.contracts[fileName]) {
+      ret.contracts[fileName] = {};
     }
 
-    ret['contracts'][fileName][contractName] = contractOutput;
+    ret.contracts[fileName][contractName] = contractOutput;
   }
 
-  var sourceMap = {};
-  for (var sourceId in output['sourceList']) {
-    sourceMap[output['sourceList'][sourceId]] = sourceId;
+  const sourceMap = {};
+  for (const sourceId in output.sourceList) {
+    sourceMap[output.sourceList[sourceId]] = sourceId;
   }
 
-  ret['sources'] = {};
-  for (var source in output['sources']) {
-    ret['sources'][source] = {
+  ret.sources = {};
+  for (const source in output.sources) {
+    ret.sources[source] = {
       id: sourceMap[source],
-      legacyAST: output['sources'][source].AST
+      legacyAST: output.sources[source].AST
     };
   }
 
@@ -164,10 +164,10 @@ function formatAssemblyText (asm, prefix, source) {
   if (typeof asm === 'string' || asm === null || asm === undefined) {
     return prefix + (asm || '') + '\n';
   }
-  var text = prefix + '.code\n';
+  let text = prefix + '.code\n';
   asm['.code'].forEach(function (item, i) {
-    var v = item.value === undefined ? '' : item.value;
-    var src = '';
+    const v = item.value === undefined ? '' : item.value;
+    let src = '';
     if (source !== undefined && item.begin !== undefined && item.end !== undefined) {
       src = escapeString(source.slice(item.begin, item.end));
     }
@@ -180,9 +180,9 @@ function formatAssemblyText (asm, prefix, source) {
     text += prefix + item.name + ' ' + v + '\t\t\t' + src + '\n';
   });
   text += prefix + '.data\n';
-  var asmData = asm['.data'] || [];
-  for (var i in asmData) {
-    var item = asmData[i];
+  const asmData = asm['.data'] || [];
+  for (const i in asmData) {
+    const item = asmData[i];
     text += '  ' + prefix + '' + i + ':\n';
     text += formatAssemblyText(item, prefix + '    ', source);
   }

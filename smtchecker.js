@@ -4,18 +4,18 @@
 // another run.
 // Returns null if no solving is requested.
 function handleSMTQueries (inputJSON, outputJSON, solver) {
-  var auxInputReq = outputJSON.auxiliaryInputRequested;
+  const auxInputReq = outputJSON.auxiliaryInputRequested;
   if (!auxInputReq) {
     return null;
   }
 
-  var queries = auxInputReq.smtlib2queries;
+  const queries = auxInputReq.smtlib2queries;
   if (!queries || Object.keys(queries).length === 0) {
     return null;
   }
 
-  var responses = {};
-  for (var query in queries) {
+  const responses = {};
+  for (const query in queries) {
     responses[query] = solver(queries[query]);
   }
 
@@ -28,7 +28,7 @@ function handleSMTQueries (inputJSON, outputJSON, solver) {
 function smtCallback (solver) {
   return function (query) {
     try {
-      var result = solver(query);
+      const result = solver(query);
       return { contents: result };
     } catch (err) {
       return { error: err };

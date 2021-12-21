@@ -1,11 +1,11 @@
-var semver = require('semver');
+const semver = require('semver');
 
 function update (compilerVersion, abi) {
-  var hasConstructor = false;
-  var hasFallback = false;
+  let hasConstructor = false;
+  let hasFallback = false;
 
-  for (var i = 0; i < abi.length; i++) {
-    var item = abi[i];
+  for (let i = 0; i < abi.length; i++) {
+    const item = abi[i];
 
     if (item.type === 'constructor') {
       hasConstructor = true;

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-var semver = require('semver');
+const semver = require('semver');
 
-var packageVersion = require('./package.json').version;
-var solcVersion = require('./index.js').version();
+const packageVersion = require('./package.json').version;
+const solcVersion = require('./index.js').version();
 
 console.log('solcVersion: ' + solcVersion);
 console.log('packageVersion: ' + packageVersion);

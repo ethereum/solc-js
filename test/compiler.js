@@ -5,7 +5,7 @@ const solc = require('../index.js');
 const linker = require('../linker.js');
 const execSync = require('child_process').execSync;
 
-var noRemoteVersions = (process.argv.indexOf('--no-remote-versions') >= 0);
+const noRemoteVersions = (process.argv.indexOf('--no-remote-versions') >= 0);
 
 function runTests (solc, versionText) {
   console.log(`Running tests with ${versionText} ${solc.version()}`);
@@ -13,7 +13,7 @@ function runTests (solc, versionText) {
   function resplitFileNameOnFirstColon (fileName, contractName) {
     assert(!contractName.includes(':'));
 
-    let contractNameComponents = fileName.split(':');
+    const contractNameComponents = fileName.split(':');
     const truncatedFileName = contractNameComponents.shift();
     contractNameComponents.push(contractName);
 
@@ -22,13 +22,13 @@ function runTests (solc, versionText) {
 
   function getBytecode (output, fileName, contractName) {
     try {
-      var outputContract;
+      let outputContract;
       if (semver.lt(solc.semver(), '0.4.9')) {
         outputContract = output.contracts[contractName];
       } else {
         outputContract = output.contracts[fileName + ':' + contractName];
       }
-      return outputContract['bytecode'];
+      return outputContract.bytecode;
     } catch (e) {
       return '';
     }
@@ -36,7 +36,7 @@ function runTests (solc, versionText) {
 
   function getBytecodeStandard (output, fileName, contractName) {
     try {
-      var outputFile;
+      let outputFile;
       if (semver.lt(solc.semver(), '0.4.9')) {
         outputFile = output.contracts[''];
       } else {
@@ -45,7 +45,7 @@ function runTests (solc, versionText) {
         }
         outputFile = output.contracts[fileName];
       }
-      return outputFile[contractName]['evm']['bytecode']['object'];
+      return outputFile[contractName].evm.bytecode.object;
     } catch (e) {
       return '';
     }
@@ -53,7 +53,7 @@ function runTests (solc, versionText) {
 
   function getGasEstimate (output, fileName, contractName) {
     try {
-      var outputFile;
+      let outputFile;
       if (semver.lt(solc.semver(), '0.4.9')) {
         outputFile = output.contracts[''];
       } else {
@@ -62,7 +62,7 @@ function runTests (solc, versionText) {
         }
         outputFile = output.contracts[fileName];
       }
-      return outputFile[contractName]['evm']['gasEstimates'];
+      return outputFile[contractName].evm.gasEstimates;
     } catch (e) {
       return '';
     }
@@ -70,7 +70,7 @@ function runTests (solc, versionText) {
 
   function expectError (output, errorType, message) {
     if (output.errors) {
-      for (var error in output.errors) {
+      for (let error in output.errors) {
         error = output.errors[error];
         if (error.type === errorType) {
           if (message) {
@@ -88,7 +88,7 @@ function runTests (solc, versionText) {
 
   function expectNoError (output) {
     if (output.errors) {
-      for (var error in output.errors) {
+      for (let error in output.errors) {
         error = output.errors[error];
         if (error.severity === 'error') {
           return false;
@@ -99,7 +99,7 @@ function runTests (solc, versionText) {
   }
 
   tape(versionText, function (t) {
-    var tape = t.test;
+    const tape = t.test;
 
     tape('Version and license', function (t) {
       t.test('check version', function (st) {
@@ -124,9 +124,9 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var output = JSON.parse(solc.lowlevel.compileSingle('contract A { function g() public {} }'));
+        const output = JSON.parse(solc.lowlevel.compileSingle('contract A { function g() public {} }'));
         st.ok('contracts' in output);
-        var bytecode = getBytecode(output, '', 'A');
+        const bytecode = getBytecode(output, '', 'A');
         st.ok(typeof bytecode === 'string');
         st.ok(bytecode.length > 0);
         st.end();
@@ -146,7 +146,7 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var output = JSON.parse(solc.lowlevel.compileSingle('contract x { this is an invalid contract }'));
+        const output = JSON.parse(solc.lowlevel.compileSingle('contract x { this is an invalid contract }'));
         if (semver.lt(solc.semver(), '0.1.4')) {
           st.ok(output.error.indexOf('Parser error: Expected identifier') !== -1);
           st.end();
@@ -156,7 +156,7 @@ function runTests (solc, versionText) {
         st.ok('errors' in output);
         // Check if the ParserError exists, but allow others too
         st.ok(output.errors.length >= 1);
-        for (var error in output.errors) {
+        for (const error in output.errors) {
           // Error should be something like:
           //   ParserError
           //   Error: Expected identifier
@@ -181,15 +181,15 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
+        const input = {
           'a.sol': 'contract A { function f() public returns (uint) { return 7; } }',
           'b.sol': 'import "a.sol"; contract B is A { function g() public { f(); } }'
         };
-        var output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({sources: input})));
-        var B = getBytecode(output, 'b.sol', 'B');
+        const output = JSON.parse(solc.lowlevel.compileMulti(JSON.stringify({ sources: input })));
+        const B = getBytecode(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
-        var A = getBytecode(output, 'a.sol', 'A');
+        const A = getBytecode(output, 'a.sol', 'A');
         st.ok(typeof A === 'string');
         st.ok(A.length > 0);
         st.end();
@@ -203,7 +203,7 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
+        const input = {
           'b.sol': 'import "a.sol"; contract B is A { function g() public { f(); } }'
         };
         function findImports (path) {
@@ -213,11 +213,11 @@ function runTests (solc, versionText) {
             return { error: 'File not found' };
           }
         }
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports }));
-        var B = getBytecode(output, 'b.sol', 'B');
+        const output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, { import: findImports }));
+        const B = getBytecode(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
-        var A = getBytecode(output, 'a.sol', 'A');
+        const A = getBytecode(output, 'a.sol', 'A');
         st.ok(typeof A === 'string');
         st.ok(A.length > 0);
         st.end();
@@ -231,18 +231,18 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
+        const input = {
           'b.sol': 'import "a.sol"; contract B { function g() public { f(); } }'
         };
         function findImports (path) {
           return { error: 'File not found' };
         }
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports }));
+        const output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, { import: findImports }));
         st.plan(3);
         st.ok('errors' in output);
         // Check if the ParserError exists, but allow others too
         st.ok(output.errors.length >= 1);
-        for (var error in output.errors) {
+        for (const error in output.errors) {
           // Error should be something like:
           //   cont.sol:1:1: ParserError: Source "lib.sol" not found: File not found
           //   cont.sol:1:1: Error: Source "lib.sol" not found: File not found
@@ -265,14 +265,14 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
+        const input = {
           'b.sol': 'import "a.sol"; contract B { function g() public { f(); } }'
         };
         function findImports (path) {
           throw new Error('Could not implement this interface properly...');
         }
         st.throws(function () {
-          solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, { import: findImports });
+          solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, { import: findImports });
         }, /^Error: Could not implement this interface properly.../);
         st.end();
       });
@@ -285,11 +285,11 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
+        const input = {
           'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
         };
         st.throws(function () {
-          solc.lowlevel.compileCallback(JSON.stringify({sources: input}), 0, "this isn't a callback");
+          solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, "this isn't a callback");
         }, /Invalid callback object specified./);
         st.end();
       });
@@ -302,15 +302,15 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
+        const input = {
           'b.sol': 'import "a.sol"; contract B is A { function g() public { f(); } }'
         };
-        var output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({sources: input})));
+        const output = JSON.parse(solc.lowlevel.compileCallback(JSON.stringify({ sources: input })));
         st.plan(3);
         st.ok('errors' in output);
         // Check if the ParserError exists, but allow others too
         st.ok(output.errors.length >= 1);
-        for (var error in output.errors) {
+        for (const error in output.errors) {
           // Error should be something like:
           //   cont.sol:1:1: ParserError: Source "lib.sol" not found: File import callback not supported
           //   cont.sol:1:1: Error: Source "lib.sol" not found: File import callback not supported
@@ -332,34 +332,34 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode' ]
+                '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             'a.sol': {
-              'content': 'contract A { function f() public returns (uint) { return 7; } }'
+              content: 'contract A { function f() public returns (uint) { return 7; } }'
             },
             'b.sol': {
-              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
+              content: 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
 
         function bytecodeExists (output, fileName, contractName) {
           try {
-            return output.contracts[fileName][contractName]['evm']['bytecode']['object'].length > 0;
+            return output.contracts[fileName][contractName].evm.bytecode.object.length > 0;
           } catch (e) {
             return false;
           }
         }
 
-        var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
+        const output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
         st.ok(bytecodeExists(output, 'a.sol', 'A'));
         st.ok(bytecodeExists(output, 'b.sol', 'B'));
         st.end();
@@ -379,27 +379,27 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode' ]
+                '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             'x.sol': {
-              'content': 'contract x { this is an invalid contract }'
+              content: 'contract x { this is an invalid contract }'
             }
           }
         };
-        var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
+        const output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
         st.plan(3);
         st.ok('errors' in output);
         st.ok(output.errors.length >= 1);
         // Check if the ParserError exists, but allow others too
-        for (var error in output.errors) {
+        for (const error in output.errors) {
           if (output.errors[error].type === 'ParserError') {
             st.ok(true);
           }
@@ -414,18 +414,18 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode' ]
+                '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             'b.sol': {
-              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
+              content: 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
@@ -440,48 +440,48 @@ function runTests (solc, versionText) {
 
         function bytecodeExists (output, fileName, contractName) {
           try {
-            return output.contracts[fileName][contractName]['evm']['bytecode']['object'].length > 0;
+            return output.contracts[fileName][contractName].evm.bytecode.object.length > 0;
           } catch (e) {
             return false;
           }
         }
 
-        var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), { import: findImports }));
+        const output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input), { import: findImports }));
         st.ok(bytecodeExists(output, 'a.sol', 'A'));
         st.ok(bytecodeExists(output, 'b.sol', 'B'));
         st.end();
       });
 
       t.test('compiling standard JSON (single file)', function (st) {
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
+                '*': ['evm.bytecode', 'evm.gasEstimates']
               }
             }
           },
-          'sources': {
+          sources: {
             'c.sol': {
-              'content': 'contract C { function g() public { } function h() internal {} }'
+              content: 'contract C { function g() public { } function h() internal {} }'
             }
           }
         };
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var C = getBytecodeStandard(output, 'c.sol', 'C');
+        const C = getBytecodeStandard(output, 'c.sol', 'C');
         st.ok(typeof C === 'string');
         st.ok(C.length > 0);
-        var CGas = getGasEstimate(output, 'c.sol', 'C');
+        const CGas = getGasEstimate(output, 'c.sol', 'C');
         st.ok(typeof CGas === 'object');
-        st.ok(typeof CGas['creation'] === 'object');
-        st.ok(typeof CGas['creation']['codeDepositCost'] === 'string');
-        st.ok(typeof CGas['external'] === 'object');
-        st.ok(typeof CGas['external']['g()'] === 'string');
-        st.ok(typeof CGas['internal'] === 'object');
-        st.ok(typeof CGas['internal']['h()'] === 'string');
+        st.ok(typeof CGas.creation === 'object');
+        st.ok(typeof CGas.creation.codeDepositCost === 'string');
+        st.ok(typeof CGas.external === 'object');
+        st.ok(typeof CGas.external['g()'] === 'string');
+        st.ok(typeof CGas.internal === 'object');
+        st.ok(typeof CGas.internal['h()'] === 'string');
         st.end();
       });
 
@@ -493,40 +493,40 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
+                '*': ['evm.bytecode', 'evm.gasEstimates']
               }
             }
           },
-          'sources': {
+          sources: {
             'a.sol': {
-              'content': 'contract A { function f() public returns (uint) { return 7; } }'
+              content: 'contract A { function f() public returns (uint) { return 7; } }'
             },
             'b.sol': {
-              'content': 'import "a.sol"; contract B is A { function g() public { f(); } function h() internal {} }'
+              content: 'import "a.sol"; contract B is A { function g() public { f(); } function h() internal {} }'
             }
           }
         };
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var B = getBytecodeStandard(output, 'b.sol', 'B');
+        const B = getBytecodeStandard(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
         st.ok(Object.keys(linker.findLinkReferences(B)).length === 0);
-        var BGas = getGasEstimate(output, 'b.sol', 'B');
+        const BGas = getGasEstimate(output, 'b.sol', 'B');
         st.ok(typeof BGas === 'object');
-        st.ok(typeof BGas['creation'] === 'object');
-        st.ok(typeof BGas['creation']['codeDepositCost'] === 'string');
-        st.ok(typeof BGas['external'] === 'object');
-        st.ok(typeof BGas['external']['g()'] === 'string');
-        st.ok(typeof BGas['internal'] === 'object');
-        st.ok(typeof BGas['internal']['h()'] === 'string');
-        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        st.ok(typeof BGas.creation === 'object');
+        st.ok(typeof BGas.creation.codeDepositCost === 'string');
+        st.ok(typeof BGas.external === 'object');
+        st.ok(typeof BGas.external['g()'] === 'string');
+        st.ok(typeof BGas.internal === 'object');
+        st.ok(typeof BGas.internal['h()'] === 'string');
+        const A = getBytecodeStandard(output, 'a.sol', 'A');
         st.ok(typeof A === 'string');
         st.ok(A.length > 0);
         st.end();
@@ -540,33 +540,33 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var isVersion6 = semver.gt(solc.semver(), '0.5.99');
-        var source;
+        const isVersion6 = semver.gt(solc.semver(), '0.5.99');
+        let source;
         if (isVersion6) {
           source = 'abstract contract C { function f() public virtual; }';
         } else {
           source = 'contract C { function f() public; }';
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode', 'evm.gasEstimates' ]
+                '*': ['evm.bytecode', 'evm.gasEstimates']
               }
             }
           },
-          'sources': {
+          sources: {
             'c.sol': {
-              'content': source
+              content: source
             }
           }
         };
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var C = getBytecodeStandard(output, 'c.sol', 'C');
+        const C = getBytecodeStandard(output, 'c.sol', 'C');
         st.ok(typeof C === 'string');
         st.ok(C.length === 0);
         st.end();
@@ -580,18 +580,18 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode' ]
+                '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             'b.sol': {
-              'content': 'import "a.sol"; contract B is A { function g() public { f(); } }'
+              content: 'import "a.sol"; contract B is A { function g() public { f(); } }'
             }
           }
         };
@@ -604,12 +604,12 @@ function runTests (solc, versionText) {
           }
         }
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
+        const output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
         st.ok(expectNoError(output));
-        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        const A = getBytecodeStandard(output, 'a.sol', 'A');
         st.ok(typeof A === 'string');
         st.ok(A.length > 0);
-        var B = getBytecodeStandard(output, 'b.sol', 'B');
+        const B = getBytecodeStandard(output, 'b.sol', 'B');
         st.ok(typeof B === 'string');
         st.ok(B.length > 0);
         st.ok(Object.keys(linker.findLinkReferences(B)).length === 0);
@@ -631,37 +631,37 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'libraries': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            libraries: {
               'lib.sol': {
-                'L': '0x4200000000000000000000000000000000000001'
+                L: '0x4200000000000000000000000000000000000001'
               }
             },
-            'outputSelection': {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode' ]
+                '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             'lib.sol': {
-              'content': 'library L { function f() public returns (uint) { return 7; } }'
+              content: 'library L { function f() public returns (uint) { return 7; } }'
             },
             'a.sol': {
-              'content': 'import "lib.sol"; contract A { function g() public { L.f(); } }'
+              content: 'import "lib.sol"; contract A { function g() public { L.f(); } }'
             }
           }
         };
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        const A = getBytecodeStandard(output, 'a.sol', 'A');
         st.ok(typeof A === 'string');
         st.ok(A.length > 0);
         st.ok(Object.keys(linker.findLinkReferences(A)).length === 0);
-        var L = getBytecodeStandard(output, 'lib.sol', 'L');
+        const L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
         st.end();
@@ -675,23 +675,23 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode' ]
+                '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             'c.sol': {
-              'content': 'contract C { function f() public { } }'
+              content: 'contract C { function f() public { } }'
             }
           }
         };
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectError(output, 'Warning', 'Source file does not specify required compiler version!'));
         st.end();
       });
@@ -710,63 +710,63 @@ function runTests (solc, versionText) {
           return;
         }
 
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'libraries': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            libraries: {
               'lib.sol': {
-                'L': '0x4200000000000000000000000000000000000001'
+                L: '0x4200000000000000000000000000000000000001'
               }
             },
-            'outputSelection': {
+            outputSelection: {
               '*': {
-                '*': [ 'evm.bytecode' ]
+                '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             'lib.sol': {
-              'content': 'library L { function f() public returns (uint) { return 7; } }'
+              content: 'library L { function f() public returns (uint) { return 7; } }'
             },
             'a.sol': {
-              'content': 'import "lib.sol"; contract A { function g() public { L.f(); } }'
+              content: 'import "lib.sol"; contract A { function g() public { L.f(); } }'
             }
           }
         };
 
-        var output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
+        const output = JSON.parse(solc.lowlevel.compileStandard(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var A = getBytecodeStandard(output, 'a.sol', 'A');
+        const A = getBytecodeStandard(output, 'a.sol', 'A');
         st.ok(typeof A === 'string');
         st.ok(A.length > 0);
         st.ok(Object.keys(linker.findLinkReferences(A)).length === 0);
-        var L = getBytecodeStandard(output, 'lib.sol', 'L');
+        const L = getBytecodeStandard(output, 'lib.sol', 'L');
         st.ok(typeof L === 'string');
         st.ok(L.length > 0);
         st.end();
       });
 
       t.test('compiling standard JSON (invalid JSON)', function (st) {
-        var output = JSON.parse(solc.compile('{invalid'));
+        const output = JSON.parse(solc.compile('{invalid'));
         // TODO: change wrapper to output matching error
         st.ok(expectError(output, 'JSONError', 'Line 1, Column 2\n  Missing \'}\' or object member name') || expectError(output, 'JSONError', 'Invalid JSON supplied:'));
         st.end();
       });
 
       t.test('compiling standard JSON (invalid language)', function (st) {
-        var output = JSON.parse(solc.compile('{"language":"InvalidSolidity","sources":{"cont.sol":{"content":""}}}'));
+        const output = JSON.parse(solc.compile('{"language":"InvalidSolidity","sources":{"cont.sol":{"content":""}}}'));
         st.ok(expectError(output, 'JSONError', 'supported as a language.') && expectError(output, 'JSONError', '"Solidity"'));
         st.end();
       });
 
       t.test('compiling standard JSON (no sources)', function (st) {
-        var output = JSON.parse(solc.compile('{"language":"Solidity"}'));
+        const output = JSON.parse(solc.compile('{"language":"Solidity"}'));
         st.ok(expectError(output, 'JSONError', 'No input sources specified.'));
         st.end();
       });
 
       t.test('compiling standard JSON (multiple sources on old compiler)', function (st) {
-        var output = JSON.parse(solc.compile('{"language":"Solidity","sources":{"cont.sol":{"content":"import \\"lib.sol\\";"},"lib.sol":{"content":""}}}'));
+        const output = JSON.parse(solc.compile('{"language":"Solidity","sources":{"cont.sol":{"content":"import \\"lib.sol\\";"},"lib.sol":{"content":""}}}'));
         if (solc.features.multipleInputs) {
           st.ok(expectNoError(output));
         } else {
@@ -776,50 +776,50 @@ function runTests (solc, versionText) {
       });
 
       t.test('compiling standard JSON (file names containing symbols)', function (st) {
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
                 '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             '!@#$%^&*()_+-=[]{}\\|"\';:~`<>,.?/': {
-              'content': 'contract C {}'
+              content: 'contract C {}'
             }
           }
         };
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var C = getBytecodeStandard(output, '!@#$%^&*()_+-=[]{}\\|"\';:~`<>,.?/', 'C');
+        const C = getBytecodeStandard(output, '!@#$%^&*()_+-=[]{}\\|"\';:~`<>,.?/', 'C');
         st.ok(typeof C === 'string');
         st.ok(C.length > 0);
         st.end();
       });
 
       t.test('compiling standard JSON (file names containing multiple semicolons)', function (st) {
-        var input = {
-          'language': 'Solidity',
-          'settings': {
-            'outputSelection': {
+        const input = {
+          language: 'Solidity',
+          settings: {
+            outputSelection: {
               '*': {
                 '*': ['evm.bytecode']
               }
             }
           },
-          'sources': {
+          sources: {
             'a:b:c:d:e:f:G.sol': {
-              'content': 'contract G {}'
+              content: 'contract G {}'
             }
           }
         };
 
-        var output = JSON.parse(solc.compile(JSON.stringify(input)));
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
         st.ok(expectNoError(output));
-        var G = getBytecodeStandard(output, 'a:b:c:d:e:f:G.sol', 'G');
+        const G = getBytecodeStandard(output, 'a:b:c:d:e:f:G.sol', 'G');
         st.ok(typeof G === 'string');
         st.ok(G.length > 0);
         st.end();
@@ -840,23 +840,23 @@ function runTests (solc, versionText) {
             st.end();
             return;
           }
-          var input = {
-            'language': 'Solidity',
-            'settings': {
-              'outputSelection': {
+          const input = {
+            language: 'Solidity',
+            settings: {
+              outputSelection: {
                 '*': {
-                  '*': [ 'evm.bytecode' ]
+                  '*': ['evm.bytecode']
                 }
               }
             },
-            'sources': {
+            sources: {
               'cont.sol': {
-                'content': 'contract x { function g() public {} }'
+                content: 'contract x { function g() public {} }'
               }
             }
           };
-          var output = JSON.parse(solcSnapshot.compile(JSON.stringify(input)));
-          var x = getBytecodeStandard(output, 'cont.sol', 'x');
+          const output = JSON.parse(solcSnapshot.compile(JSON.stringify(input)));
+          const x = getBytecodeStandard(output, 'cont.sol', 'x');
           st.ok(typeof x === 'string');
           st.ok(x.length > 0);
         });
@@ -885,7 +885,7 @@ if (!noRemoteVersions) {
     'v0.4.20+commit.3155dd80',
     'v0.4.26+commit.4563c3fc'
   ];
-  for (var version in versions) {
+  for (let version in versions) {
     version = versions[version];
     execSync(`curl -L -o /tmp/${version}.js https://solc-bin.ethereum.org/bin/soljson-${version}.js`);
     const newSolc = require('../wrapper.js')(require(`/tmp/${version}.js`));

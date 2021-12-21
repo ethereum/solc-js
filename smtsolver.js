@@ -1,11 +1,11 @@
-var commandExistsSync = require('command-exists').sync;
-var execSync = require('child_process').execSync;
-var fs = require('fs');
-var tmp = require('tmp');
+const commandExistsSync = require('command-exists').sync;
+const execSync = require('child_process').execSync;
+const fs = require('fs');
+const tmp = require('tmp');
 
 const timeout = 10000;
 
-var potentialSolvers = [
+const potentialSolvers = [
   {
     name: 'z3',
     params: '-smt2 rlimit=20000000 rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
@@ -15,21 +15,21 @@ var potentialSolvers = [
     params: '--lang=smt2 --tlimit=' + timeout
   }
 ];
-var solvers = potentialSolvers.filter(solver => commandExistsSync(solver.name));
+const solvers = potentialSolvers.filter(solver => commandExistsSync(solver.name));
 
 function solve (query) {
   if (solvers.length === 0) {
     throw new Error('No SMT solver available. Assertion checking will not be performed.');
   }
 
-  var tmpFile = tmp.fileSync({ postfix: '.smt2' });
+  const tmpFile = tmp.fileSync({ postfix: '.smt2' });
   fs.writeFileSync(tmpFile.name, query);
   // TODO For now only the first SMT solver found is used.
   // At some point a computation similar to the one done in
   // SMTPortfolio::check should be performed, where the results
   // given by different solvers are compared and an error is
   // reported if solvers disagree (i.e. SAT vs UNSAT).
-  var solverOutput;
+  let solverOutput;
   try {
     solverOutput = execSync(
       solvers[0].name + ' ' + solvers[0].params + ' ' + tmpFile.name, {
