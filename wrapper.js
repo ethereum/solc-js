@@ -1,6 +1,6 @@
 const assert = require('assert');
 const translate = require('./translate.js');
-const Module = require('module');
+const Module = module.constructor;
 const https = require('follow-redirects').https;
 const MemoryStream = require('memorystream');
 const semver = require('semver');
