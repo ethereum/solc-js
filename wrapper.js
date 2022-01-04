@@ -1,6 +1,6 @@
 const assert = require('assert');
 const translate = require('./translate.js');
-const requireFromString = require('require-from-string');
+const Module = module.constructor;
 const https = require('follow-redirects').https;
 const MemoryStream = require('memorystream');
 const semver = require('semver');
@@ -335,7 +335,16 @@ function setupMethods (soljson) {
         } else {
           response.pipe(mem);
           response.on('end', function () {
-            cb(null, setupMethods(requireFromString(mem.toString(), 'soljson-' + versionString + '.js')));
+            // Based on the require-from-string package.
+            const soljson = new Module();
+            soljson._compile(mem.toString(), 'soljson-' + versionString + '.js');
+            if (module.parent && module.parent.children) {
+              // Make sure the module is plugged into the hierarchy correctly to have parent
+              // properly garbage collected.
+              module.parent.children.splice(module.parent.children.indexOf(soljson), 1);
+            }
+
+            cb(null, setupMethods(soljson.exports));
           });
         }
       }).on('error', function (error) {
