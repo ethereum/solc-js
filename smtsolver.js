@@ -4,29 +4,28 @@ var fs = require('fs');
 var tmp = require('tmp');
 
 // Timeout in seconds.
-const timeout = 1000;
+const timeout = 300;
 
 var potentialSolvers = [
   {
     name: 'Eldarica Vanilla',
     command: 'eld',
-    params: '-horn -t:' + timeout
+    params: '-horn'
   },
   {
     name: 'Eldarica No Abstraction',
     command: 'eld',
-    params: '-horn -ssol -t:' + timeout + ' -abstract:off'
-  }
-  /*
+    params: '-horn -abstract:off'
+  },
   {
     name: 'Eldarica Term Abstraction',
     command: 'eld',
-    params: '-horn -t:' + timeout + ' -abstract:term'
+    params: '-horn -abstract:term'
   },
   {
     name: 'Eldarica Oct Abstraction',
     command: 'eld',
-    params: '-horn -t:' + timeout + ' -abstract:oct'
+    params: '-horn -abstract:oct'
   },
   {
     name: 'Spacer Vanilla',
@@ -38,7 +37,6 @@ var potentialSolvers = [
     command: 'z3',
     params: '-smt2 timeout=' + (timeout * 1000) + ' rewriter.pull_cheap_ite=true fp.spacer.q3.use_qgen=true fp.spacer.mbqi=false fp.spacer.ground_pobs=false'
   }
-  */
 /*
   {
     name: 'z3',
@@ -65,7 +63,10 @@ function solve (query, solver) {
   try {
     solverOutput = execSync(
       solver.command + ' ' + solver.params + ' ' + tmpFile.name, {
-        stdio: 'pipe'
+        encoding: 'utf8',
+        maxBuffer: 1024 * 1024 * 1024,
+        stdio: 'pipe',
+        timeout: timeout * 1000
       }
     ).toString();
   } catch (e) {
