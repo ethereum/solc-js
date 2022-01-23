@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // hold on to any exception handlers that existed prior to this script running, we'll be adding them back at the end
-var originalUncaughtExceptionListeners = process.listeners("uncaughtException");
+var originalUncaughtExceptionListeners = process.listeners('uncaughtException');
 
 var fs = require('fs');
 var os = require('os');
@@ -18,7 +18,7 @@ const program = new commander.Command();
 const commanderParseInt = function(value) {
   const parsedValue = parseInt(value, 10);
   if (isNaN(parsedValue)) {
-    throw new commander.InvalidArgumentError("Not a valid integer.");
+    throw new commander.InvalidArgumentError('Not a valid integer.');
   }
   return parsedValue;
 };
@@ -60,11 +60,11 @@ function abort (msg) {
 }
 
 function readFileCallback(sourcePath) {
-  const prefixes = [options.basePath ? options.basePath : ""].concat(
+  const prefixes = [options.basePath ? options.basePath : ''].concat(
     options.includePath ? options.includePath : []
   );
   for (const prefix of prefixes) {
-    const prefixedSourcePath = (prefix ? prefix + '/' : "") + sourcePath;
+    const prefixedSourcePath = (prefix ? prefix + '/' : '') + sourcePath;
 
     if (fs.existsSync(prefixedSourcePath)) {
       try {
@@ -82,7 +82,7 @@ function withUnixPathSeparators(filePath) {
     // On UNIX-like systems forward slashes in paths are just a part of the file name.
     return filePath;
 
-  return filePath.replace(/\\/g, "/");
+  return filePath.replace(/\\/g, '/');
 }
 
 function makeSourcePathRelativeIfPossible(sourcePath) {
@@ -127,23 +127,23 @@ if (options.basePath || !options.standardJson)
 if (options.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
   if (program.verbose)
-    console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + "\n")
+    console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + '\n')
   var output = reformatJsonIfRequested(solc.compile(input, callbacks));
 
   try {
     var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
     if (inputJSON) {
       if (program.verbose)
-        console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + "\n")
+        console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n')
       output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
     }
   }
   catch (e) {
     var addError = {
-      component: "general",
+      component: 'general',
       formattedMessage: e.toString(),
       message: e.toString(),
-      type: "Warning"
+      type: 'Warning'
     };
 
     var outputJSON = JSON.parse(output);
@@ -204,7 +204,7 @@ const cliInput = {
   sources: sources
 };
 if (program.verbose)
-  console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + "\n")
+  console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n')
 var output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));
 
 let hasError = false;
