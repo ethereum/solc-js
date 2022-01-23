@@ -52,7 +52,7 @@ program.parse(process.argv);
 const options = program.opts();
 
 var files = program.args;
-var destination = options.outputDir || '.'
+var destination = options.outputDir || '.';
 
 function abort (msg) {
   console.error(msg || 'Error occured');
@@ -68,13 +68,13 @@ function readFileCallback(sourcePath) {
 
     if (fs.existsSync(prefixedSourcePath)) {
       try {
-        return {'contents': fs.readFileSync(prefixedSourcePath).toString('utf8')}
+        return {'contents': fs.readFileSync(prefixedSourcePath).toString('utf8')};
       } catch (e) {
         return {error: 'Error reading ' + prefixedSourcePath + ': ' + e};
       }
     }
   }
-  return {error: 'File not found inside the base path or any of the include paths.'}
+  return {error: 'File not found inside the base path or any of the include paths.'};
 }
 
 function withUnixPathSeparators(filePath) {
@@ -120,21 +120,21 @@ function reformatJsonIfRequested(inputJson) {
   return (program.prettyJson ? toFormattedJson(JSON.parse(inputJson)) : inputJson);
 }
 
-var callbacks = undefined
+var callbacks = undefined;
 if (options.basePath || !options.standardJson)
   callbacks = {'import': readFileCallback};
 
 if (options.standardJson) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
   if (program.verbose)
-    console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + '\n')
+    console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + '\n');
   var output = reformatJsonIfRequested(solc.compile(input, callbacks));
 
   try {
     var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
     if (inputJSON) {
       if (program.verbose)
-        console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n')
+        console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n');
       output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
     }
   }
@@ -148,14 +148,14 @@ if (options.standardJson) {
 
     var outputJSON = JSON.parse(output);
     if (!outputJSON.errors) {
-      outputJSON.errors = []
+      outputJSON.errors = [];
     }
     outputJSON.errors.push(addError);
     output = toFormattedJson(outputJSON);
   }
 
   if (program.verbose)
-    console.log('>>> Compilation result:')
+    console.log('>>> Compilation result:');
   console.log(output);
   process.exit(0);
 } else if (files.length === 0) {
@@ -204,7 +204,7 @@ const cliInput = {
   sources: sources
 };
 if (program.verbose)
-  console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n')
+  console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n');
 var output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));
 
 let hasError = false;
@@ -213,12 +213,12 @@ if (!output) {
   abort('No output from compiler');
 } else if (output['errors']) {
   for (var error in output['errors']) {
-    var message = output['errors'][error]
+    var message = output['errors'][error];
     if (message.severity === 'warning') {
-      console.log(message.formattedMessage)
+      console.log(message.formattedMessage);
     } else {
-      console.error(message.formattedMessage)
-      hasError = true
+      console.error(message.formattedMessage);
+      hasError = true;
     }
   }
 }
