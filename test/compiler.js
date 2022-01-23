@@ -70,8 +70,8 @@ function runTests (solc, versionText) {
 
   function expectError (output, errorType, message) {
     if (output.errors) {
-      for (let error in output.errors) {
-        error = output.errors[error];
+      for (const i in output.errors) {
+        const error = output.errors[i];
         if (error.type === errorType) {
           if (message) {
             if (error.message.match(message) !== null) {
@@ -88,8 +88,8 @@ function runTests (solc, versionText) {
 
   function expectNoError (output) {
     if (output.errors) {
-      for (let error in output.errors) {
-        error = output.errors[error];
+      for (const i in output.errors) {
+        const error = output.errors[i];
         if (error.severity === 'error') {
           return false;
         }
@@ -885,8 +885,8 @@ if (!noRemoteVersions) {
     'v0.4.20+commit.3155dd80',
     'v0.4.26+commit.4563c3fc'
   ];
-  for (let version in versions) {
-    version = versions[version];
+  for (const i in versions) {
+    const version = versions[i];
     execSync(`curl -L -o /tmp/${version}.js https://solc-bin.ethereum.org/bin/soljson-${version}.js`);
     const newSolc = require('../wrapper.js')(require(`/tmp/${version}.js`));
     runTests(newSolc, version);
