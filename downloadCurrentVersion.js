@@ -13,7 +13,7 @@ function getVersionList (cb) {
   console.log('Retrieving available version list...');
 
   const mem = new MemoryStream(null, { readable: false });
-  https.get('https://solc-bin.ethereum.org/bin/list.json', function (response) {
+  https.get('https://binaries.soliditylang.org/bin/list.json', function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
       process.exit(1);
@@ -40,7 +40,7 @@ function downloadBinary (outputName, version, expectedHash) {
   });
 
   const file = fs.createWriteStream(outputName, { encoding: 'binary' });
-  https.get('https://solc-bin.ethereum.org/bin/' + version, function (response) {
+  https.get('https://binaries.soliditylang.org/bin/' + version, function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
       process.exit(1);
