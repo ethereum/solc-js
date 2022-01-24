@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 
-// hold on to any exception handlers that existed prior to this script running, we'll be adding them back at the end
-var originalUncaughtExceptionListeners = process.listeners("uncaughtException");
+const commander = require('commander');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const solc = require('./index.js');
+const smtchecker = require('./smtchecker.js');
+const smtsolver = require('./smtsolver.js');
 
-var fs = require('fs');
-var os = require('os');
-var path = require('path');
-var solc = require('./index.js');
-var smtchecker = require('./smtchecker.js');
-var smtsolver = require('./smtsolver.js');
+// hold on to any exception handlers that existed prior to this script running, we'll be adding them back at the end
+const originalUncaughtExceptionListeners = process.listeners('uncaughtException');
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
-var commander = require('commander');
 
 const program = new commander.Command();
-const commanderParseInt = function(value) {
+const commanderParseInt = function (value) {
   const parsedValue = parseInt(value, 10);
   if (isNaN(parsedValue)) {
-    throw new commander.InvalidArgumentError("Not a valid integer.");
+    throw new commander.InvalidArgumentError('Not a valid integer.');
   }
   return parsedValue;
 };
@@ -51,46 +51,47 @@ program
 program.parse(process.argv);
 const options = program.opts();
 
-var files = program.args;
-var destination = options.outputDir || '.'
+const files = program.args;
+const destination = options.outputDir || '.';
 
 function abort (msg) {
   console.error(msg || 'Error occured');
   process.exit(1);
 }
 
-function readFileCallback(sourcePath) {
-  const prefixes = [options.basePath ? options.basePath : ""].concat(
+function readFileCallback (sourcePath) {
+  const prefixes = [options.basePath ? options.basePath : ''].concat(
     options.includePath ? options.includePath : []
   );
   for (const prefix of prefixes) {
-    const prefixedSourcePath = (prefix ? prefix + '/' : "") + sourcePath;
+    const prefixedSourcePath = (prefix ? prefix + '/' : '') + sourcePath;
 
     if (fs.existsSync(prefixedSourcePath)) {
       try {
-        return {'contents': fs.readFileSync(prefixedSourcePath).toString('utf8')}
+        return { contents: fs.readFileSync(prefixedSourcePath).toString('utf8') };
       } catch (e) {
-        return {error: 'Error reading ' + prefixedSourcePath + ': ' + e};
+        return { error: 'Error reading ' + prefixedSourcePath + ': ' + e };
       }
     }
   }
-  return {error: 'File not found inside the base path or any of the include paths.'}
+  return { error: 'File not found inside the base path or any of the include paths.' };
 }
 
-function withUnixPathSeparators(filePath) {
-  if (os.platform() !== 'win32')
-    // On UNIX-like systems forward slashes in paths are just a part of the file name.
+function withUnixPathSeparators (filePath) {
+  // On UNIX-like systems forward slashes in paths are just a part of the file name.
+  if (os.platform() !== 'win32') {
     return filePath;
+  }
 
-  return filePath.replace(/\\/g, "/");
+  return filePath.replace(/\\/g, '/');
 }
 
-function makeSourcePathRelativeIfPossible(sourcePath) {
+function makeSourcePathRelativeIfPossible (sourcePath) {
   const absoluteBasePath = (options.basePath ? path.resolve(options.basePath) : path.resolve('.'));
   const absoluteIncludePaths = (
-    options.includePath ?
-    options.includePath.map((prefix) => { return path.resolve(prefix); }) :
-    []
+    options.includePath
+      ? options.includePath.map((prefix) => { return path.resolve(prefix); })
+      : []
   );
 
   // Compared to base path stripping logic in solc this is much simpler because path.resolve()
@@ -104,58 +105,52 @@ function makeSourcePathRelativeIfPossible(sourcePath) {
   for (const absolutePrefix of [absoluteBasePath].concat(absoluteIncludePaths)) {
     const relativeSourcePath = path.relative(absolutePrefix, absoluteSourcePath);
 
-    if (!relativeSourcePath.startsWith('../'))
-      return withUnixPathSeparators(relativeSourcePath);
+    if (!relativeSourcePath.startsWith('../')) { return withUnixPathSeparators(relativeSourcePath); }
   }
 
   // File is not located inside base path or include paths so use its absolute path.
   return withUnixPathSeparators(absoluteSourcePath);
 }
 
-function toFormattedJson(input) {
+function toFormattedJson (input) {
   return JSON.stringify(input, null, program.prettyJson ? 4 : 0);
 }
 
-function reformatJsonIfRequested(inputJson) {
+function reformatJsonIfRequested (inputJson) {
   return (program.prettyJson ? toFormattedJson(JSON.parse(inputJson)) : inputJson);
 }
 
-var callbacks = undefined
-if (options.basePath || !options.standardJson)
-  callbacks = {'import': readFileCallback};
+let callbacks;
+if (options.basePath || !options.standardJson) { callbacks = { import: readFileCallback }; }
 
 if (options.standardJson) {
-  var input = fs.readFileSync(process.stdin.fd).toString('utf8');
-  if (program.verbose)
-    console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + "\n")
-  var output = reformatJsonIfRequested(solc.compile(input, callbacks));
+  const input = fs.readFileSync(process.stdin.fd).toString('utf8');
+  if (program.verbose) { console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + '\n'); }
+  let output = reformatJsonIfRequested(solc.compile(input, callbacks));
 
   try {
-    var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
+    const inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
     if (inputJSON) {
-      if (program.verbose)
-        console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + "\n")
+      if (program.verbose) { console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n'); }
       output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
     }
-  }
-  catch (e) {
-    var addError = {
-      component: "general",
+  } catch (e) {
+    const addError = {
+      component: 'general',
       formattedMessage: e.toString(),
       message: e.toString(),
-      type: "Warning"
+      type: 'Warning'
     };
 
-    var outputJSON = JSON.parse(output);
+    const outputJSON = JSON.parse(output);
     if (!outputJSON.errors) {
-      outputJSON.errors = []
+      outputJSON.errors = [];
     }
     outputJSON.errors.push(addError);
     output = toFormattedJson(outputJSON);
   }
 
-  if (program.verbose)
-    console.log('>>> Compilation result:')
+  if (program.verbose) { console.log('>>> Compilation result:'); }
   console.log(output);
   process.exit(0);
 } else if (files.length === 0) {
@@ -171,14 +166,15 @@ if (!options.basePath && options.includePath && options.includePath.length > 0) 
   abort('--include-path option requires a non-empty base path.');
 }
 
-if (options.includePath)
-  for (const includePath of options.includePath)
-    if (!includePath)
-      abort('Empty values are not allowed in --include-path.');
+if (options.includePath) {
+  for (const includePath of options.includePath) {
+    if (!includePath) { abort('Empty values are not allowed in --include-path.'); }
+  }
+}
 
-var sources = {};
+const sources = {};
 
-for (var i = 0; i < files.length; i++) {
+for (let i = 0; i < files.length; i++) {
   try {
     sources[makeSourcePathRelativeIfPossible(files[i])] = {
       content: fs.readFileSync(files[i]).toString()
@@ -193,37 +189,36 @@ const cliInput = {
   settings: {
     optimizer: {
       enabled: options.optimize,
-      runs: options.optimizeRuns,
+      runs: options.optimizeRuns
     },
     outputSelection: {
       '*': {
-        '*': [ 'abi', 'evm.bytecode' ]
+        '*': ['abi', 'evm.bytecode']
       }
     }
   },
   sources: sources
 };
-if (program.verbose)
-  console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + "\n")
-var output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));
+if (program.verbose) { console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n'); }
+const output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));
 
 let hasError = false;
 
 if (!output) {
   abort('No output from compiler');
-} else if (output['errors']) {
-  for (var error in output['errors']) {
-    var message = output['errors'][error]
+} else if (output.errors) {
+  for (const error in output.errors) {
+    const message = output.errors[error];
     if (message.severity === 'warning') {
-      console.log(message.formattedMessage)
+      console.log(message.formattedMessage);
     } else {
-      console.error(message.formattedMessage)
-      hasError = true
+      console.error(message.formattedMessage);
+      hasError = true;
     }
   }
 }
 
-fs.mkdirSync(destination, {recursive: true});
+fs.mkdirSync(destination, { recursive: true });
 
 function writeFile (file, content) {
   file = path.join(destination, file);
@@ -234,9 +229,9 @@ function writeFile (file, content) {
   });
 }
 
-for (var fileName in output.contracts) {
-  for (var contractName in output.contracts[fileName]) {
-    var contractFileName = fileName + ':' + contractName;
+for (const fileName in output.contracts) {
+  for (const contractName in output.contracts[fileName]) {
+    let contractFileName = fileName + ':' + contractName;
     contractFileName = contractFileName.replace(/[:./\\]/g, '_');
 
     if (options.bin) {

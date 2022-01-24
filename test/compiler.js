@@ -289,7 +289,7 @@ function runTests (solc, versionText) {
           'cont.sol': 'import "lib.sol"; contract x { function g() public { L.f(); } }'
         };
         st.throws(function () {
-          solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, "this isn't a callback");
+          solc.lowlevel.compileCallback(JSON.stringify({ sources: input }), 0, 'this isn\'t a callback');
         }, /Invalid callback object specified./);
         st.end();
       });
