@@ -4,7 +4,7 @@
   "description": "Solidity compiler",
   "main": "index.js",
   "bin": {
-    "solcjs": "solcjs"
+    "solcjs": "solc.js"
   },
   "scripts": {
     "lint": "eslint .",
@@ -34,7 +34,7 @@
     "linker.js",
     "smtchecker.js",
     "smtsolver.js",
-    "solcjs",
+    "solc.js",
     "soljson.js",
     "translate.js",
     "wrapper.js"
