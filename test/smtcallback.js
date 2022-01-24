@@ -125,7 +125,7 @@ tape('SMTCheckerCallback', function (t) {
   });
 
   t.test('Solidity smtCheckerTests', function (st) {
-    const testdir = path.resolve(__dirname, 'smtCheckerTests/');
+    const testdir = path.resolve(__dirname, 'resources/smtChecker/');
     if (!fs.existsSync(testdir)) {
       st.skip('SMT checker tests not present.');
       st.end();
