@@ -78,7 +78,7 @@ function readFileCallback(sourcePath) {
 }
 
 function withUnixPathSeparators(filePath) {
-  if (os.platform !== 'win32')
+  if (os.platform() !== 'win32')
     // On UNIX-like systems forward slashes in paths are just a part of the file name.
     return filePath;
 
