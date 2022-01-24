@@ -119,7 +119,7 @@ tape('SMTCheckerCallback', function (t) {
         { smtSolver: test.cb }
       ));
       const errors = collectErrors(output);
-      st.ok(expectErrors(errors, test.expectations));
+      st.ok(expectErrors(errors, test.expectations, false));
     }
     st.end();
   });
@@ -132,8 +132,10 @@ tape('SMTCheckerCallback', function (t) {
       return;
     }
 
-    if (smtsolver.availableSolvers === 0) {
-      st.skip('No SMT solver available.');
+    // For these tests we actually need z3/Spacer.
+    const z3HornSolvers = smtsolver.availableSolvers.filter(solver => solver.command === 'z3');
+    if (z3HornSolvers.length === 0) {
+      st.skip('z3/Spacer not available.');
       st.end();
       return;
     }
@@ -167,9 +169,8 @@ tape('SMTCheckerCallback', function (t) {
       if (source.includes(option)) {
         const idx = source.indexOf(option);
         if (source.indexOf(option, idx + 1) !== -1) {
-          st.skip('SMTEngine option given multiple times.');
-          st.end();
-          return;
+          st.comment('SMTEngine option given multiple times.');
+          continue;
         }
         const re = new RegExp(option + '(\\w+)');
         const m = source.match(re);
@@ -211,7 +212,14 @@ tape('SMTCheckerCallback', function (t) {
       // `pragma experimental SMTChecker;` was deprecated in 0.8.4
       if (semver.gt(solc.semver(), '0.8.3')) {
         const engine = test.engine !== undefined ? test.engine : 'all';
-        settings = { modelChecker: { engine: engine } };
+        settings = {
+          modelChecker: {
+            engine: engine,
+            solvers: [
+              'smtlib2'
+            ]
+          }
+        };
       }
       const output = JSON.parse(solc.compile(
         JSON.stringify({
@@ -219,7 +227,8 @@ tape('SMTCheckerCallback', function (t) {
           sources: test.solidity,
           settings: settings
         }),
-        { smtSolver: smtchecker.smtCallback(smtsolver.smtSolver) }
+        // This test needs z3 specifically.
+        { smtSolver: smtchecker.smtCallback(smtsolver.smtSolver, z3HornSolvers[0]) }
       ));
       st.ok(output);
 

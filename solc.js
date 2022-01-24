@@ -129,10 +129,14 @@ if (options.standardJson) {
   let output = reformatJsonIfRequested(solc.compile(input, callbacks));
 
   try {
-    const inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver);
-    if (inputJSON) {
-      if (program.verbose) { console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n'); }
-      output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
+    if (smtsolver.availableSolvers.length === 0) {
+      console.log('>>> Cannot retry compilation with SMT because there are no SMT solvers available.');
+    } else {
+      const inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver, smtsolver.availableSolvers[0]);
+      if (inputJSON) {
+        if (program.verbose) { console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n'); }
+        output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
+      }
     }
   } catch (e) {
     const addError = {

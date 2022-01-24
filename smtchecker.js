@@ -3,7 +3,7 @@
 // The function runs an SMT solver on each query and adjusts the input for
 // another run.
 // Returns null if no solving is requested.
-function handleSMTQueries (inputJSON, outputJSON, solver) {
+function handleSMTQueries (inputJSON, outputJSON, solverFunction, solver) {
   const auxInputReq = outputJSON.auxiliaryInputRequested;
   if (!auxInputReq) {
     return null;
@@ -16,7 +16,7 @@ function handleSMTQueries (inputJSON, outputJSON, solver) {
 
   const responses = {};
   for (const query in queries) {
-    responses[query] = solver(queries[query]);
+    responses[query] = solverFunction(queries[query], solver);
   }
 
   // Note: all existing solved queries are replaced.
@@ -25,10 +25,10 @@ function handleSMTQueries (inputJSON, outputJSON, solver) {
   return inputJSON;
 }
 
-function smtCallback (solver) {
+function smtCallback (solverFunction, solver) {
   return function (query) {
     try {
-      const result = solver(query);
+      const result = solverFunction(query, solver);
       return { contents: result };
     } catch (err) {
       return { error: err };
