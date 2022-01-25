@@ -1,7 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const tape = require('tape');
-const translate = require('../translate.js');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as tape from 'tape';
+import translate from '../translate';
+
 const versionToSemver = translate.versionToSemver;
 
 tape('Version string to Semver translator', function (t) {

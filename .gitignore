@@ -39,3 +39,7 @@ bin
 out
 *.bin
 *.abi
+
+dist/**
+
+.nyc_output

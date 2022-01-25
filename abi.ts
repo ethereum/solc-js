@@ -1,4 +1,4 @@
-const semver = require('semver');
+import * as semver from 'semver';
 
 function update (compilerVersion, abi) {
   let hasConstructor = false;
@@ -58,6 +58,6 @@ function update (compilerVersion, abi) {
   return abi;
 }
 
-module.exports = {
-  update: update
+export default {
+  update
 };

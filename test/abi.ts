@@ -1,5 +1,5 @@
-const tape = require('tape');
-const abi = require('../abi.js');
+import * as tape from 'tape';
+import abi from '../abi';
 
 tape('ABI translator', function (t) {
   t.test('Empty ABI', function (st) {

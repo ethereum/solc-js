@@ -1,5 +1,5 @@
-const tape = require('tape');
-const linker = require('../linker.js');
+import * as tape from 'tape';
+import linker from '../linker';
 
 tape('Link references', function (t) {
   t.test('Empty bytecode', function (st) {

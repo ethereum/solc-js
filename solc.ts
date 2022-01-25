@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-const commander = require('commander');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const solc = require('./index.js');
-const smtchecker = require('./smtchecker.js');
-const smtsolver = require('./smtsolver.js');
+import * as commander from 'commander';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import solc from './index';
+import smtchecker from './smtchecker';
+import smtsolver from './smtsolver';
 
 // hold on to any exception handlers that existed prior to this script running, we'll be adding them back at the end
 const originalUncaughtExceptionListeners = process.listeners('uncaughtException');
@@ -14,7 +14,7 @@ const originalUncaughtExceptionListeners = process.listeners('uncaughtException'
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
 
-const program = new commander.Command();
+const program: any = new commander.Command();
 const commanderParseInt = function (value) {
   const parsedValue = parseInt(value, 10);
   if (isNaN(parsedValue)) {

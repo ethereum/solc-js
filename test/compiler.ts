@@ -1,9 +1,10 @@
-const assert = require('assert');
-const tape = require('tape');
-const semver = require('semver');
-const solc = require('../index.js');
-const linker = require('../linker.js');
-const execSync = require('child_process').execSync;
+import * as assert from 'assert';
+import * as tape from 'tape';
+import * as semver from 'semver';
+import solc from '../';
+import linker from '../linker';
+import { execSync } from 'child_process';
+import wrapper from '../wrapper';
 
 const noRemoteVersions = (process.argv.indexOf('--no-remote-versions') >= 0);
 
@@ -68,10 +69,10 @@ function runTests (solc, versionText) {
     }
   }
 
-  function expectError (output, errorType, message) {
+  function expectError (output: any, errorType: any, message: any) {
     if (output.errors) {
-      for (let error in output.errors) {
-        error = output.errors[error];
+      for (const errorIndex in output.errors) {
+        const error = output.errors[errorIndex];
         if (error.type === errorType) {
           if (message) {
             if (error.message.match(message) !== null) {
@@ -86,10 +87,10 @@ function runTests (solc, versionText) {
     return false;
   }
 
-  function expectNoError (output) {
+  function expectNoError (output: any) {
     if (output.errors) {
-      for (let error in output.errors) {
-        error = output.errors[error];
+      for (const errorIndex in output.errors) {
+        const error = output.errors[errorIndex];
         if (error.severity === 'error') {
           return false;
         }
@@ -888,7 +889,7 @@ if (!noRemoteVersions) {
   for (let version in versions) {
     version = versions[version];
     execSync(`curl -L -o /tmp/${version}.js https://binaries.soliditylang.org/bin/soljson-${version}.js`);
-    const newSolc = require('../wrapper.js')(require(`/tmp/${version}.js`));
+    const newSolc = wrapper(require(`/tmp/${version}.js`));
     runTests(newSolc, version);
   }
 }

@@ -1,5 +1,5 @@
-const assert = require('assert');
-const keccak256 = require('js-sha3').keccak256;
+import * as assert from 'assert';
+import { keccak256 } from 'js-sha3';
 
 function libraryHashPlaceholder (input) {
   return '$' + keccak256(input).slice(0, 34) + '$';
@@ -88,7 +88,7 @@ const findLinkReferences = function (bytecode) {
   return linkReferences;
 };
 
-module.exports = {
-  linkBytecode: linkBytecode,
-  findLinkReferences: findLinkReferences
+export default {
+  linkBytecode,
+  findLinkReferences
 };
