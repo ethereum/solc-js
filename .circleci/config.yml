@@ -12,6 +12,12 @@ workflows:
 version: 2.1
 
 commands:
+  show_npm_version:
+    steps:
+      - run:
+          name: Versions
+          command: npm version
+
   install_dependencies:
     parameters:
       cache_id:
@@ -48,9 +54,7 @@ jobs:
         type: boolean
         default: false
     steps:
-      - run:
-          name: Versions
-          command: npm version
+      - show_npm_version
       - checkout
       - install_dependencies:
           cache_id: solc-js
