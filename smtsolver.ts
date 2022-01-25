@@ -1,7 +1,7 @@
 import { sync as commandExistsSync } from 'command-exists';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
-import tmp from 'tmp';
+import * as tmp from 'tmp';
 
 // Timeout in ms.
 const timeout = 10000;
