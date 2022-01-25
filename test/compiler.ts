@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as tape from 'tape';
 import * as semver from 'semver';
-import solc from '../';
+import * as solc from '../';
 import linker from '../linker';
 import { execSync } from 'child_process';
 import wrapper from '../wrapper';
