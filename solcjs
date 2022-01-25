@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+# Wrapper script for backwards compatibility with the old repo structure.
+#
+# NOTE: It's recommended to run `npx solcjs` instead if you're installing solc-js as an npm package.
+# Or, if you're using the repository directly, you should switch to `dist/solc.js`.
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+cd "$script_dir"
+
+[ -e dist/solc.js ] || npm run build
+exec dist/solc.js "$@" < /dev/stdin
