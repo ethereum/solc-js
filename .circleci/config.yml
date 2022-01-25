@@ -10,6 +10,34 @@ workflows:
       - node-v17
 
 version: 2.1
+
+commands:
+  install_dependencies:
+    parameters:
+      cache_id:
+        type: string
+      path:
+        type: string
+        default: .
+      package_manager:
+        type: string
+        default: npm
+      dependency_file:
+        type: string
+        default: package.json
+    steps:
+      - restore_cache:
+          key: <<parameters.cache_id>>-dependency-cache-v2-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency_file>>" }}
+      - run:
+          name: "<<parameters.package_manager>> install in <<parameters.path>>"
+          command: |
+            cd "<<parameters.path>>"
+            [[ -e node_modules/ ]] || <<parameters.package_manager>> install
+      - save_cache:
+          key: <<parameters.cache_id>>-dependency-cache-v2-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency_file>>" }}
+          paths:
+            - "<<parameters.path>>/node_modules/"
+
 jobs:
   node-base: &node-base
     working_directory: ~/solc-js
@@ -24,8 +52,8 @@ jobs:
           name: Versions
           command: npm version
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
+      - install_dependencies:
+          cache_id: solc-js
       - run:
           name: install-npm
           command: npm install
@@ -41,10 +69,6 @@ jobs:
             - run:
                 name: coveralls
                 command: npm run coveralls
-      - save_cache:
-          key: dependency-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "package.json" }}
-          paths:
-            - ./node_modules
 
   node-v10:
     <<: *node-base
