@@ -69,8 +69,8 @@ commands:
           paths:
             - truffle/
 
-  provision_local_solcjs:
-    description: "Clones solc-js, installs its dependencies and builds it."
+  provision_and_package_solcjs:
+    description: "Creates a package out of latest solc-js to test its installation as a dependency."
     steps:
       - checkout:
           path: solc-js/
@@ -83,8 +83,14 @@ commands:
             cd solc-js/
             npm run updateBinary
             npm run build
+      - run:
+          name: Package solc-js
+          command: |
+            cd solc-js/
+            npm pack
+            mv solc-*.tgz ../solc-js.tgz
 
-  provision_hardhat_on_local_solcjs:
+  provision_hardhat_with_packaged_solcjs:
     description: "Clones Hardhat repository and configures it to use a local clone of solc-js."
     steps:
       - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat" hardhat/
@@ -96,14 +102,14 @@ commands:
       - run:
           name: Inject local solc-js into Hardhat's dependencies
           command: |
-            pushd hardhat/node_modules
-            yarn add "$(realpath ../../solc-js/dist/)" --ignore-workspace-root-check
+            pushd hardhat
+            yarn add ../solc-js.tgz --ignore-workspace-root-check
             popd
 
             # Remove any other copies of solc-js to be sure that only the one we injected can be used.
             find hardhat/ -path "*/solc/wrapper.js" -not -path "hardhat/node_modules/solc/wrapper.js" -printf "%h\n" | xargs --verbose rm -r
 
-  provision_truffle_on_local_solcjs:
+  provision_truffle_with_packaged_solcjs:
     description: "Clones Truffle repository and configures it to use a local clone of solc-js."
     steps:
       - run: git clone --depth 1 "https://github.com/trufflesuite/truffle" truffle/
@@ -112,7 +118,7 @@ commands:
           name: Inject local solc-js into Truffle's dependencies
           command: |
             cd truffle/node_modules/truffle/
-            yarn add "$(realpath ../../../solc-js/dist/)"
+            yarn add ../../../solc-js.tgz
 
 jobs:
   node-base: &node-base
@@ -149,8 +155,8 @@ jobs:
       - image: circleci/node:16
     steps:
       - show_npm_version
-      - provision_local_solcjs
-      - provision_hardhat_on_local_solcjs
+      - provision_and_package_solcjs
+      - provision_hardhat_with_packaged_solcjs
       - run:
           name: Run hardhat-core test suite with its default solc
           command: |
@@ -162,8 +168,8 @@ jobs:
       - image: circleci/node:16
     steps:
       - show_npm_version
-      - provision_local_solcjs
-      - provision_hardhat_on_local_solcjs
+      - provision_and_package_solcjs
+      - provision_hardhat_with_packaged_solcjs
       - run:
           name: Run hardhat-core test suite with latest solc
           command: |
@@ -179,7 +185,7 @@ jobs:
       - image: circleci/node:16
     steps:
       - show_npm_version
-      - provision_local_solcjs
+      - provision_and_package_solcjs
       - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat-hackathon-boilerplate" boilerplate/
       - run:
           # Leaving package-lock.json causes a weird error in arborist when npm is used again after
@@ -199,7 +205,7 @@ jobs:
           name: Inject local solc-js into Hardhat's dependencies
           command: |
             pushd boilerplate/node_modules/hardhat/
-            npm install ../../../solc-js/dist/
+            npm install ../../../solc-js.tgz
             popd
 
             # Remove any other copies of solc-js to be sure that only the one we injected can be used.
@@ -242,8 +248,8 @@ jobs:
       - image: circleci/node:12
     steps:
       - show_npm_version
-      - provision_local_solcjs
-      - provision_truffle_on_local_solcjs
+      - provision_and_package_solcjs
+      - provision_truffle_with_packaged_solcjs
       - run:
           name: Run Truffle test suite
           command: |
@@ -260,8 +266,8 @@ jobs:
       - image: circleci/node:12
     steps:
       - show_npm_version
-      - provision_local_solcjs
-      - provision_truffle_on_local_solcjs
+      - provision_and_package_solcjs
+      - provision_truffle_with_packaged_solcjs
       - run:
           name: Unbox MetaCoin
           command: |
