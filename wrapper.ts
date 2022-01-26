@@ -1,7 +1,7 @@
 import translate from './translate';
 import { https } from 'follow-redirects';
-import * as MemoryStream from 'memorystream';
-import * as assert from 'assert';
+import MemoryStream from 'memorystream';
+import assert from 'assert';
 import * as semver from 'semver';
 
 const Module = module.constructor as any;
@@ -357,4 +357,4 @@ function setupMethods (soljson) {
   };
 }
 
-export default setupMethods;
+export = setupMethods;

@@ -1,4 +1,4 @@
-import * as tape from 'tape';
+import tape from 'tape';
 import linker from '../linker';
 
 tape('Link references', function (t) {
