@@ -13,6 +13,7 @@ workflows:
       - hardhat-sample-project
       - truffle-sample-project
       - cli-smoke-test
+      - solidity-solcjs-ext-test
 
 version: 2.1
 
@@ -340,6 +341,17 @@ jobs:
             echo "contract C {}" > C.sol
             npx solcjs C.sol --bin
             [[ -f C_sol_C.bin ]]
+
+  solidity-solcjs-ext-test:
+    docker:
+      - image: circleci/node
+    steps:
+      - show-npm-version
+      - checkout:
+          path: solc-js/
+      - run: git clone --depth 1 "https://github.com/ethereum/solidity" solidity/
+      - run: cd solidity/ && curl "https://binaries.soliditylang.org/bin/soljson-nightly.js" --location --output soljson.js
+      - run: cd solidity/ && test/externalTests/solc-js/solc-js.sh "$(realpath soljson.js)" "$(scripts/get_version.sh)" "$(realpath ../solc-js/)"
 
   node-v10:
     <<: *node-base
