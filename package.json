@@ -2,9 +2,9 @@
   "name": "solc",
   "version": "0.8.11",
   "description": "Solidity compiler",
-  "main": "dist/index.js",
+  "main": "index.js",
   "bin": {
-    "solcjs": "dist/solc.js"
+    "solcjs": "solc.js"
   },
   "scripts": {
     "build": "tsc",
@@ -12,7 +12,10 @@
     "lint": "eslint --ext .js,.ts .",
     "lint:fix": "eslint --fix --ext .js,.ts .",
     "updateBinary": "node build/clean.js && ts-node ./downloadCurrentVersion.ts && ts-node ./verifyVersion.ts",
-    "prepublishOnly": "npm run updateBinary npm && npm run build",
+    "prepack": "node build/pack-publish-block.js",
+    "build:tarball": "npm run updateBinary && npm run build && BYPASS_SAFETY_CHECK=true npm pack ./dist",
+    "publish:tarball": "tarball=$(npm run --silent tarballName) && ls \"$tarball\" && BYPASS_SAFETY_CHECK=true npm publish \"$tarball\"",
+    "tarballName": "jq --raw-output '.name + \"-\" + .version + \".tgz\"' package.json",
     "copyTestFiles": "cp -r ./test/resources ./dist/test/",
     "pretest": "npm run lint && npm run build && npm run copyTestFiles",
     "test": "cd dist && tape ./test/index.js",
@@ -32,15 +35,15 @@
     "node": ">=10.0.0"
   },
   "files": [
-    "dist/abi.js",
-    "dist/index.js",
-    "dist/linker.js",
-    "dist/smtchecker.js",
-    "dist/smtsolver.js",
-    "dist/solc.js",
-    "dist/soljson.js",
-    "dist/translate.js",
-    "dist/wrapper.js"
+    "abi.js",
+    "index.js",
+    "linker.js",
+    "smtchecker.js",
+    "smtsolver.js",
+    "solc.js",
+    "soljson.js",
+    "translate.js",
+    "wrapper.js"
   ],
   "author": "chriseth",
   "license": "MIT",
