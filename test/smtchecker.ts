@@ -1,6 +1,6 @@
 import * as tape from 'tape';
 import * as semver from 'semver';
-import solc from '../';
+import * as solc from '../';
 import smtchecker from '../smtchecker';
 import smtsolver from '../smtsolver';
 

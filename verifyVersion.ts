@@ -3,7 +3,7 @@
 import * as semver from 'semver';
 
 import { version as packageVersion } from './package.json';
-import solc from './';
+import * as solc from './';
 
 const solcVersion = (solc as any).version();
 
