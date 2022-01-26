@@ -1,7 +1,7 @@
-import * as tape from 'tape';
-import * as spawn from 'tape-spawn';
+import tape from 'tape';
+import spawn from 'tape-spawn';
 import * as path from 'path';
-import * as pkg from '../package.json';
+const pkg = require('../package.json');
 
 tape('CLI', function (t) {
   t.test('--version', function (st) {

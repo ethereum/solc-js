@@ -67,7 +67,7 @@ function solve (query, solver) {
   return solverOutput;
 }
 
-export default {
+export = {
   smtSolver: solve,
   availableSolvers: solvers
 };

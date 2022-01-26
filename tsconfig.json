@@ -4,6 +4,7 @@
     "target": "esnext",
     "module": "commonjs",
     "resolveJsonModule": true,
+    "esModuleInterop": true,
     "outDir": "./dist",
     "forceConsistentCasingInFileNames": true,
     // Allow JS must be included to ensure that the built binary is included
