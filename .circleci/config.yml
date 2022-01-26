@@ -13,6 +13,7 @@ workflows:
       - hardhat-sample-project
       - truffle-tests-default-solc
       - truffle-sample-project
+      - solidity-solcjs-ext-test
 
 version: 2.1
 
@@ -280,6 +281,17 @@ jobs:
             ! [[ -e build/ ]] || false
             echo "module.exports['compilers'] = {solc: {version: '$(realpath ../solc-js/dist/)'}}" > truffle-config.js
             node ../truffle/node_modules/.bin/truffle test
+
+  solidity-solcjs-ext-test:
+    docker:
+      - image: circleci/node
+    steps:
+      - show_npm_version
+      - checkout:
+          path: solc-js/
+      - run: git clone --depth 1 "https://github.com/ethereum/solidity" solidity/
+      - run: cd solidity/ && curl "https://binaries.soliditylang.org/bin/soljson-nightly.js" --location --output soljson.js
+      - run: cd solidity/ && test/externalTests/solc-js/solc-js.sh "$(realpath soljson.js)" "$(scripts/get_version.sh)"
 
   node-v10:
     <<: *node-base
