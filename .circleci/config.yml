@@ -8,6 +8,11 @@ workflows:
       - node-v16:
           run_coveralls: true
       - node-v17
+      - hardhat-core-default-solc
+      - hardhat-core-latest-solc
+      - hardhat-sample-project
+      - truffle-tests-default-solc
+      - truffle-sample-project
 
 version: 2.1
 
@@ -44,6 +49,70 @@ commands:
           paths:
             - "<<parameters.path>>/node_modules/"
 
+  install_truffle_dependencies:
+    steps:
+      - run:
+          name: Store current Truffle commit ID in a variable
+          command: |
+            cd truffle/
+            echo "export _TRUFFLE_COMMIT_ID=$(git rev-parse --verify HEAD)" >> $BASH_ENV
+      - restore_cache:
+          key: truffle-dependency-cache-{{ checksum "truffle/yarn.lock" }}-{{ .Environment._TRUFFLE_COMMIT_ID }}
+      - run:
+          name: yarn install in truffle
+          command: |
+            cd truffle/
+            [[ -e node_modules/ ]] || yarn install
+      - save_cache:
+          key: truffle-dependency-cache-{{ checksum "truffle/yarn.lock" }}-{{ .Environment._TRUFFLE_COMMIT_ID }}
+          paths:
+            - truffle/
+
+  provision_local_solcjs:
+    description: "Clones solc-js, installs its dependencies and builds it."
+    steps:
+      - checkout:
+          path: solc-js/
+      - install_dependencies:
+          cache_id: solc-js
+          path: solc-js
+      - run:
+          name: Build solc-js
+          command: |
+            cd solc-js/
+            npm run updateBinary
+            npm run build
+
+  provision_hardhat_on_local_solcjs:
+    description: "Clones Hardhat repository and configures it to use a local clone of solc-js."
+    steps:
+      - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat" hardhat/
+      - install_dependencies:
+          cache_id: hardhat
+          path: hardhat
+          package_manager: yarn
+          dependency_file: yarn.lock
+      - run:
+          name: Inject local solc-js into Hardhat's dependencies
+          command: |
+            pushd hardhat/node_modules
+            yarn add "$(realpath ../../solc-js/dist/)" --ignore-workspace-root-check
+            popd
+
+            # Remove any other copies of solc-js to be sure that only the one we injected can be used.
+            find hardhat/ -path "*/solc/wrapper.js" -not -path "hardhat/node_modules/solc/wrapper.js" -printf "%h\n" | xargs --verbose rm -r
+
+  provision_truffle_on_local_solcjs:
+    description: "Clones Truffle repository and configures it to use a local clone of solc-js."
+    steps:
+      - run: git clone --depth 1 "https://github.com/trufflesuite/truffle" truffle/
+      - install_truffle_dependencies
+      - run:
+          name: Inject local solc-js into Truffle's dependencies
+          command: |
+            cd truffle/node_modules/truffle/
+            yarn add "$(realpath ../../../solc-js/dist/)"
+
 jobs:
   node-base: &node-base
     working_directory: ~/solc-js
@@ -73,6 +142,144 @@ jobs:
             - run:
                 name: coveralls
                 command: npm run coveralls
+
+  hardhat-core-default-solc:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - show_npm_version
+      - provision_local_solcjs
+      - provision_hardhat_on_local_solcjs
+      - run:
+          name: Run hardhat-core test suite with its default solc
+          command: |
+            cd hardhat/packages/hardhat-core
+            yarn test
+
+  hardhat-core-latest-solc:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - show_npm_version
+      - provision_local_solcjs
+      - provision_hardhat_on_local_solcjs
+      - run:
+          name: Run hardhat-core test suite with latest solc
+          command: |
+            HARDHAT_TESTS_SOLC_PATH="${PWD}/solc-js/soljson.js"
+            HARDHAT_TESTS_SOLC_VERSION=$(jq --raw-output .version solc-js/package.json)
+            export HARDHAT_TESTS_SOLC_PATH HARDHAT_TESTS_SOLC_VERSION
+
+            cd hardhat/packages/hardhat-core
+            yarn test
+
+  hardhat-sample-project:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - show_npm_version
+      - provision_local_solcjs
+      - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat-hackathon-boilerplate" boilerplate/
+      - run:
+          # Leaving package-lock.json causes a weird error in arborist when npm is used again after
+          # `npm install`: 'The "from" argument must be of type string. Received undefined'
+          name: Neutralize package-lock.json
+          command: rm boilerplate/package-lock.json
+      - install_dependencies:
+          cache_id: hardhat-hackathon-boilerplate
+          path: boilerplate
+      - run:
+          name: Update to the latest Hardhat release
+          command: |
+            # We can just use a release here because injection does not require rebuilding it.
+            cd boilerplate/
+            npm update hardhat
+      - run:
+          name: Inject local solc-js into Hardhat's dependencies
+          command: |
+            pushd boilerplate/node_modules/hardhat/
+            npm install ../../../solc-js/dist/
+            popd
+
+            # Remove any other copies of solc-js to be sure that only the one we injected can be used.
+            find boilerplate/ \
+              -path "*/solc/wrapper.js" \
+              -not -path "boilerplate/node_modules/hardhat/node_modules/solc/wrapper.js" \
+              -printf "%h\n" | xargs --verbose rm -r
+      - run:
+          name: Configure the boilerplate project to force Hardhat not to use a native binary
+          command: |
+            solc_version=$(jq --raw-output .version solc-js/package.json)
+
+            cd boilerplate/
+
+            sed -i 's|pragma solidity [^;]\+;|pragma solidity *;|g' contracts/Token.sol
+
+            {
+              echo "  const {TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD} = require('hardhat/builtin-tasks/task-names');"
+              echo "  const assert = require('assert');"
+              echo
+              echo "  subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, async (args, hre, runSuper) => {"
+              echo "      assert(args.solcVersion == '${solc_version}', 'Unexpected solc version: ' + args.solcVersion);"
+              echo "      return {"
+              echo "          compilerPath: '$(realpath "../solc-js/soljson.js")',"
+              echo "          isSolcJs: true,"
+              echo "          version: args.solcVersion,"
+              echo "          longVersion: args.solcVersion"
+              echo "      };"
+              echo "  })"
+              echo "  module.exports = {solidity: '${solc_version}'};"
+            } >> hardhat.config.js
+      - run:
+          name: Build and test the boilerplate project with local Hardhat
+          command: |
+            cd boilerplate/
+            npm run test
+
+  truffle-tests-default-solc:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - show_npm_version
+      - provision_local_solcjs
+      - provision_truffle_on_local_solcjs
+      - run:
+          name: Run Truffle test suite
+          command: |
+            cd truffle/
+            npx \
+              lerna run test \
+                --ignore @truffle/compile-vyper \
+                --ignore @truffle/debugger \
+                --stream \
+                --concurrency=2
+
+  truffle-sample-project:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - show_npm_version
+      - provision_local_solcjs
+      - provision_truffle_on_local_solcjs
+      - run:
+          name: Unbox MetaCoin
+          command: |
+            mkdir metacoin/
+            cd metacoin/
+            node ../truffle/node_modules/.bin/truffle unbox metacoin
+      - run:
+          name: Build and test the sample project with local Truffle and its default solc
+          command: |
+            cd metacoin/
+            node ../truffle/node_modules/.bin/truffle test
+      - run:
+          name: Build and test the sample project with local Truffle and latest solc
+          command: |
+            cd metacoin/
+            # `truffle test` compiles the project but artifacts go into /tmp/
+            ! [[ -e build/ ]] || false
+            echo "module.exports['compilers'] = {solc: {version: '$(realpath ../solc-js/dist/)'}}" > truffle-config.js
+            node ../truffle/node_modules/.bin/truffle test
 
   node-v10:
     <<: *node-base
