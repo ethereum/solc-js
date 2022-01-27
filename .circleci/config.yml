@@ -76,16 +76,10 @@ commands:
           cache_id: solc-js
           path: solc-js
       - run:
-          name: Build solc-js
-          command: |
-            cd solc-js/
-            npm run updateBinary
-            npm run build
-      - run:
           name: Package solc-js
           command: |
             cd solc-js/
-            npm pack
+            npm run build:tarball
             mv solc-*.tgz ../solc-js.tgz
 
   provision_hardhat_with_packaged_solcjs:
@@ -268,7 +262,7 @@ jobs:
             cd metacoin/
             # `truffle test` compiles the project but artifacts go into /tmp/
             ! [[ -e build/ ]] || false
-            echo "module.exports['compilers'] = {solc: {version: '$(realpath ../solc-js/)'}}" > truffle-config.js
+            echo "module.exports['compilers'] = {solc: {version: '$(realpath ../solc-js/dist)'}}" > truffle-config.js
             node ../truffle/node_modules/.bin/truffle test
 
   node-v10:
