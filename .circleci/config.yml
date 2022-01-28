@@ -147,7 +147,7 @@ jobs:
         type: boolean
         default: false
     steps:
-      - show_npm_version
+      - show-npm-version
       - checkout
       - install-dependencies:
           cache-id: solc-js
