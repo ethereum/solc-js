@@ -67,6 +67,30 @@ commands:
           paths:
             - truffle/
 
+  inject_solc_js_tarball:
+    description: "Recursively finds and replaces all instances of solc-js module installed in node_modules/ with the one from a tarball."
+    parameters:
+      path:
+        type: string
+        default: .
+      tarball_path:
+        type: string
+        default: solc-js.tgz
+      install_command:
+        type: string
+        default: npm install
+    steps:
+      - run:
+          name: Inject solc-js from the tarball into dependencies at <<parameters.path>>
+          command: |
+            [[ -f "<<parameters.tarball_path>>" ]]
+            absolute_tarball_path=$(realpath "<<parameters.tarball_path>>")
+            for solc_module in $(find "<<parameters.path>>" -type d -path "*/node_modules/solc"); do
+                pushd "${solc_module}/../.."
+                <<parameters.install_command>> "$absolute_tarball_path" --ignore-workspace-root-check
+                popd
+            done
+
   provision_and_package_solcjs:
     description: "Creates a package out of latest solc-js to test its installation as a dependency."
     steps:
@@ -91,26 +115,18 @@ commands:
           path: hardhat
           package_manager: yarn
           dependency_file: yarn.lock
-      - run:
-          name: Inject local solc-js into Hardhat's dependencies
-          command: |
-            pushd hardhat
-            yarn add ../solc-js.tgz --ignore-workspace-root-check
-            popd
-
-            # Remove any other copies of solc-js to be sure that only the one we injected can be used.
-            find hardhat/ -path "*/solc/wrapper.js" -not -path "hardhat/node_modules/solc/wrapper.js" -printf "%h\n" | xargs --verbose rm -r
+      - inject_solc_js_tarball:
+          path: hardhat/
+          install_command: yarn add
 
   provision_truffle_with_packaged_solcjs:
     description: "Clones Truffle repository and configures it to use a local clone of solc-js."
     steps:
       - run: git clone --depth 1 "https://github.com/trufflesuite/truffle" truffle/
       - install_truffle_dependencies
-      - run:
-          name: Inject local solc-js into Truffle's dependencies
-          command: |
-            cd truffle/node_modules/truffle/
-            yarn add ../../../solc-js.tgz
+      - inject_solc_js_tarball:
+          path: truffle/
+          install_command: yarn add
 
 jobs:
   node-base: &node-base
@@ -193,18 +209,8 @@ jobs:
             # We can just use a release here because injection does not require rebuilding it.
             cd boilerplate/
             npm update hardhat
-      - run:
-          name: Inject local solc-js into Hardhat's dependencies
-          command: |
-            pushd boilerplate/node_modules/hardhat/
-            npm install ../../../solc-js.tgz
-            popd
-
-            # Remove any other copies of solc-js to be sure that only the one we injected can be used.
-            find boilerplate/ \
-              -path "*/solc/wrapper.js" \
-              -not -path "boilerplate/node_modules/hardhat/node_modules/solc/wrapper.js" \
-              -printf "%h\n" | xargs --verbose rm -r
+      - inject_solc_js_tarball:
+          path: boilerplate/
       - run:
           name: Configure the boilerplate project to force Hardhat not to use a native binary
           command: |
