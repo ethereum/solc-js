@@ -48,7 +48,7 @@ commands:
           paths:
             - "<<parameters.path>>/node_modules/"
 
-  install_truffle_dependencies:
+  install-truffle-dependencies:
     steps:
       - run:
           name: Store current Truffle commit ID in a variable
@@ -67,37 +67,37 @@ commands:
           paths:
             - truffle/
 
-  inject_solc_js_tarball:
+  inject-solc-js-tarball:
     description: "Recursively finds and replaces all instances of solc-js module installed in node_modules/ with the one from a tarball."
     parameters:
       path:
         type: string
         default: .
-      tarball_path:
+      tarball-path:
         type: string
         default: solc-js.tgz
-      install_command:
+      install-command:
         type: string
         default: npm install
     steps:
       - run:
           name: Inject solc-js from the tarball into dependencies at <<parameters.path>>
           command: |
-            [[ -f "<<parameters.tarball_path>>" ]]
-            absolute_tarball_path=$(realpath "<<parameters.tarball_path>>")
+            [[ -f "<<parameters.tarball-path>>" ]]
+            absolute_tarball_path=$(realpath "<<parameters.tarball-path>>")
             for solc_module in $(find "<<parameters.path>>" -type d -path "*/node_modules/solc"); do
                 pushd "${solc_module}/../.."
-                <<parameters.install_command>> "$absolute_tarball_path" --ignore-workspace-root-check
+                <<parameters.install-command>> "$absolute_tarball_path" --ignore-workspace-root-check
                 popd
             done
 
-  provision_and_package_solcjs:
+  provision-and-package-solcjs:
     description: "Creates a package out of latest solc-js to test its installation as a dependency."
     steps:
       - checkout:
           path: solc-js/
-      - install_dependencies:
-          cache_id: solc-js
+      - install-dependencies:
+          cache-id: solc-js
           path: solc-js
       - run:
           name: Package solc-js
@@ -106,24 +106,24 @@ commands:
             npm run build:tarball
             mv solc-*.tgz ../solc-js.tgz
 
-  provision_hardhat_with_packaged_solcjs:
+  provision-hardhat-with-packaged-solcjs:
     description: "Clones Hardhat repository and configures it to use a local clone of solc-js."
     steps:
       - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat" hardhat/
-      - install_dependencies:
-          cache_id: hardhat
+      - install-dependencies:
+          cache-id: hardhat
           path: hardhat
-          package_manager: yarn
-          dependency_file: yarn.lock
-      - inject_solc_js_tarball:
+          package-manager: yarn
+          dependency-file: yarn.lock
+      - inject-solc-js-tarball:
           path: hardhat/
-          install_command: yarn add
+          install-command: yarn add
 
-  provision_truffle_with_packaged_solcjs:
+  provision-truffle-with-packaged-solcjs:
     description: "Clones Truffle repository and configures it to use a local clone of solc-js."
     steps:
       - run: git clone --depth 1 "https://github.com/trufflesuite/truffle" truffle/
-      - install_truffle_dependencies
+      - install-truffle-dependencies
       - run:
           name: Inject solc-js tarball into Truffle's dependencies
           command: |
@@ -171,9 +171,9 @@ jobs:
     docker:
       - image: circleci/node:16
     steps:
-      - show_npm_version
-      - provision_and_package_solcjs
-      - provision_hardhat_with_packaged_solcjs
+      - show-npm-version
+      - provision-and-package-solcjs
+      - provision-hardhat-with-packaged-solcjs
       - run:
           name: Run hardhat-core test suite with its default solc
           command: |
@@ -184,9 +184,9 @@ jobs:
     docker:
       - image: circleci/node:16
     steps:
-      - show_npm_version
-      - provision_and_package_solcjs
-      - provision_hardhat_with_packaged_solcjs
+      - show-npm-version
+      - provision-and-package-solcjs
+      - provision-hardhat-with-packaged-solcjs
       - run:
           name: Run hardhat-core test suite with latest solc
           command: |
@@ -201,16 +201,16 @@ jobs:
     docker:
       - image: circleci/node:16
     steps:
-      - show_npm_version
-      - provision_and_package_solcjs
+      - show-npm-version
+      - provision-and-package-solcjs
       - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat-hackathon-boilerplate" boilerplate/
       - run:
           # Leaving package-lock.json causes a weird error in arborist when npm is used again after
           # `npm install`: 'The "from" argument must be of type string. Received undefined'
           name: Neutralize package-lock.json
           command: rm boilerplate/package-lock.json
-      - install_dependencies:
-          cache_id: hardhat-hackathon-boilerplate
+      - install-dependencies:
+          cache-id: hardhat-hackathon-boilerplate
           path: boilerplate
       - run:
           name: Update to the latest Hardhat release
@@ -218,7 +218,7 @@ jobs:
             # We can just use a release here because injection does not require rebuilding it.
             cd boilerplate/
             npm update hardhat
-      - inject_solc_js_tarball:
+      - inject-solc-js-tarball:
           path: boilerplate/
       - run:
           name: Configure the boilerplate project to force Hardhat not to use a native binary
@@ -254,9 +254,9 @@ jobs:
     docker:
       - image: circleci/node:12
     steps:
-      - show_npm_version
-      - provision_and_package_solcjs
-      - provision_truffle_with_packaged_solcjs
+      - show-npm-version
+      - provision-and-package-solcjs
+      - provision-truffle-with-packaged-solcjs
       - run:
           name: Unbox MetaCoin
           command: |
