@@ -16,7 +16,7 @@ workflows:
 version: 2.1
 
 commands:
-  show_npm_version:
+  show-npm-version:
     steps:
       - run:
           name: Versions
