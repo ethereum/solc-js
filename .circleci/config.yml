@@ -124,9 +124,18 @@ commands:
     steps:
       - run: git clone --depth 1 "https://github.com/trufflesuite/truffle" truffle/
       - install_truffle_dependencies
-      - inject_solc_js_tarball:
-          path: truffle/
-          install_command: yarn add
+      - run:
+          name: Inject solc-js tarball into Truffle's dependencies
+          command: |
+            cd truffle/node_modules/truffle/
+            yarn add ../../../solc-js.tgz
+      - run:
+          name: Neutralize any copies of solc-js pulled in by transitive dependencies
+          command: |
+            find truffle/ \
+              -path "*/solc/wrapper.js" \
+              -not -path "node_modules/solc/wrapper.js" \
+              -printf "%h\n" | xargs --verbose rm -r
 
 jobs:
   node-base: &node-base
