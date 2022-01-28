@@ -124,17 +124,18 @@ commands:
     steps:
       - run: git clone --depth 1 "https://github.com/trufflesuite/truffle" truffle/
       - install-truffle-dependencies
+      - inject-solc-js-tarball:
+          path: truffle/node_modules/
+          install-command: yarn add
       - run:
-          name: Inject solc-js tarball into Truffle's dependencies
+          name: Neutralize any copies of solc-js outside of node_modules/
           command: |
-            cd truffle/node_modules/truffle/
-            yarn add ../../../solc-js.tgz
-      - run:
-          name: Neutralize any copies of solc-js pulled in by transitive dependencies
-          command: |
+            # NOTE: Injecting solc-js into node_modules/ dirs located under truffle/packages/ causes
+            # an error 'Tarball is not in network and can not be located in cache'. These are not
+            # supposed to be used but let's remove them just in case.
             find truffle/ \
               -path "*/solc/wrapper.js" \
-              -not -path "node_modules/solc/wrapper.js" \
+              -not -path "truffle/node_modules/*" \
               -printf "%h\n" | xargs --verbose rm -r
 
 jobs:
