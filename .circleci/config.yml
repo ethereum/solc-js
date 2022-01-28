@@ -22,29 +22,29 @@ commands:
           name: Versions
           command: npm version
 
-  install_dependencies:
+  install-dependencies:
     parameters:
-      cache_id:
+      cache-id:
         type: string
       path:
         type: string
         default: .
-      package_manager:
+      package-manager:
         type: string
         default: npm
-      dependency_file:
+      dependency-file:
         type: string
         default: package.json
     steps:
       - restore_cache:
-          key: <<parameters.cache_id>>-dependency-cache-v2-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency_file>>" }}
+          key: <<parameters.cache-id>>-dependency-cache-v2-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
       - run:
-          name: "<<parameters.package_manager>> install in <<parameters.path>>"
+          name: "<<parameters.package-manager>> install in <<parameters.path>>"
           command: |
             cd "<<parameters.path>>"
-            [[ -e node_modules/ ]] || <<parameters.package_manager>> install
+            [[ -e node_modules/ ]] || <<parameters.package-manager>> install
       - save_cache:
-          key: <<parameters.cache_id>>-dependency-cache-v2-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency_file>>" }}
+          key: <<parameters.cache-id>>-dependency-cache-v2-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
           paths:
             - "<<parameters.path>>/node_modules/"
 
@@ -149,8 +149,8 @@ jobs:
     steps:
       - show_npm_version
       - checkout
-      - install_dependencies:
-          cache_id: solc-js
+      - install-dependencies:
+          cache-id: solc-js
       - run:
           name: install-npm
           command: npm install
