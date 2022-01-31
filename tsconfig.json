@@ -4,6 +4,10 @@
     "target": "esnext",
     "module": "commonjs",
     "resolveJsonModule": true,
+    // This is needed for backwards-compatibility, to keep imports of the form `wrapper = require('solc/wrapper)`
+    // working like they did before the TypeScript migration.
+    // TODO: Drop it in the next breaking release.
+    "esModuleInterop": true,
     "outDir": "./dist",
     "forceConsistentCasingInFileNames": true,
     // Allow JS must be included to ensure that the built binary is included

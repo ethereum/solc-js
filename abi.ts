@@ -58,6 +58,6 @@ function update (compilerVersion, abi) {
   return abi;
 }
 
-export default {
+export = {
   update
 };

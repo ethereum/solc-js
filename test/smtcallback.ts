@@ -1,9 +1,9 @@
-import * as assert from 'assert';
-import * as tape from 'tape';
+import assert from 'assert';
+import tape from 'tape';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
-import * as solc from '../';
+import solc from '../';
 import smtchecker from '../smtchecker';
 import smtsolver from '../smtsolver';
 

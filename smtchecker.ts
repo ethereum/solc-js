@@ -36,7 +36,7 @@ function smtCallback (solverFunction, solver?: any) {
   };
 }
 
-export default {
+export = {
   handleSMTQueries,
   smtCallback
 };

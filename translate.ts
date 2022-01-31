@@ -193,7 +193,7 @@ function prettyPrintLegacyAssemblyJSON (assembly, source) {
   return formatAssemblyText(assembly, '', source);
 }
 
-export default {
+export = {
   versionToSemver,
   translateJsonCompilerOutput,
   prettyPrintLegacyAssemblyJSON

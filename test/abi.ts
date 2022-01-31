@@ -1,4 +1,4 @@
-import * as tape from 'tape';
+import tape from 'tape';
 import abi from '../abi';
 
 tape('ABI translator', function (t) {
