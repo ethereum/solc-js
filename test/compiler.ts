@@ -1,6 +1,7 @@
 import assert from 'assert';
 import tape from 'tape';
 import * as semver from 'semver';
+import * as tmp from 'tmp';
 import solc from '../';
 import linker from '../linker';
 import { execSync } from 'child_process';
@@ -888,8 +889,10 @@ if (!noRemoteVersions) {
   ];
   for (let version in versions) {
     version = versions[version];
-    execSync(`curl -L -o /tmp/${version}.js https://binaries.soliditylang.org/bin/soljson-${version}.js`);
-    const newSolc = wrapper(require(`/tmp/${version}.js`));
+    // NOTE: The temporary directory will be removed on process exit.
+    const tempDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'solc-js-compiler-test-' }).name;
+    execSync(`curl -L -o ${tempDir}/${version}.js https://binaries.soliditylang.org/bin/soljson-${version}.js`);
+    const newSolc = wrapper(require(`${tempDir}/${version}.js`));
     runTests(newSolc, version);
   }
 }
