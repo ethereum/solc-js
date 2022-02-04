@@ -8,7 +8,7 @@
     // working like they did before the TypeScript migration.
     // TODO: Drop it in the next breaking release.
     "esModuleInterop": true,
-    "outDir": "./dist",
+    "outDir": "./",
     "forceConsistentCasingInFileNames": true,
     // Allow JS must be included to ensure that the built binary is included
     // in the output. This could be copied directly in the future if required.
@@ -20,13 +20,11 @@
     "noImplicitAny": false
   },
   "include": [
-    "**/*.js",
     "**/*.ts",
     "**/*.json"
   ],
   "exclude": [
-    "coverage",
-    "dist"
+    "coverage"
   ],
   "ts-node": {
     "transpileOnly": true

@@ -8,17 +8,16 @@
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "node build/postbuild.js",
-    "lint": "eslint --ext .js,.ts .",
-    "lint:fix": "eslint --fix --ext .js,.ts .",
-    "updateBinary": "node build/clean.js && ts-node ./downloadCurrentVersion.ts && ts-node ./verifyVersion.ts",
+    "lint": "eslint --ext .ts .",
+    "lint:fix": "eslint --fix --ext .ts .",
+    "postbuild": "node ./build/postbuild.js",
+    "updateBinary": "ts-node ./downloadCurrentVersion.ts && ts-node ./verifyVersion.ts",
     "prepack": "node build/pack-publish-block.js",
-    "build:tarball": "npm run updateBinary && npm run build && BYPASS_SAFETY_CHECK=true npm pack ./dist",
+    "build:tarball": "npm run updateBinary && npm run build && BYPASS_SAFETY_CHECK=true npm pack ./",
     "publish:tarball": "tarball=$(npm run --silent tarballName) && ls \"$tarball\" && BYPASS_SAFETY_CHECK=true npm publish \"$tarball\"",
     "tarballName": "jq --raw-output '.name + \"-\" + .version + \".tgz\"' package.json",
-    "copyTestFiles": "cp -r ./test/resources ./dist/test/",
-    "pretest": "npm run lint && npm run build && npm run copyTestFiles",
-    "test": "cd dist && tape ./test/index.js",
+    "pretest": "npm run lint && npm run build",
+    "test": "tape ./test/index.js",
     "coverage": "nyc npm run test",
     "coveralls": "npm run coverage && coveralls <coverage/lcov.info"
   },
@@ -81,8 +80,7 @@
   },
   "nyc": {
     "exclude": [
-      "soljson.js",
-      "dist"
+      "soljson.js"
     ]
   }
 }

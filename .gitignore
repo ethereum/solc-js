@@ -43,3 +43,8 @@ out
 dist/**
 
 .nyc_output
+
+# ignore all generated js files which can be put into this project.
+# Since we want to keep a flat structure we must first ensure they
+# are ignored in the commit.
+*.js

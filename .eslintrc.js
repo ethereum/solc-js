@@ -18,5 +18,5 @@ module.exports = {
   rules: {
     semi: ['error', 'always']
   },
-  ignorePatterns: ['dist', 'soljson.js']
+  ignorePatterns: ['*.js']
 };
