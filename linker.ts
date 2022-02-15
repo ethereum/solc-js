@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { keccak256 } from 'js-sha3';
 import { isNil, isObject } from './common/helpers';
+import { LibraryAddresses, LinkReferences } from './common/types';
 
 /**
  * Generates a new-style library placeholder from a fully-qualified library name.
@@ -57,12 +58,12 @@ function replacePlaceholder (bytecode, label, address) {
  * @returns bytecode Hex-encoded bytecode string with placeholders replaced with addresses.
  *    Note that some placeholders may remain in the bytecode if `libraries` does not provide addresses for all of them.
  */
-function linkBytecode (bytecode, libraries) {
+function linkBytecode (bytecode: string, libraries: LibraryAddresses): string {
   assert(typeof bytecode === 'string');
   assert(typeof libraries === 'object');
 
   // NOTE: for backwards compatibility support old compiler which didn't use file names
-  const librariesComplete = {};
+  const librariesComplete: { [fullyQualifiedLibraryName: string]: string } = {};
 
   for (const [fullyQualifiedLibraryName, libraryObjectOrAddress] of Object.entries(libraries)) {
     if (isNil(libraryObjectOrAddress)) {
@@ -136,12 +137,12 @@ function linkBytecode (bytecode, libraries) {
  * offsets and lengths refer to the *binary* (not hex-encoded) bytecode, just
  * like in `evm.bytecode.linkReferences`.
  */
-function findLinkReferences (bytecode) {
+function findLinkReferences (bytecode: string): LinkReferences {
   assert(typeof bytecode === 'string');
 
   // find 40 bytes in the pattern of __...<36 digits>...__
   // e.g. __Lib.sol:L_____________________________
-  const linkReferences = {};
+  const linkReferences: LinkReferences = {};
 
   let offset = 0;
 
