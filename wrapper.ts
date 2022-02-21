@@ -92,6 +92,25 @@ function setupMethods (soljson) {
     };
   };
 
+  let lspStart = null;
+  if ('_solidity_lsp_start' in soljson) {
+    const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'int', []);
+    lspStart = function (callbacks) {
+      return runWithCallbacks(callbacks, wrappedLspStart, []);
+    };
+  }
+
+  let lspSendReceive = null;
+  if ('_solidity_lsp_send_receive' in soljson) {
+    const wrappedLspSendReceive = soljson.cwrap('solidity_lsp_send_receive', 'string', ['string']);
+    lspSendReceive = function (input: String, callbacks) {
+      // We are reusing the `runWithCallbacks` function that was supposed to
+      // only receive _solidity_compile as second parameter.
+      // I may be wrong, but that should work analogous.
+      return runWithCallbacks(callbacks, wrappedLspSendReceive, [input]);
+    };
+  }
+
   // This calls compile() with args || cb
   const runWithCallbacks = function (callbacks, compile, args) {
     if (callbacks) {
@@ -324,6 +343,8 @@ function setupMethods (soljson) {
       importCallback: compileJSONCallback !== null || compileStandard !== null,
       nativeStandardJSON: compileStandard !== null
     },
+    lspStart: lspStart,
+    lspSendReceive: lspSendReceive,
     compile: compileStandardWrapper,
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
