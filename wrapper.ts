@@ -6,6 +6,15 @@ import * as semver from 'semver';
 
 const Module = module.constructor as any;
 
+interface ReadCallbackReply {
+  error?: string;
+  contents?: string
+}
+
+interface Callbacks {
+    import(path: string): ReadCallbackReply;
+}
+
 function setupMethods (soljson) {
   let version;
   if ('_solidity_version' in soljson) {
@@ -45,6 +54,7 @@ function setupMethods (soljson) {
     reset = soljson.cwrap('solidity_reset', null, []);
   }
 
+  // Copies the string at @p str to @p ptr.
   const copyToCString = function (str, ptr) {
     const length = soljson.lengthBytesUTF8(str);
     // This is allocating memory using solc's allocator.
@@ -59,6 +69,58 @@ function setupMethods (soljson) {
     soljson.stringToUTF8(str, buffer, length + 1);
     soljson.setValue(ptr, buffer, '*');
   };
+
+  const createWrappedLspSend = function() {
+    const wrappedLspSend = soljson.cwrap('solidity_lsp_send', 'number', ['string']);
+    return function (input: String) {
+      let args = [];
+      args.push(JSON.stringify(input));
+      return wrappedLspSend.apply(undefined, args);
+    };
+  };
+
+	// Creates a wrapper around `int solidity_lsp_start(callbacks: Callbacks)`.
+	const createWrappedLspStart = function() {
+    const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'number', []);
+    return function (callbacks: Callbacks) {
+			let readCallback = callbacks.import;
+			assert(typeof readCallback === 'function', 'Invalid callback specified.');
+			const copyFromCString = soljson.UTF8ToString || soljson.Pointer_stringify;
+
+			const wrappedReadCallback = function (path: string, contents: string, error: string) {
+        // Calls the user-supplied file read callback and passes the return values
+        // accordingly to either @p contents or into @p error on failure.
+				const result = readCallback(copyFromCString(path));
+				if (typeof result.contents === 'string') {
+					copyToCString(result.contents, contents);
+				}
+				if (typeof result.error === 'string') {
+					copyToCString(result.error, error);
+				}
+			};
+
+			const addFunction = soljson.addFunction || soljson.Runtime.addFunction;
+			const removeFunction = soljson.removeFunction || soljson.Runtime.removeFunction;
+			const wrappedFunctionId = addFunction(wrappedReadCallback, 'ii');
+
+			try {
+        // call solidity_lsp_start(callbacks)
+				let args = [];
+				args.push(wrappedFunctionId);
+				let output = wrappedLspStart.apply(undefined, args);
+				removeFunction(wrappedFunctionId);
+				return output;
+			} catch (e) {
+				removeFunction(wrappedFunctionId);
+				throw e;
+			}
+			// NOTE: We MUST NOT reset the compiler here.
+			// We instead could try to make sure to only release memory that is
+			// safe to be released.
+			// Probably by clearly defining semantics and memory lifetimes
+			// of output strings.
+    };
+	};
 
   // This is to support multiple versions of Emscripten.
   // Take a single `ptr` and returns a `str`.
@@ -92,23 +154,15 @@ function setupMethods (soljson) {
     };
   };
 
+// solc.lspStart(myCallbackHere);
   let lspStart = null;
   if ('_solidity_lsp_start' in soljson) {
-    const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'int', []);
-    lspStart = function (callbacks) {
-      return runWithCallbacks(callbacks, wrappedLspStart, []);
-    };
+    lspStart = createWrappedLspStart();
   }
 
   let lspSendReceive = null;
   if ('_solidity_lsp_send_receive' in soljson) {
-    const wrappedLspSendReceive = soljson.cwrap('solidity_lsp_send_receive', 'string', ['string']);
-    lspSendReceive = function (input: String, callbacks) {
-      // We are reusing the `runWithCallbacks` function that was supposed to
-      // only receive _solidity_compile as second parameter.
-      // I may be wrong, but that should work analogous.
-      return runWithCallbacks(callbacks, wrappedLspSendReceive, [input]);
-    };
+    lspSendReceive = createWrappedLspSend();
   }
 
   // This calls compile() with args || cb
