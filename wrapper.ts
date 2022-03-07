@@ -62,17 +62,6 @@ function setupMethods (soljson) {
     soljson.setValue(ptr, buffer, '*');
   };
 
-  const createWrappedLspSend = function() {
-		if (!('_solidity_lsp_send' in soljson))
-			return null;
-    const wrappedLspSend = soljson.cwrap('solidity_lsp_send', 'number', ['string']);
-    return function (input: String) {
-      const args = [];
-      args.push(JSON.stringify(input));
-      return wrappedLspSend.apply(undefined, args);
-    };
-  };
-
 	// Creates a wrapper around `int solidity_lsp_start(callbacks: Callbacks)`.
 	const createWrappedLspStart = function() {
 		if (!('_solidity_lsp_start' in soljson))
@@ -117,6 +106,36 @@ function setupMethods (soljson) {
 			// of output strings.
 		};
 	};
+
+	// C signature  : int solidity_lsp_send(char const* jsonRpcInputObject);
+	// TS signature : int send(object jsonRpcInputObject);
+  const createWrappedLspSend = function() {
+		if (!('_solidity_lsp_send' in soljson))
+			return null;
+    const wrappedLspSend = soljson.cwrap('solidity_lsp_send', 'number', ['string']);
+    return function (input: String) {
+      const args = [];
+      args.push(JSON.stringify(input));
+      return wrappedLspSend.apply(undefined, args);
+    };
+  };
+
+	// C signature  : char* solidity_lsp_send_receive(char const* jsonRpcInputObject);
+	// TS signature : object sendReceive(object jsonRpcInputObject);
+	//
+	// sendReceive send one message to the LSP server (notification or method call).
+	// The method call may reply with zero or one message that is going to be returned.
+  const createWrappedLspSendReceive = function() {
+		if (!('_solidity_lsp_send_receive' in soljson))
+			return null;
+    const wrappedLspSendReceive = soljson.cwrap('solidity_lsp_send_receive', 'string', ['string']);
+    return function (input: String) {
+      const args = [];
+      args.push(JSON.stringify(input));
+      const reply = wrappedLspSendReceive.apply(undefined, args);
+			return JSON.parse(reply);
+    };
+  };
 
   // This is to support multiple versions of Emscripten.
   // Take a single `ptr` and returns a `str`.
@@ -384,7 +403,8 @@ function setupMethods (soljson) {
     },
     lsp: {
       start: createWrappedLspStart(),
-      sendReceive: createWrappedLspSend()
+      send: createWrappedLspSend(),
+      sendReceive: createWrappedLspSendReceive()
     },
     compile: compileStandardWrapper,
     // Loads the compiler of the given version from the github repository
