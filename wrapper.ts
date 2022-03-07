@@ -397,8 +397,10 @@ function setupMethods (soljson) {
       importCallback: compileJSONCallback !== null || compileStandard !== null,
       nativeStandardJSON: compileStandard !== null
     },
-    lspStart: lspStart,
-    lspSendReceive: lspSendReceive,
+    lsp: {
+      start: lspStart,
+      sendReceive: lspSendReceive
+    },
     compile: compileStandardWrapper,
     // Loads the compiler of the given version from the github repository
     // instead of from the local filesystem.
