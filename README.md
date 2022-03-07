@@ -210,7 +210,7 @@ Since version 0.8.11, the solidity compiler natively supports the
 language server protocol. With solc-js, you can now use it as follows:
 
 ```javascript
-var solc = require('solc');
+const solc = require('solc');
 
 // Callback to be invoked when additional files have to be opened during
 // source code analysis stage.
@@ -223,16 +223,15 @@ function fileReadCallback(path)
             contents: 'library L { function f() internal returns (uint) { return 7; } }';
         };
     }
-    else
-        return { error: 'File not found' };
+    return { error: 'File not found' };
 }
 
 // Put solcjs into LSP mode.
 // Needs to be called only once before the actual LSP I/O calls.
-solc.lspStart(fileReadCallback);
+solc.lsp.start(fileReadCallback);
 
 // Send some LSP JSON-RPC message and optionally receive a reply.
-var lspInitializationMessage = {
+const lspInitializationMessage = {
     'jsonrpc': '2.0',
     'method': 'initialize',
     'params': {
@@ -251,14 +250,14 @@ var lspInitializationMessage = {
         }
     }
 };
-solc.lspSendReceive(JSON.stringify(lspInitializationMessage)));
-solc.lspSendReceive(JSON.stringify({'jsonrpc': '2.0', 'method': 'initialized'}));
+solc.lsp.sendReceive(JSON.stringify(lspInitializationMessage)));
+solc.lsp.sendReceive(JSON.stringify({'jsonrpc': '2.0', 'method': 'initialized'}));
 
 // Now, with the LSP server, being set up the following
 // can be called as often as needed.
 function lspRoundtrip(jsonRpcInputObject)
 {
-    return JSON.parse(solc.lspSendReceive(JSON.stringify(jsonRpcInputObject)));
+    return JSON.parse(solc.lsp.sendReceive(JSON.stringify(jsonRpcInputObject)));
 }
 ```
 

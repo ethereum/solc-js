@@ -3,17 +3,9 @@ import { https } from 'follow-redirects';
 import MemoryStream from 'memorystream';
 import assert from 'assert';
 import * as semver from 'semver';
+import { Callbacks } from './common/interfaces';
 
 const Module = module.constructor as any;
-
-interface ReadCallbackReply {
-  error?: string;
-  contents?: string
-}
-
-interface Callbacks {
-    import(path: string): ReadCallbackReply;
-}
 
 function setupMethods (soljson) {
   let version;
@@ -73,7 +65,7 @@ function setupMethods (soljson) {
   const createWrappedLspSend = function() {
     const wrappedLspSend = soljson.cwrap('solidity_lsp_send', 'number', ['string']);
     return function (input: String) {
-      let args = [];
+      const args = [];
       args.push(JSON.stringify(input));
       return wrappedLspSend.apply(undefined, args);
     };
@@ -81,15 +73,15 @@ function setupMethods (soljson) {
 
 	// Creates a wrapper around `int solidity_lsp_start(callbacks: Callbacks)`.
 	const createWrappedLspStart = function() {
-    const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'number', []);
-    return function (callbacks: Callbacks) {
+		const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'number', []);
+		return function (callbacks: Callbacks) {
 			let readCallback = callbacks.import;
 			assert(typeof readCallback === 'function', 'Invalid callback specified.');
 			const copyFromCString = soljson.UTF8ToString || soljson.Pointer_stringify;
 
 			const wrappedReadCallback = function (path: string, contents: string, error: string) {
-        // Calls the user-supplied file read callback and passes the return values
-        // accordingly to either @p contents or into @p error on failure.
+				// Calls the user-supplied file read callback and passes the return values
+				// accordingly to either @p contents or into @p error on failure.
 				const result = readCallback(copyFromCString(path));
 				if (typeof result.contents === 'string') {
 					copyToCString(result.contents, contents);
@@ -104,7 +96,7 @@ function setupMethods (soljson) {
 			const wrappedFunctionId = addFunction(wrappedReadCallback, 'ii');
 
 			try {
-        // call solidity_lsp_start(callbacks)
+				// call solidity_lsp_start(callbacks)
 				let args = [];
 				args.push(wrappedFunctionId);
 				let output = wrappedLspStart.apply(undefined, args);
@@ -119,7 +111,7 @@ function setupMethods (soljson) {
 			// safe to be released.
 			// Probably by clearly defining semantics and memory lifetimes
 			// of output strings.
-    };
+		};
 	};
 
   // This is to support multiple versions of Emscripten.
