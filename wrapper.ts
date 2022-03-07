@@ -63,6 +63,8 @@ function setupMethods (soljson) {
   };
 
   const createWrappedLspSend = function() {
+		if (!('_solidity_lsp_send' in soljson))
+			return null;
     const wrappedLspSend = soljson.cwrap('solidity_lsp_send', 'number', ['string']);
     return function (input: String) {
       const args = [];
@@ -73,6 +75,8 @@ function setupMethods (soljson) {
 
 	// Creates a wrapper around `int solidity_lsp_start(callbacks: Callbacks)`.
 	const createWrappedLspStart = function() {
+		if (!('_solidity_lsp_start' in soljson))
+			return null;
 		const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'number', []);
 		return function (callbacks: Callbacks) {
 			let readCallback = callbacks.import;
@@ -145,17 +149,6 @@ function setupMethods (soljson) {
       }
     };
   };
-
-// solc.lspStart(myCallbackHere);
-  let lspStart = null;
-  if ('_solidity_lsp_start' in soljson) {
-    lspStart = createWrappedLspStart();
-  }
-
-  let lspSendReceive = null;
-  if ('_solidity_lsp_send_receive' in soljson) {
-    lspSendReceive = createWrappedLspSend();
-  }
 
   // This calls compile() with args || cb
   const runWithCallbacks = function (callbacks, compile, args) {
@@ -390,8 +383,8 @@ function setupMethods (soljson) {
       nativeStandardJSON: compileStandard !== null
     },
     lsp: {
-      start: lspStart,
-      sendReceive: lspSendReceive
+      start: createWrappedLspStart(),
+      sendReceive: createWrappedLspSend()
     },
     compile: compileStandardWrapper,
     // Loads the compiler of the given version from the github repository
