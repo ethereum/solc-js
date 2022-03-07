@@ -69,7 +69,7 @@ an error, and keep re-running the compiler until all of them are resolved.
 Example:
 
 ```javascript
-var solc = require('solc');
+const solc = require('solc');
 
 var input = {
   language: 'Solidity',
