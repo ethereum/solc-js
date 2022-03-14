@@ -62,79 +62,84 @@ function setupMethods (soljson) {
     soljson.setValue(ptr, buffer, '*');
   };
 
-	// Creates a wrapper around `int solidity_lsp_start(callbacks: Callbacks)`.
-	const createWrappedLspStart = function() {
-		if (!('_solidity_lsp_start' in soljson))
-			return null;
-		const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'number', []);
-		return function (callbacks: Callbacks) {
-			let readCallback = callbacks.import;
-			assert(typeof readCallback === 'function', 'Invalid callback specified.');
-			const copyFromCString = soljson.UTF8ToString || soljson.Pointer_stringify;
+  // Creates a wrapper around `int solidity_lsp_start(callbacks: Callbacks)`.
+  const createWrappedLspStart = function () {
+    if (!('_solidity_lsp_start' in soljson)) {
+      return () => {
+        throw new Error('lsp is not supported on this version.');
+      };
+    }
 
-			const wrappedReadCallback = function (path: string, contents: string, error: string) {
-				// Calls the user-supplied file read callback and passes the return values
-				// accordingly to either @p contents or into @p error on failure.
-				const result = readCallback(copyFromCString(path));
-				if (typeof result.contents === 'string') {
-					copyToCString(result.contents, contents);
-				}
-				if (typeof result.error === 'string') {
-					copyToCString(result.error, error);
-				}
-			};
+    const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'number', []);
 
-			const addFunction = soljson.addFunction || soljson.Runtime.addFunction;
-			const removeFunction = soljson.removeFunction || soljson.Runtime.removeFunction;
-			const wrappedFunctionId = addFunction(wrappedReadCallback, 'ii');
+    return function (callbacks: Callbacks) {
+      const readCallback = callbacks.import;
 
-			try {
-				// call solidity_lsp_start(callbacks)
-				let args = [];
-				args.push(wrappedFunctionId);
-				let output = wrappedLspStart.apply(undefined, args);
-				removeFunction(wrappedFunctionId);
-				return output;
-			} catch (e) {
-				removeFunction(wrappedFunctionId);
-				throw e;
-			}
-			// NOTE: We MUST NOT reset the compiler here.
-			// We instead could try to make sure to only release memory that is
-			// safe to be released.
-			// Probably by clearly defining semantics and memory lifetimes
-			// of output strings.
-		};
-	};
+      assert(typeof readCallback === 'function', 'Invalid callback specified.');
+      const copyFromCString = soljson.UTF8ToString || soljson.Pointer_stringify;
 
-	// C signature  : int solidity_lsp_send(char const* jsonRpcInputObject);
-	// TS signature : int send(object jsonRpcInputObject);
-  const createWrappedLspSend = function() {
-		if (!('_solidity_lsp_send' in soljson))
-			return null;
-    const wrappedLspSend = soljson.cwrap('solidity_lsp_send', 'number', ['string']);
-    return function (input: String) {
-      const args = [];
-      args.push(JSON.stringify(input));
-      return wrappedLspSend.apply(undefined, args);
+      const wrappedReadCallback = function (path: string, contents: string, error: string) {
+        // Calls the user-supplied file read callback and passes the return values
+        // accordingly to either @p contents or into @p error on failure.
+        const result = readCallback(copyFromCString(path));
+
+        if (typeof result.contents === 'string') {
+          copyToCString(result.contents, contents);
+        }
+
+        if (typeof result.error === 'string') {
+          copyToCString(result.error, error);
+        }
+      };
+
+      const addFunction = soljson.addFunction || soljson.Runtime.addFunction;
+      const removeFunction = soljson.removeFunction || soljson.Runtime.removeFunction;
+      const wrappedFunctionId = addFunction(wrappedReadCallback, 'ii');
+
+      try {
+        // call solidity_lsp_start(callbacks)
+        const output = wrappedLspStart(wrappedFunctionId);
+        removeFunction(wrappedFunctionId);
+        return output;
+      } catch (e) {
+        removeFunction(wrappedFunctionId);
+        throw e;
+      }
+
+      // NOTE: We MUST NOT reset the compiler here.
+      // We instead could try to make sure to only release memory that is safe
+      // to be released. Probably by clearly defining semantics and memory
+      // lifetimes of output strings.
     };
   };
 
-	// C signature  : char* solidity_lsp_send_receive(char const* jsonRpcInputObject);
-	// TS signature : object sendReceive(object jsonRpcInputObject);
-	//
-	// sendReceive send one message to the LSP server (notification or method call).
-	// The method call may reply with zero or one message that is going to be returned.
-  const createWrappedLspSendReceive = function() {
-		if (!('_solidity_lsp_send_receive' in soljson))
-			return null;
+  // C signature  : int solidity_lsp_send(char const* jsonRpcInputObject);
+  // TS signature : int send(object jsonRpcInputObject);
+  const createWrappedLspSend = function () {
+    if (!('_solidity_lsp_send' in soljson)) {
+      return () => {
+        throw new Error('lsp is not supported on this version.');
+      };
+    }
+
+    const wrappedLspSend = soljson.cwrap('solidity_lsp_send', 'number', ['string']);
+    return (input: string) => wrappedLspSend(JSON.stringify(input));
+  };
+
+  // C signature  : char* solidity_lsp_send_receive(char const* jsonRpcInputObject);
+  // TS signature : object sendReceive(object jsonRpcInputObject);
+  //
+  // sendReceive send one message to the LSP server (notification or method call).
+  // The method call may reply with zero or one message that is going to be returned.
+  const createWrappedLspSendReceive = function () {
+    if (!('_solidity_lsp_send_receive' in soljson)) {
+      return () => {
+        throw new Error('lsp is not supported on this version.');
+      };
+    }
+
     const wrappedLspSendReceive = soljson.cwrap('solidity_lsp_send_receive', 'string', ['string']);
-    return function (input: String) {
-      const args = [];
-      args.push(JSON.stringify(input));
-      const reply = wrappedLspSendReceive.apply(undefined, args);
-			return JSON.parse(reply);
-    };
+    return (input: string) => JSON.parse(wrappedLspSendReceive(JSON.stringify(input)));
   };
 
   // This is to support multiple versions of Emscripten.
