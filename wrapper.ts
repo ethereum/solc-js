@@ -70,7 +70,7 @@ function setupMethods (soljson) {
       };
     }
 
-    const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'number', []);
+    const wrappedLspStart = soljson.cwrap('solidity_lsp_start', 'number', ['number']);
 
     return function (callbacks: Callbacks) {
       const readCallback = callbacks.import;
@@ -79,6 +79,8 @@ function setupMethods (soljson) {
       const copyFromCString = soljson.UTF8ToString || soljson.Pointer_stringify;
 
       const wrappedReadCallback = function (path: string, contents: string, error: string) {
+		console.log("wrappedReadCallback: \"" + path + "\"");
+
         // Calls the user-supplied file read callback and passes the return values
         // accordingly to either @p contents or into @p error on failure.
         const result = readCallback(copyFromCString(path));
@@ -94,15 +96,15 @@ function setupMethods (soljson) {
 
       const addFunction = soljson.addFunction || soljson.Runtime.addFunction;
       const removeFunction = soljson.removeFunction || soljson.Runtime.removeFunction;
-      const wrappedFunctionId = addFunction(wrappedReadCallback, 'ii');
+      const wrappedReadCallbackId = addFunction(wrappedReadCallback, 'ii');
 
       try {
         // call solidity_lsp_start(callbacks)
-        const output = wrappedLspStart(wrappedFunctionId);
-        removeFunction(wrappedFunctionId);
+        const output = wrappedLspStart(wrappedReadCallbackId);
+        removeFunction(wrappedReadCallbackId);
         return output;
       } catch (e) {
-        removeFunction(wrappedFunctionId);
+        removeFunction(wrappedReadCallbackId);
         throw e;
       }
 
