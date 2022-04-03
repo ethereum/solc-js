@@ -1,14 +1,15 @@
 import MemoryStream from 'memorystream';
 import { https } from 'follow-redirects';
 
-import { formatFatalError } from './formatters';
-import { isNil } from './common/helpers';
 import setupBindings from './bindings';
 import translate from './translate';
+import { CompileBindings, SolJson, Wrapper } from './common/types';
+import { formatFatalError } from './formatters';
+import { isNil } from './common/helpers';
 
 const Module = module.constructor as any;
 
-function wrapper (soljson) {
+function wrapper (soljson: SolJson): Wrapper {
   const {
     coreBindings,
     compileBindings,
@@ -28,7 +29,7 @@ function wrapper (soljson) {
     features: {
       legacySingleInput: methodFlags.compileJsonStandardSupported,
       multipleInputs: methodFlags.compileJsonMultiSupported || methodFlags.compileJsonStandardSupported,
-      importCallback: methodFlags.compileJsonCallbackSuppported || methodFlags.compileJsonStandardSupported,
+      importCallback: methodFlags.compileJsonCallbackSupported || methodFlags.compileJsonStandardSupported,
       nativeStandardJSON: methodFlags.compileJsonStandardSupported
     },
     compile: compileStandardWrapper.bind(this, compileBindings),
@@ -69,7 +70,7 @@ function loadRemoteVersion (versionString, callback) {
 }
 
 // Expects a Standard JSON I/O but supports old compilers
-function compileStandardWrapper (compile, inputRaw, readCallback) {
+function compileStandardWrapper (compile: CompileBindings, inputRaw: string, readCallback?: number) {
   if (!isNil(compile.compileStandard)) {
     return compile.compileStandard(inputRaw, readCallback);
   }

@@ -2,8 +2,9 @@ import { bindSolcMethod, bindSolcMethodWithFallbackFunc } from './helpers';
 import translate from '../translate';
 import * as semver from 'semver';
 import { isNil } from '../common/helpers';
+import { Alloc, CoreBindings, License, Reset, SolJson, Version, VersionToSemver } from '../common/types';
 
-export function setupCore (solJson) {
+export function setupCore (solJson: SolJson): CoreBindings {
   const core = {
     alloc: bindAlloc(solJson),
     license: bindLicense(solJson),
@@ -39,7 +40,7 @@ export function setupCore (solJson) {
  *
  * @param solJson The Emscripten compiled Solidity object.
  */
-function bindAlloc (solJson) {
+function bindAlloc (solJson: SolJson): Alloc {
   const allocBinding = bindSolcMethod(
     solJson,
     'solidity_alloc',
@@ -62,7 +63,7 @@ function bindAlloc (solJson) {
  *
  * @param solJson The Emscripten compiled Solidity object.
  */
-function bindVersion (solJson) {
+function bindVersion (solJson: SolJson): Version {
   return bindSolcMethodWithFallbackFunc(
     solJson,
     'solidity_version',
@@ -72,7 +73,7 @@ function bindVersion (solJson) {
   );
 }
 
-function versionToSemver (version) {
+function versionToSemver (version: string): VersionToSemver {
   return translate.versionToSemver.bind(this, version);
 }
 
@@ -83,7 +84,7 @@ function versionToSemver (version) {
  *
  * @param solJson The Emscripten compiled Solidity object.
  */
-function bindLicense (solJson) {
+function bindLicense (solJson: SolJson): License {
   return bindSolcMethodWithFallbackFunc(
     solJson,
     'solidity_license',
@@ -100,7 +101,7 @@ function bindLicense (solJson) {
  *
  * @param solJson The Emscripten compiled Solidity object.
  */
-function bindReset (solJson) {
+function bindReset (solJson: SolJson): Reset {
   return bindSolcMethod(
     solJson,
     'solidity_reset',
@@ -131,7 +132,7 @@ function bindReset (solJson) {
  * @param str The source string being copied to a C string.
  * @param ptr The pointer location where the C string will be set.
  */
-function unboundCopyToCString (solJson, alloc, str, ptr) {
+function unboundCopyToCString (solJson: SolJson, alloc, str: string, ptr: number): void {
   const length = solJson.lengthBytesUTF8(str);
 
   const buffer = alloc(length + 1);
@@ -147,15 +148,15 @@ function unboundCopyToCString (solJson, alloc, str, ptr) {
  * @param solJson The Emscripten compiled Solidity object.
  * @param ptr The pointer location where the C string will be referenced.
  */
-function unboundCopyFromCString (solJson, ptr) {
+function unboundCopyFromCString (solJson: SolJson, ptr: any): string {
   const copyFromCString = solJson.UTF8ToString || solJson.Pointer_stringify;
   return copyFromCString(ptr);
 }
 
-function unboundAddFunction (solJson, func, signature?) {
+function unboundAddFunction (solJson: SolJson, func: (...args: any[]) => any, signature?: string): number {
   return (solJson.addFunction || solJson.Runtime.addFunction)(func, signature);
 }
 
-function unboundRemoveFunction (solJson, ptr) {
+function unboundRemoveFunction (solJson: SolJson, ptr: number) {
   return (solJson.removeFunction || solJson.Runtime.removeFunction)(ptr);
 }

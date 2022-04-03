@@ -22,6 +22,7 @@
     "coverage": "nyc npm run test",
     "coveralls": "npm run coverage && coveralls <coverage/lcov.info"
   },
+  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ethereum/solc-js.git"
@@ -35,8 +36,11 @@
     "node": ">=10.0.0"
   },
   "files": [
+    "common/*.d.ts",
     "common/*.js",
+    "bindings/*.d.ts",
     "bindings/*.js",
+    "*.d.ts",
     "*.js"
   ],
   "author": "chriseth",

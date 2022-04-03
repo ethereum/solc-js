@@ -1,6 +1,7 @@
+import { SolJson, SupportedMethods } from '../common/types';
 import { isNil } from '../common/helpers';
 
-export function bindSolcMethod (solJson, method, returnType, args, defaultValue) {
+export function bindSolcMethod<T> (solJson: SolJson, method: string, returnType: string, args: string[], defaultValue: T): T {
   if (isNil(solJson[`_${method}`]) && defaultValue !== undefined) {
     return defaultValue;
   }
@@ -8,7 +9,7 @@ export function bindSolcMethod (solJson, method, returnType, args, defaultValue)
   return solJson.cwrap(method, returnType, args);
 }
 
-export function bindSolcMethodWithFallbackFunc (solJson, method, returnType, args, fallbackMethod, finalFallback = undefined) {
+export function bindSolcMethodWithFallbackFunc<T> (solJson: SolJson, method: string, returnType: string, args: string[], fallbackMethod: string, finalFallback: any = undefined): T {
   const methodFunc = bindSolcMethod(solJson, method, returnType, args, null);
 
   if (!isNil(methodFunc)) {
@@ -18,7 +19,7 @@ export function bindSolcMethodWithFallbackFunc (solJson, method, returnType, arg
   return bindSolcMethod(solJson, fallbackMethod, returnType, args, finalFallback);
 }
 
-export function getSupportedMethods (solJson) {
+export function getSupportedMethods (solJson: SolJson): SupportedMethods {
   return {
     licenseSupported: anyMethodExists(solJson, 'solidity_license'),
     versionSupported: anyMethodExists(solJson, 'solidity_version'),
@@ -26,11 +27,11 @@ export function getSupportedMethods (solJson) {
     resetSupported: anyMethodExists(solJson, 'solidity_reset'),
     compileJsonSupported: anyMethodExists(solJson, 'compileJSON'),
     compileJsonMultiSupported: anyMethodExists(solJson, 'compileJSONMulti'),
-    compileJsonCallbackSuppported: anyMethodExists(solJson, 'compileJSONCallback'),
+    compileJsonCallbackSupported: anyMethodExists(solJson, 'compileJSONCallback'),
     compileJsonStandardSupported: anyMethodExists(solJson, 'compileStandard', 'solidity_compile')
   };
 }
 
-function anyMethodExists (solJson, ...names) {
+function anyMethodExists (solJson: SolJson, ...names: string[]): boolean {
   return names.some(name => !isNil(solJson[`_${name}`]));
 }

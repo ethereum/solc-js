@@ -1,9 +1,13 @@
 import assert from 'assert';
 
+import {
+  CompileBindings, CompileJson, CompileJsonCallback, CompileJsonMulti, CompileJsonStandard, CoreBindings, SolJson
+} from '../common/types';
+
 import { isNil } from '../common/helpers';
 import { bindSolcMethod } from './helpers';
 
-export function setupCompile (solJson, core) {
+export function setupCompile (solJson: SolJson, core: CoreBindings): CompileBindings {
   return {
     compileJson: bindCompileJson(solJson),
     compileJsonCallback: bindCompileJsonCallback(solJson, core),
@@ -22,7 +26,7 @@ export function setupCompile (solJson, core) {
  *
  * @param solJson The Emscripten compiled Solidity object.
  */
-function bindCompileJson (solJson) {
+function bindCompileJson (solJson: SolJson): CompileJson {
   return bindSolcMethod(
     solJson,
     'compileJSON',
@@ -38,7 +42,7 @@ function bindCompileJson (solJson) {
  *
  * @param solJson The Emscripten compiled Solidity object.
  */
-function bindCompileJsonMulti (solJson) {
+function bindCompileJsonMulti (solJson: SolJson): CompileJsonMulti {
   return bindSolcMethod(
     solJson,
     'compileJSONMulti',
@@ -55,7 +59,7 @@ function bindCompileJsonMulti (solJson) {
  * @param solJson The Emscripten compiled Solidity object.
  * @param coreBindings The core bound Solidity methods.
  */
-function bindCompileJsonCallback (solJson, coreBindings) {
+function bindCompileJsonCallback (solJson: SolJson, coreBindings: CoreBindings): CompileJsonCallback {
   const compileInternal = bindSolcMethod(
     solJson,
     'compileJSONCallback',
@@ -79,7 +83,7 @@ function bindCompileJsonCallback (solJson, coreBindings) {
  * @param solJson The Emscripten compiled Solidity object.
  * @param coreBindings The core bound Solidity methods.
  */
-function bindCompileStandard (solJson, coreBindings) {
+function bindCompileStandard (solJson: SolJson, coreBindings: CoreBindings): CompileJsonStandard {
   let boundFunctionStandard: any = null;
   let boundFunctionSolidity: any = null;
 
@@ -128,7 +132,7 @@ function bindCompileStandard (solJson, coreBindings) {
 }
 
 /**********************
- * CALL BACKS
+ * CALLBACKS
  **********************/
 
 function wrapCallback (coreBindings, callback) {
@@ -162,7 +166,7 @@ function wrapCallbackWithKind (coreBindings, callback) {
 }
 
 // calls compile() with args || cb
-function runWithCallbacks (solJson, coreBindings, callbacks, compile, args) {
+function runWithCallbacks (solJson: SolJson, coreBindings: CoreBindings, callbacks, compile, args) {
   if (callbacks) {
     assert(typeof callbacks === 'object', 'Invalid callback object specified.');
   } else {

@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "outDir": "./dist",
     "forceConsistentCasingInFileNames": true,
+
     // Allow JS must be included to ensure that the built binary is included
     // in the output. This could be copied directly in the future if required.
     "allowJs": true,
@@ -17,12 +18,13 @@
     // In order to gracefully move our project to TypeScript without having
     // TS immediately yell at you, we'll disable strict mode for now.
     "strict": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "declaration": true
   },
   "include": [
     "**/*.js",
     "**/*.ts",
-    "**/*.json"
+    "**/*.json",
   ],
   "exclude": [
     "coverage",
