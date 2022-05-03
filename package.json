@@ -2,7 +2,6 @@
   "name": "solc",
   "version": "0.8.13",
   "description": "Solidity compiler",
-  "main": "index.js",
   "bin": {
     "solcjs": "solc.js"
   },
