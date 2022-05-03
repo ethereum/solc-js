@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as tmp from 'tmp';
 
 // Timeout in ms.
-const timeout = 10000;
+const timeout = 3600000;
 
 const potentialSolvers = [
   {
