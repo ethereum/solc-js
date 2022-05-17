@@ -43,7 +43,8 @@
     "solc.js",
     "soljson.js",
     "translate.js",
-    "wrapper.js"
+    "wrapper.js",
+    "common/helpers.js"
   ],
   "author": "chriseth",
   "license": "MIT",
