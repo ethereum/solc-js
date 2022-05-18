@@ -83,20 +83,34 @@ commands:
       tarball-path:
         type: string
         default: solc-js.tgz
-      install-command:
-        type: string
-        default: npm install
+      package-manager:
+        type: enum
+        enum: ["npm", "yarn"]
+        default: npm
     steps:
+      - run:
+          name: "Sanity check: tarball exists and the target dir contains a JS project"
+          command: |
+            [[ -f "<<parameters.tarball-path>>" ]]
+            [[ -f "<<parameters.path>>/package.json" ]]
       - run:
           name: Inject solc-js from the tarball into dependencies at <<parameters.path>>
           command: |
-            [[ -f "<<parameters.tarball-path>>" ]]
             absolute_tarball_path=$(realpath "<<parameters.tarball-path>>")
-            for solc_module in $(find "<<parameters.path>>" -type d -path "*/node_modules/solc"); do
-                pushd "${solc_module}/../.."
-                <<parameters.install-command>> "$absolute_tarball_path" --ignore-workspace-root-check
-                popd
-            done
+            cd "<<parameters.path>>"
+            mv package.json original-package.json
+            # NOTE: The 'overrides' feature requires npm >= 8.3. Yarn requires `resolutions` instead.
+            jq ". + {overrides: {solc: \"${absolute_tarball_path}\"}} + {resolutions: {solc: \"${absolute_tarball_path}\"}}" original-package.json > package.json
+            "<<parameters.package-manager>>" install
+      - run:
+          name: "Sanity check: all transitive dependencies successfully replaced with the tarball"
+          command: |
+            solc_version=$(jq --raw-output .version solc-js/package.json)
+            cd "<<parameters.path>>"
+            if "<<parameters.package-manager>>" list --pattern solc | grep 'solc@' | grep -v "solc@${solc_version}"; then
+              echo "Another version of solc-js is still present in the dependency tree."
+              exit 1
+            fi
 
   provision-and-package-solcjs:
     description: "Creates a package out of latest solc-js to test its installation as a dependency."
@@ -124,7 +138,7 @@ commands:
           dependency-file: yarn.lock
       - inject-solc-js-tarball:
           path: hardhat/
-          install-command: yarn add
+          package-manager: yarn
 
   provision-truffle-with-packaged-solcjs:
     description: "Clones Truffle repository and configures it to use a local clone of solc-js."
@@ -132,18 +146,8 @@ commands:
       - run: git clone --depth 1 "https://github.com/trufflesuite/truffle" truffle/
       - install-truffle-dependencies
       - inject-solc-js-tarball:
-          path: truffle/node_modules/
-          install-command: yarn add
-      - run:
-          name: Neutralize any copies of solc-js outside of node_modules/
-          command: |
-            # NOTE: Injecting solc-js into node_modules/ dirs located under truffle/packages/ causes
-            # an error 'Tarball is not in network and can not be located in cache'. These are not
-            # supposed to be used but let's remove them just in case.
-            find truffle/ \
-              -path "*/solc/wrapper.js" \
-              -not -path "truffle/node_modules/*" \
-              -printf "%h\n" | xargs --verbose rm -r
+          path: truffle/
+          package-manager: yarn
 
 jobs:
   node-base: &node-base
@@ -185,7 +189,18 @@ jobs:
       - provision-and-package-solcjs
       - provision-hardhat-with-packaged-solcjs
       - run:
-          name: Run hardhat-core test suite with its default solc
+          name: Restore the default solc binary expected by Hardhat
+          command: |
+            # Hardhat downloader tests are hard-coded to expect the version that comes with the solc-js.
+            # We forced latest solc-js but we still want the default binary with it.
+            hardhat_default_solc_version=$(jq --raw-output '.dependencies.solc' hardhat/packages/hardhat-core/package.json)
+            mkdir hardhat-default-solc/
+            pushd hardhat-default-solc/
+            npm install "solc@${hardhat_default_solc_version}"
+            popd
+            ln -sf ../../../hardhat-default-solc/node_modules/solc/soljson.js hardhat/node_modules/solc/soljson.js
+      - run:
+          name: Run hardhat-core test suite with its default solc binary
           command: |
             cd hardhat/packages/hardhat-core
             # TODO: yarn build should not be needed to run these tests. Remove it.
