@@ -12,6 +12,7 @@ workflows:
       - hardhat-core-latest-solc
       - hardhat-sample-project
       - truffle-sample-project
+      - cli-smoke-test
 
 version: 2.1
 
@@ -310,6 +311,35 @@ jobs:
             ! [[ -e build/ ]] || false
             echo "module.exports['compilers'] = {solc: {version: '$(realpath node_modules/solc/)'}}" > truffle-config.js
             node ../truffle/node_modules/.bin/truffle test
+
+  cli-smoke-test:
+    docker:
+      - image: circleci/node:17
+    steps:
+      - update-npm
+      - show-npm-version
+      - provision-and-package-solcjs
+      - run:
+          name: "CLI smoke test (repository)"
+          command: |
+            cd solc-js
+            dist/solc.js --version
+
+            echo "contract C {}" > C.sol
+            dist/solc.js C.sol --bin
+            [[ -f C_sol_C.bin ]]
+      - run:
+          name: "CLI smoke test (package)"
+          command: |
+            mkdir package/
+            cd package/
+            npm install ../solc-js.tgz
+
+            npx solcjs --version
+
+            echo "contract C {}" > C.sol
+            npx solcjs C.sol --bin
+            [[ -f C_sol_C.bin ]]
 
   node-v10:
     <<: *node-base
