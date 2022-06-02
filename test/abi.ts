@@ -27,7 +27,10 @@ tape('ABI translator', function (t) {
   });
   t.test('0.3.6 (event)', function (st) {
     const input = [{ name: 'eventName', inputs: [], type: 'event' as const, anonymous: false }];
-    st.deepEqual(abi.update('0.3.6', input), [{ inputs: [], type: 'event' }, { payable: true, stateMutability: 'payable', type: 'fallback' }]);
+    st.deepEqual(abi.update('0.3.6', input), [
+      { name: 'eventName', inputs: [], type: 'event', anonymous: false },
+      { payable: true, stateMutability: 'payable', type: 'fallback' }
+    ]);
     st.end();
   });
   t.test('0.3.6 (has no fallback)', function (st) {
