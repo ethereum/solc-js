@@ -7,7 +7,7 @@ workflows:
       - node-v14
       - node-v16:
           run_coveralls: true
-      - node-v17
+      - node-v18
       - hardhat-core-default-solc
       - hardhat-core-latest-solc
       - hardhat-sample-project
@@ -314,7 +314,7 @@ jobs:
 
   cli-smoke-test:
     docker:
-      - image: cimg/node:17.9
+      - image: cimg/node:current
     steps:
       - show-npm-version
       - provision-and-package-solcjs
@@ -367,7 +367,7 @@ jobs:
     <<: *node-base
     docker:
       - image: cimg/node:16.15
-  node-v17:
+  node-v18:
     <<: *node-base
     docker:
-      - image: cimg/node:17.9
+      - image: cimg/node:18.3
