@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "node build/postbuild.js",
+    "postbuild": "node build/postbuild.js && cp README.md LICENSE dist/",
     "lint": "eslint --ext .js,.ts .",
     "lint:fix": "eslint --fix --ext .js,.ts .",
     "updateBinary": "node build/clean.js && ts-node ./downloadCurrentVersion.ts && ts-node ./verifyVersion.ts",
