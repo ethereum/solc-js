@@ -284,7 +284,7 @@ jobs:
 
   truffle-sample-project:
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:16
     steps:
       - update-npm
       - show-npm-version
