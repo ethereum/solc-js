@@ -1,5 +1,6 @@
 [![CircleCI](https://img.shields.io/circleci/project/github/ethereum/solc-js/master.svg?style=flat-square)](https://circleci.com/gh/ethereum/solc-js/tree/master)
 [![Coverage Status](https://img.shields.io/coveralls/ethereum/solc-js.svg?style=flat-square)](https://coveralls.io/r/ethereum/solc-js)
+[![GitPOAP Badge](https://public-api.gitpoap.io/v1/repo/ethereum/solc-js/badge)](https://www.gitpoap.io/gh/ethereum/solc-js)
 
 # solc-js
 
