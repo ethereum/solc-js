@@ -7,7 +7,7 @@ workflows:
       - node-v14
       - node-v16:
           run_coveralls: true
-      - node-v17
+      - node-v18
       - hardhat-core-default-solc
       - hardhat-core-latest-solc
       - hardhat-sample-project
@@ -29,7 +29,7 @@ commands:
       - run:
           name: Update globally available npm to the latest version
           # Note: We need npm >= 8.3 which supports 'overrides' in package.json
-          command: sudo npm install npm --global
+          command: npm install npm --global
 
   install-dependencies:
     parameters:
@@ -155,7 +155,7 @@ jobs:
   node-base: &node-base
     working_directory: ~/solc-js
     docker:
-      - image: circleci/node
+      - image: cimg/node:current
     parameters:
       run_coveralls:
         type: boolean
@@ -184,9 +184,8 @@ jobs:
 
   hardhat-core-default-solc:
     docker:
-      - image: circleci/node:16
+      - image: cimg/node:16.15
     steps:
-      - update-npm
       - show-npm-version
       - provision-and-package-solcjs
       - provision-hardhat-with-packaged-solcjs
@@ -212,9 +211,8 @@ jobs:
 
   hardhat-core-latest-solc:
     docker:
-      - image: circleci/node:16
+      - image: cimg/node:16.15
     steps:
-      - update-npm
       - show-npm-version
       - provision-and-package-solcjs
       - provision-hardhat-with-packaged-solcjs
@@ -230,9 +228,8 @@ jobs:
 
   hardhat-sample-project:
     docker:
-      - image: circleci/node:16
+      - image: cimg/node:16.15
     steps:
-      - update-npm
       - show-npm-version
       - provision-and-package-solcjs
       - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat-hackathon-boilerplate" boilerplate/
@@ -284,11 +281,13 @@ jobs:
 
   truffle-sample-project:
     docker:
-      - image: circleci/node:16
+      - image: cimg/node:16.15
     steps:
       - update-npm
       - show-npm-version
       - provision-and-package-solcjs
+      - run: sudo apt update
+      - run: sudo apt install python3 python-is-python3 --assume-yes --no-install-recommends
       - provision-truffle-with-packaged-solcjs
       - run:
           name: Unbox MetaCoin
@@ -309,15 +308,14 @@ jobs:
           command: |
             cd metacoin/
             # `truffle test` compiles the project but artifacts go into /tmp/
-            ! [[ -e build/ ]] || false
-            echo "module.exports['compilers'] = {solc: {version: '$(realpath node_modules/solc/)'}}" > truffle-config.js
+            ! [[ -e build/ ]]
+            echo "module.exports['compilers'] = {solc: {version: '$(realpath ../truffle/node_modules/solc/)'}}" >> truffle-config.js
             node ../truffle/node_modules/.bin/truffle test
 
   cli-smoke-test:
     docker:
-      - image: circleci/node:17
+      - image: cimg/node:current
     steps:
-      - update-npm
       - show-npm-version
       - provision-and-package-solcjs
       - run:
@@ -356,20 +354,20 @@ jobs:
   node-v10:
     <<: *node-base
     docker:
-      - image: circleci/node:10
+      - image: cimg/node:10.24
   node-v12:
     <<: *node-base
     docker:
-      - image: circleci/node:12
+      - image: cimg/node:12.22
   node-v14:
     <<: *node-base
     docker:
-      - image: circleci/node:14
+      - image: cimg/node:14.19
   node-v16:
     <<: *node-base
     docker:
-      - image: circleci/node:16
-  node-v17:
+      - image: cimg/node:16.15
+  node-v18:
     <<: *node-base
     docker:
-      - image: circleci/node:17
+      - image: cimg/node:18.3
