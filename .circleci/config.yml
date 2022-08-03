@@ -309,8 +309,8 @@ jobs:
           command: |
             cd metacoin/
             # `truffle test` compiles the project but artifacts go into /tmp/
-            ! [[ -e build/ ]] || false
-            echo "module.exports['compilers'] = {solc: {version: '$(realpath node_modules/solc/)'}}" > truffle-config.js
+            ! [[ -e build/ ]]
+            echo "module.exports['compilers'] = {solc: {version: '$(realpath ../truffle/node_modules/solc/)'}}" >> truffle-config.js
             node ../truffle/node_modules/.bin/truffle test
 
   cli-smoke-test:
