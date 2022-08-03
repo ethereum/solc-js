@@ -289,6 +289,8 @@ jobs:
       - update-npm
       - show-npm-version
       - provision-and-package-solcjs
+      - run: sudo apt update
+      - run: sudo apt install python3 python-is-python3 --assume-yes --no-install-recommends
       - provision-truffle-with-packaged-solcjs
       - run:
           name: Unbox MetaCoin
