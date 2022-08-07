@@ -1,0 +1,64 @@
+import * as fs from 'fs';
+import { https } from 'follow-redirects';
+import MemoryStream from 'memorystream';
+import { keccak256 } from 'js-sha3';
+
+function getVersionList () {
+  console.log('Retrieving available version list...');
+
+  return new Promise<string>((resolve, reject) => {
+    const mem = new MemoryStream(null, { readable: false });
+    https.get('https://binaries.soliditylang.org/bin/list.json', function (response) {
+      if (response.statusCode !== 200) {
+        reject(new Error('Error downloading file: ' + response.statusCode));
+      }
+      response.pipe(mem);
+      response.on('end', function () {
+        resolve(mem.toString());
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
+function downloadBinary (outputName, version, expectedHash) {
+  console.log('Downloading version', version);
+
+  return new Promise<void>((resolve, reject) => {
+    // Remove if existing
+    if (fs.existsSync(outputName)) {
+      fs.unlinkSync(outputName);
+    }
+
+    process.on('SIGINT', function () {
+      fs.unlinkSync(outputName);
+      reject(new Error('Interrupted, removing file.'));
+    });
+
+    const file = fs.createWriteStream(outputName, { encoding: 'binary' });
+    https.get('https://binaries.soliditylang.org/bin/' + version, function (response) {
+      if (response.statusCode !== 200) {
+        reject(new Error('Error downloading file: ' + response.statusCode));
+      }
+      response.pipe(file);
+      file.on('finish', function () {
+        file.close();
+        const hash = '0x' + keccak256(fs.readFileSync(outputName, { encoding: 'binary' }));
+        if (expectedHash !== hash) {
+          reject(new Error('Hash mismatch: ' + expectedHash + ' vs ' + hash));
+        } else {
+          console.log('Done.');
+          resolve();
+        }
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
+export = {
+  getVersionList,
+  downloadBinary
+};
