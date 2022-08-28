@@ -69,7 +69,7 @@ an error, and keep re-running the compiler until all of them are resolved.
 Example:
 
 ```javascript
-var solc = require('solc');
+const solc = require('solc');
 
 var input = {
   language: 'Solidity',
@@ -203,6 +203,70 @@ The low-level API is as follows:
 - `solc.lowlevel.compileStandard`: this works just like `compile` above, but is only present in compilers after (and including) 0.4.11
 
 For examples how to use them, please refer to the README of the above mentioned solc-js releases.
+
+#### Language Server Mode
+
+Since version 0.8.11, the solidity compiler natively supports the
+language server protocol. With solc-js, you can now use it as follows:
+
+```javascript
+const solc = require('solc');
+
+// Callback to be invoked when additional files have to be opened during
+// source code analysis stage.
+//
+// This function behaves similar to the compilation file reader callback.
+function fileReadCallback(path)
+{
+    if ('path' === 'file:///project/lib.sol') {
+        return {
+            contents: 'library L { function f() internal returns (uint) { return 7; } }';
+        };
+    }
+    return { error: 'File not found' };
+}
+
+// Put solcjs into LSP mode.
+// Needs to be called only once before the actual LSP I/O calls.
+solc.lsp.start(fileReadCallback);
+
+// Send some LSP JSON-RPC message and optionally receive a reply.
+const lspInitializationMessage = {
+    'jsonrpc': '2.0',
+    'method': 'initialize',
+    'params': {
+        'rootUri': 'file:///project/',
+        'capabilities': {
+            'textDocument': {
+                'publishDiagnostics': {'relatedInformation': true}
+            },
+            'workspace': {
+                'applyEdit': true,
+                'configuration': true,
+                'didChangeConfiguration': {'dynamicRegistration': true},
+                'workspaceEdit': {'documentChanges': true},
+                'workspaceFolders': true
+            }
+        }
+    }
+};
+solc.lsp.sendReceive(JSON.stringify(lspInitializationMessage)));
+solc.lsp.sendReceive(JSON.stringify({'jsonrpc': '2.0', 'method': 'initialized'}));
+
+// Now, with the LSP server, being set up the following
+// can be called as often as needed.
+function lspRoundtrip(jsonRpcInputObject)
+{
+    return JSON.parse(solc.lsp.sendReceive(JSON.stringify(jsonRpcInputObject)));
+}
+```
+
+This is a low level API endpoint for use by language server clients,
+such as Visual Studio Code, or any other editor.
+In order to know what you can pass in and what can come out,
+it is highly recommended to have a look at:
+
+  https://microsoft.github.io/language-server-protocol/specification
 
 ### Using with Electron
 
