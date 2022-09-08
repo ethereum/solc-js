@@ -183,6 +183,8 @@ jobs:
                 command: npm run coveralls
 
   hardhat-core-default-solc:
+    # Runs out of memory on 'medium'.
+    resource_class: medium+
     docker:
       - image: cimg/node:16.15
     steps:
