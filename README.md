@@ -204,6 +204,9 @@ The low-level API is as follows:
 
 For examples how to use them, please refer to the README of the above mentioned solc-js releases.
 
+**Note**: These low-level functions remain available for compatibility reasons.
+However, they were superseded by the `compile()` function and are no longer required in newer versions. The functions `compileSingle`, `compileMulti` and `compileCallback` are always `null` in the newer versions.
+
 ### Using with Electron
 
 **Note:**
@@ -239,8 +242,18 @@ solc.loadRemoteVersion('latest', function(err, solcSnapshot) {
     // An error was encountered, display and quit
   } else {
     // NOTE: Use `solcSnapshot` here with the same interface `solc` has
+    // For example:
+    const output = solcSnapshot.compile(/* ... */)
   }
 });
+```
+
+The version **must** be in the long format.
+Thus, if you would like to use version `v0.8.17` you need to include the commit hash of the release.
+You can extract the long version string for each version from the [public available release list](https://binaries.soliditylang.org/bin/list.json).
+
+```javascript
+solc.loadRemoteVersion('v0.8.17+commit.8df45f5f', function(err, solcSnapshot) { /* ... */ });
 ```
 
 ### Linking Bytecode
@@ -308,25 +321,39 @@ Add the version of `solc` you want to use into `index.html`:
 ```html
 <script
   type="text/javascript"
-  src="https://binaries.soliditylang.org/bin/{{ SOLC VERSION }}.js"
-  integrity="sha256-{{ BASE64-ENCODED HASH OF SOLC VERSION  }}"
+  src="https://binaries.soliditylang.org/bin/{{ SOLC_VERSION }}.js"
+  integrity="sha256-{{ BASE64_ENCODED_HASH_OF_SOLC_VERSION  }}"
   crossorigin="anonymous"
 ></script>
 ```
 
-(Alternatively, use `https://binaries.soliditylang.org/bin/soljson-latest.js` to get the latest version.)
+This will load `solc` into the global variable `window.Module`.
+Alternatively, use `soljson-latest.js` as `{{ SOLC_VERSION }}.js` in the code snippet above to load the latest version.
 
 It is recommended that you check the integrity of the resource being fetched before using it in your application.
 For that, you can use the [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) feature.
-Adding SRI configuration to your HTML script tag ensures that the resource will only be loaded in the browser if the cryptographic hashes matches.
+Adding SRI configuration to your HTML script tag ensures that the resource will only be loaded by the browser if the cryptographic hashes match.
 
-You can run the script [get-sri.sh](./get-sri.sh) informing the desired solc-js version or compute it yourself based on the base64-encoded version of the sha256 hash of the release.
+You can generate the SRI hash yourself based on the base64-encoded version of the sha256 hash of the release.
+For example, after downloading version `v0.8.16+commit.07a7930e`, run:
+```bash
+sha256sum --binary soljson-v0.8.16+commit.07a7930e.js | awk '{ print $1 }' | xxd -revert -plain | base64
 ```
-./get-sri.sh 0.8.16
-sha256-J7KCDvk4BaZcdreUWklDJYLTBv0XoomFcJpR5kA2d8I= soljson-v0.8.16+commit.07a7930e.js
+```
+J7KCDvk4BaZcdreUWklDJYLTBv0XoomFcJpR5kA2d8I=
 ```
 
-This will load `solc` into the global variable `window.Module`. Then use this inside Javascript as:
+And update your `index.html` to:
+```html
+<script
+  type="text/javascript"
+  src="https://binaries.soliditylang.org/bin/soljson-v0.8.16+commit.07a7930e.js"
+  integrity="sha256-J7KCDvk4BaZcdreUWklDJYLTBv0XoomFcJpR5kA2d8I="
+  crossorigin="anonymous"
+></script>
+```
+
+Then use this inside JavaScript as:
 
 ```javascript
 var wrapper = require('solc/wrapper');
