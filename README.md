@@ -324,7 +324,7 @@ var solc = wrapper(window.Module);
 Or in ES6 syntax:
 
 ```javascript
-import * as wrapper from 'solc/wrapper';
+import wrapper from 'solc/wrapper';
 const solc = wrapper(window.Module);
 ```
 
