@@ -309,10 +309,22 @@ Add the version of `solc` you want to use into `index.html`:
 <script
   type="text/javascript"
   src="https://binaries.soliditylang.org/bin/{{ SOLC VERSION }}.js"
+  integrity="sha256-{{ BASE64-ENCODED HASH OF SOLC VERSION  }}"
+  crossorigin="anonymous"
 ></script>
 ```
 
-(Alternatively use `https://binaries.soliditylang.org/bin/soljson-latest.js` to get the latests version.)
+(Alternatively, use `https://binaries.soliditylang.org/bin/soljson-latest.js` to get the latest version.)
+
+It is recommended that you check the integrity of the resource being fetched before using it in your application.
+For that, you can use the [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) feature.
+Adding SRI configuration to your HTML script tag ensures that the resource will only be loaded in the browser if the cryptographic hashes matches.
+
+You can run the script [get-sri.sh](./get-sri.sh) informing the desired solc-js version or compute it yourself based on the base64-encoded version of the sha256 hash of the release.
+```
+./get-sri.sh 0.8.16
+sha256-J7KCDvk4BaZcdreUWklDJYLTBv0XoomFcJpR5kA2d8I= soljson-v0.8.16+commit.07a7930e.js
+```
 
 This will load `solc` into the global variable `window.Module`. Then use this inside Javascript as:
 
