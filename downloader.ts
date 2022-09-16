@@ -3,12 +3,12 @@ import { https } from 'follow-redirects';
 import MemoryStream from 'memorystream';
 import { keccak256 } from 'js-sha3';
 
-function getVersionList () {
+function getVersionList (url: string): Promise<string> {
   console.log('Retrieving available version list...');
 
   return new Promise<string>((resolve, reject) => {
     const mem = new MemoryStream(null, { readable: false });
-    https.get('https://binaries.soliditylang.org/bin/list.json', function (response) {
+    https.get(url, function (response) {
       if (response.statusCode !== 200) {
         reject(new Error('Error downloading file: ' + response.statusCode));
       }
@@ -22,8 +22,8 @@ function getVersionList () {
   });
 }
 
-function downloadBinary (outputName, version, expectedHash) {
-  console.log('Downloading version', version);
+function downloadBinary (binURL: string, outputName: string, releaseFile: string, expectedHash: string): Promise<void> {
+  console.log('Downloading version', releaseFile);
 
   return new Promise<void>((resolve, reject) => {
     // Remove if existing
@@ -37,7 +37,7 @@ function downloadBinary (outputName, version, expectedHash) {
     });
 
     const file = fs.createWriteStream(outputName, { encoding: 'binary' });
-    https.get('https://binaries.soliditylang.org/bin/' + version, function (response) {
+    https.get(`${binURL}/${releaseFile}`, function (response) {
       if (response.statusCode !== 200) {
         reject(new Error('Error downloading file: ' + response.statusCode));
       }

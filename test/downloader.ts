@@ -1,37 +1,189 @@
-import tape from 'tape';
-import * as semver from 'semver';
 import * as tmp from 'tmp';
-import wrapper from '../wrapper';
+import tape from 'tape';
+import nock from 'nock';
+import fs from 'fs';
+import path from 'path';
+import { keccak256 } from 'js-sha3';
+import { https } from 'follow-redirects';
 import downloader from '../downloader';
 
-const pkg = require('../package.json');
+const assets = path.resolve(__dirname, 'resources/assets');
 
-tape('Download latest binary', function (t) {
-  t.test('checking whether the current version is the latest available for download', async function (st) {
+tape.onFinish(() => {
+  if (!nock.isDone()) {
+    throw Error('expected requests were not performed');
+  }
+});
+
+function hash (filePath: string): string {
+  return '0x' + keccak256(fs.readFileSync(filePath, { encoding: 'binary' }));
+}
+
+function generateTestFile (t: tape.Test, content: string): tmp.FileResult {
+  // As the `keep` option is set to true the removeCallback must be called by the caller
+  // to cleanup the files after the test.
+  const file = tmp.fileSync({ template: 'soljson-XXXXXX.js', keep: true });
+  try {
+    fs.writeFileSync(file.name, content);
+  } catch (err) {
+    t.fail('error writing test file');
+  }
+
+  return file;
+}
+
+function versionListMock (url: string): nock.Interceptor {
+  return nock(url).get('/bin/list.json');
+}
+
+function downloadBinaryMock (url: string, filename: string): nock.Interceptor {
+  return nock(url).get(`/bin/${path.basename(filename)}`);
+}
+
+function defaultListener (req, res) {
+  res.writeHead(200);
+  res.end('OK');
+};
+
+async function startMockServer (listener = defaultListener) {
+  const server = https.createServer({
+    key: fs.readFileSync(path.resolve(assets, 'key.pem')),
+    cert: fs.readFileSync(path.resolve(assets, 'cert.pem'))
+  }, listener);
+
+  await new Promise(resolve => server.listen(resolve));
+  server.port = server.address().port;
+  server.origin = `https://localhost:${server.port}`;
+  return server;
+}
+
+tape('Download version list', async function (t) {
+  const server = await startMockServer();
+
+  t.teardown(function () {
+    server.close();
+    nock.cleanAll();
+  });
+
+  t.test('successfully get version list', async function (st) {
+    const dummyListPath = path.resolve(assets, 'dummy-list.json');
+    versionListMock(server.origin).replyWithFile(200, dummyListPath, {
+      'Content-Type': 'application/json'
+    });
+
     try {
-      const list = JSON.parse(await downloader.getVersionList());
-      const wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
-      if (semver.neq(wanted, list.latestRelease)) {
-        st.fail(`Version ${wanted} is not the latest release ${list.latestRelease}`);
-      }
-
-      const releaseFileName = list.releases[wanted];
-      const expectedFile = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0];
-      if (!expectedFile) {
-        st.fail(`Version ${wanted} not found. Version list is invalid or corrupted?`);
-      }
-
-      const tempDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'solc-js-compiler-test-' }).name;
-      const solcjsBin = `${tempDir}/${expectedFile.path}`;
-      await downloader.downloadBinary(solcjsBin, releaseFileName, expectedFile.keccak256);
-
-      const solc = wrapper(require(solcjsBin));
-      if (semver.neq(solc.version(), wanted)) {
-        st.fail('Downloaded version differs from package version');
-      }
-      st.pass(`Version ${wanted} successfully downloaded`);
+      const list = JSON.parse(
+        await downloader.getVersionList(`${server.origin}/bin/list.json`)
+      );
+      const expected = require(dummyListPath);
+      st.deepEqual(list, expected, 'list should match');
+      st.equal(list.latestRelease, expected.latestRelease, 'latest release should be equal');
     } catch (err) {
       st.fail(err.message);
+    }
+    st.end();
+  });
+
+  t.test('should throw an exception when version list not found', async function (st) {
+    versionListMock(server.origin).reply(404);
+
+    try {
+      await downloader.getVersionList(`${server.origin}/bin/list.json`);
+      st.fail('should throw file not found error');
+    } catch (err) {
+      st.equal(err.message, 'Error downloading file: 404', 'should throw file not found error');
+    }
+    st.end();
+  });
+});
+
+tape('Download latest binary', async function (t) {
+  const server = await startMockServer();
+  const content = '() => {}';
+  const tmpDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'solcjs-download-test-' }).name;
+
+  t.teardown(function () {
+    server.close();
+    nock.cleanAll();
+  });
+
+  t.test('successfully download binary', async function (st) {
+    const targetFilename = `${tmpDir}/target-success.js`;
+    const file = generateTestFile(st, content);
+
+    st.teardown(function () {
+      file.removeCallback();
+    });
+
+    downloadBinaryMock(server.origin, file.name)
+      .replyWithFile(200, file.name, {
+        'content-type': 'application/javascript',
+        'content-length': content.length.toString()
+      });
+
+    try {
+      await downloader.downloadBinary(
+        `${server.origin}/bin`,
+        targetFilename,
+        file.name,
+        hash(file.name)
+      );
+
+      if (!fs.existsSync(targetFilename)) {
+        st.fail('download failed');
+      }
+
+      const got = fs.readFileSync(targetFilename, { encoding: 'binary' });
+      const expected = fs.readFileSync(file.name, { encoding: 'binary' });
+      st.equal(got.length, expected.length, 'should download the correct file');
+    } catch (err) {
+      st.fail(err.message);
+    }
+    st.end();
+  });
+
+  t.test('should throw an exception when file not found', async function (st) {
+    const targetFilename = `${tmpDir}/target-fail404.js`;
+    downloadBinaryMock(server.origin, 'test.js').reply(404);
+
+    try {
+      await downloader.downloadBinary(
+        `${server.origin}/bin`,
+        targetFilename,
+        'test.js',
+        `0x${keccak256('something')}`
+      );
+      st.fail('should throw file not found error');
+    } catch (err) {
+      st.equal(err.message, 'Error downloading file: 404', 'should throw file not found error');
+    }
+    st.end();
+  });
+
+  t.test('should throw an exception if hashes do not match', async function (st) {
+    const targetFilename = `${tmpDir}/target-fail-hash.js`;
+    const file = generateTestFile(st, content);
+
+    st.teardown(function () {
+      file.removeCallback();
+    });
+
+    downloadBinaryMock(server.origin, file.name)
+      .replyWithFile(200, file.name, {
+        'content-type': 'application/javascript',
+        'content-length': content.length.toString()
+      });
+
+    try {
+      await downloader.downloadBinary(
+        `${server.origin}/bin`,
+        targetFilename,
+        file.name,
+        `0x${keccak256('something')}`
+      );
+      st.fail('should throw hash mismatch error');
+    } catch (err) {
+      st.match(err.message, /Hash mismatch/, 'should detect hash mismatch');
     }
     st.end();
   });
