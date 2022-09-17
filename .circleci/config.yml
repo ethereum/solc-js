@@ -15,6 +15,7 @@ workflows:
       - truffle-sample-project
       - cli-smoke-test
       - solidity-solcjs-ext-test
+      - update-binary-test
 
 version: 2.1
 
@@ -374,6 +375,24 @@ jobs:
       - run: git clone --depth 1 "https://github.com/ethereum/solidity" solidity/
       - run: cd solidity/ && curl "https://binaries.soliditylang.org/bin/soljson-nightly.js" --location --output soljson.js
       - run: cd solidity/ && test/externalTests/solc-js/solc-js.sh "$(realpath soljson.js)" "$(scripts/get_version.sh)" "$(realpath ../solc-js/)"
+
+  update-binary-test:
+    docker:
+      - image: cimg/node:current
+    steps:
+      - show-npm-version
+      - checkout:
+          path: solc-js
+      - install-dependencies:
+          cache-id: solc-js
+          path: solc-js
+      - run:
+          name: Verify that `npm run updateBinary` downloads the latest release
+          command: |
+            cd solc-js
+            npm run updateBinary
+            npm run build
+            scripts/is-binary-up-to-date.sh
 
   node-v10:
     <<: *node-base
