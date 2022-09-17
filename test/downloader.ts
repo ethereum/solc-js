@@ -40,12 +40,12 @@ function downloadBinaryMock (url: string, filename: string): nock.Interceptor {
   return nock(url).get(`/bin/${path.basename(filename)}`);
 }
 
-function defaultListener (req, res) {
+function defaultListener (req: any, res: any): void {
   res.writeHead(200);
   res.end('OK');
 };
 
-async function startMockServer (listener = defaultListener) {
+async function startMockServer (listener = defaultListener): Promise<any> {
   const server = https.createServer({
     key: fs.readFileSync(path.resolve(assets, 'key.pem')),
     cert: fs.readFileSync(path.resolve(assets, 'cert.pem'))
@@ -97,7 +97,7 @@ tape('Download version list', async function (t) {
   });
 });
 
-tape('Download latest binary', async function (t) {
+tape('Download binary', async function (t) {
   const server = await startMockServer();
   const content = '() => {}';
   const tmpDir = tmp.dirSync({ unsafeCleanup: true, prefix: 'solcjs-download-test-' }).name;
