@@ -5,11 +5,11 @@
 
 import downloader from './downloader';
 const pkg = require('./package.json');
-const BIN_URL = 'https://binaries.soliditylang.org/bin';
+const DEFAULT_HOST = 'https://binaries.soliditylang.org';
 
-async function download (version, binURL = BIN_URL) {
+async function download (version, host = DEFAULT_HOST) {
   try {
-    const list = JSON.parse(await downloader.getVersionList(`${binURL}/list.json`));
+    const list = JSON.parse(await downloader.getVersionList(host));
     const releaseFileName = list.releases[version];
     const expectedFile = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0];
 
@@ -18,7 +18,7 @@ async function download (version, binURL = BIN_URL) {
     }
 
     const expectedHash = expectedFile.keccak256;
-    await downloader.downloadBinary(binURL, 'soljson.js', releaseFileName, expectedHash);
+    await downloader.downloadBinary(host, 'soljson.js', releaseFileName, expectedHash);
   } catch (err) {
     console.log(err.message);
     process.exit(1);

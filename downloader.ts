@@ -3,12 +3,12 @@ import { https } from 'follow-redirects';
 import MemoryStream from 'memorystream';
 import { keccak256 } from 'js-sha3';
 
-function getVersionList (url: string): Promise<string> {
+function getVersionList (host: string): Promise<string> {
   console.log('Retrieving available version list...');
 
   return new Promise<string>((resolve, reject) => {
     const mem = new MemoryStream(null, { readable: false });
-    https.get(url, function (response) {
+    https.get(`${host}/bin/list.json`, function (response) {
       if (response.statusCode !== 200) {
         reject(new Error('Error downloading file: ' + response.statusCode));
       }
@@ -22,7 +22,7 @@ function getVersionList (url: string): Promise<string> {
   });
 }
 
-function downloadBinary (binURL: string, outputName: string, releaseFile: string, expectedHash: string): Promise<void> {
+function downloadBinary (host: string, outputName: string, releaseFile: string, expectedHash: string): Promise<void> {
   console.log('Downloading version', releaseFile);
 
   return new Promise<void>((resolve, reject) => {
@@ -37,7 +37,7 @@ function downloadBinary (binURL: string, outputName: string, releaseFile: string
     });
 
     const file = fs.createWriteStream(outputName, { encoding: 'binary' });
-    https.get(`${binURL}/${releaseFile}`, function (response) {
+    https.get(`${host}/bin/${releaseFile}`, function (response) {
       if (response.statusCode !== 200) {
         reject(new Error('Error downloading file: ' + response.statusCode));
       }

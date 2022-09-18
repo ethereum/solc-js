@@ -32,12 +32,12 @@ function generateTestFile (t: tape.Test, content: string): tmp.FileResult {
   return file;
 }
 
-function versionListMock (url: string): nock.Interceptor {
-  return nock(url).get('/bin/list.json');
+function versionListMock (host: string): nock.Interceptor {
+  return nock(host).get('/bin/list.json');
 }
 
-function downloadBinaryMock (url: string, filename: string): nock.Interceptor {
-  return nock(url).get(`/bin/${path.basename(filename)}`);
+function downloadBinaryMock (host: string, filename: string): nock.Interceptor {
+  return nock(host).get(`/bin/${path.basename(filename)}`);
 }
 
 function defaultListener (req: any, res: any): void {
@@ -73,7 +73,7 @@ tape('Download version list', async function (t) {
 
     try {
       const list = JSON.parse(
-        await downloader.getVersionList(`${server.origin}/bin/list.json`)
+        await downloader.getVersionList(server.origin)
       );
       const expected = require(dummyListPath);
       st.deepEqual(list, expected, 'list should match');
@@ -88,7 +88,7 @@ tape('Download version list', async function (t) {
     versionListMock(server.origin).reply(404);
 
     try {
-      await downloader.getVersionList(`${server.origin}/bin/list.json`);
+      await downloader.getVersionList(server.origin);
       st.fail('should throw file not found error');
     } catch (err) {
       st.equal(err.message, 'Error downloading file: 404', 'should throw file not found error');
@@ -123,7 +123,7 @@ tape('Download binary', async function (t) {
 
     try {
       await downloader.downloadBinary(
-        `${server.origin}/bin`,
+        server.origin,
         targetFilename,
         file.name,
         hash(file.name)
@@ -148,7 +148,7 @@ tape('Download binary', async function (t) {
 
     try {
       await downloader.downloadBinary(
-        `${server.origin}/bin`,
+        server.origin,
         targetFilename,
         'test.js',
         `0x${keccak256('something')}`
@@ -176,7 +176,7 @@ tape('Download binary', async function (t) {
 
     try {
       await downloader.downloadBinary(
-        `${server.origin}/bin`,
+        server.origin,
         targetFilename,
         file.name,
         `0x${keccak256('something')}`
