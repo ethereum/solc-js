@@ -35,16 +35,9 @@
     "node": ">=10.0.0"
   },
   "files": [
-    "abi.js",
-    "index.js",
-    "linker.js",
-    "smtchecker.js",
-    "smtsolver.js",
-    "solc.js",
-    "soljson.js",
-    "translate.js",
-    "wrapper.js",
-    "common/helpers.js"
+    "common/*.js",
+    "bindings/*.js",
+    "*.js"
   ],
   "author": "chriseth",
   "license": "MIT",
@@ -63,9 +56,9 @@
   },
   "devDependencies": {
     "@types/node": "^16.11.7",
-    "@types/tmp": "^0.2.3",
     "@types/semver": "^7.3.9",
     "@types/tape": "^4.13.2",
+    "@types/tmp": "^0.2.3",
     "@typescript-eslint/eslint-plugin": "^5.8.0",
     "@typescript-eslint/parser": "^5.8.0",
     "coveralls": "^3.0.0",
