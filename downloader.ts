@@ -46,7 +46,7 @@ function downloadBinary (host: string, outputName: string, releaseFile: string, 
         file.close();
         const hash = '0x' + keccak256(fs.readFileSync(outputName, { encoding: 'binary' }));
         if (expectedHash !== hash) {
-          reject(new Error('Hash mismatch: ' + expectedHash + ' vs ' + hash));
+          reject(new Error('Hash mismatch: expected ' + expectedHash + ' but got ' + hash));
         } else {
           console.log('Done.');
           resolve();
