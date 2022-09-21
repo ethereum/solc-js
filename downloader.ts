@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { https } from 'follow-redirects';
 import MemoryStream from 'memorystream';
-import { keccak256 } from 'js-sha3';
+import { hashFile } from './common/helpers';
 
 function getVersionList (host: string): Promise<string> {
   console.log('Retrieving available version list...');
@@ -44,7 +44,7 @@ function downloadBinary (host: string, outputName: string, releaseFile: string, 
       response.pipe(file);
       file.on('finish', function () {
         file.close();
-        const hash = '0x' + keccak256(fs.readFileSync(outputName, { encoding: 'binary' }));
+        const hash = hashFile(outputName);
         if (expectedHash !== hash) {
           reject(new Error('Hash mismatch: expected ' + expectedHash + ' but got ' + hash));
         } else {

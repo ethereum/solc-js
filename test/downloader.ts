@@ -3,9 +3,10 @@ import tape from 'tape';
 import nock from 'nock';
 import fs from 'fs';
 import path from 'path';
-import { keccak256 } from 'js-sha3';
 import { https } from 'follow-redirects';
 import downloader from '../downloader';
+import { keccak256 } from 'js-sha3';
+import { hashFile } from '../common/helpers';
 
 const assets = path.resolve(__dirname, 'resources/assets');
 
@@ -14,10 +15,6 @@ tape.onFinish(() => {
     throw Error('expected requests were not performed');
   }
 });
-
-function hash (filePath: string): string {
-  return '0x' + keccak256(fs.readFileSync(filePath, { encoding: 'binary' }));
-}
 
 function generateTestFile (t: tape.Test, content: string): tmp.FileResult {
   // As the `keep` option is set to true the removeCallback must be called by the caller
@@ -126,7 +123,7 @@ tape('Download binary', async function (t) {
         server.origin,
         targetFilename,
         file.name,
-        hash(file.name)
+        hashFile(file.name)
       );
 
       if (!fs.existsSync(targetFilename)) {
