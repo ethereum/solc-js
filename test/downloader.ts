@@ -26,7 +26,7 @@ function generateTestFile (t: tape.Test, content: string): tmp.FileResult {
   try {
     fs.writeFileSync(file.name, content);
   } catch (err) {
-    t.fail('error writing test file');
+    t.fail(`error writing test file: ${err.message}`);
   }
 
   return file;
