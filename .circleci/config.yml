@@ -2,6 +2,7 @@ workflows:
   version: 2.1
   node-multi-build:
     jobs:
+      - check-coding-style
       - node-v10
       - node-v12
       - node-v14
@@ -16,6 +17,9 @@ workflows:
       - solidity-solcjs-ext-test
 
 version: 2.1
+
+orbs:
+  shellcheck: circleci/shellcheck@volatile
 
 commands:
   show-npm-version:
@@ -181,6 +185,24 @@ jobs:
             - run:
                 name: coveralls
                 command: npm run coveralls
+
+  check-coding-style:
+    docker:
+      - image: cimg/node:current
+    steps:
+      - show-npm-version
+      - checkout
+      - shellcheck/install
+      - install-dependencies:
+          cache-id: solc-js
+      - run:
+          name: Check for javascript/typescript coding style
+          command: npm run lint
+      - shellcheck/check:
+          ignore-dirs: |
+            ./.git
+            ./node_modules
+            ./dist
 
   hardhat-core-default-solc:
     # Runs out of memory on 'medium'.
