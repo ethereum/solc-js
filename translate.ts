@@ -30,7 +30,8 @@ function versionToSemver (version) {
     return '0.3.5';
   }
   // This parses the obsolete nightly style where the date can have leading zeroes.
-  const nightlyParsed = version.match(/^([0-9]+\.[0-9]+\.[0-9]+)-nightly\.([0-9]+)\.0?([1-9])\.0?([1-9])(.*)$/);
+  // It does not validate the dates, but only if the date format is correct (i.e. YYYY.[M]M.[D]D).
+  const nightlyParsed = version.match(/^([0-9]+\.[0-9]+\.[0-9]+)-nightly\.([0-9]+)\.0?([1-9]+)\.0?([1-9]+)(.*)$/);
   if (nightlyParsed) {
     return nightlyParsed[1] + '-nightly.' + nightlyParsed[2] + '.' + nightlyParsed[3] + '.' + nightlyParsed[4] + nightlyParsed[5];
   }
