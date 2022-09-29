@@ -1,6 +1,8 @@
 import tape from 'tape';
 import spawn from 'tape-spawn';
 import rimraf from 'rimraf';
+import tmp from 'tmp';
+import fs from 'fs';
 import * as path from 'path';
 import solc from '../';
 
@@ -277,5 +279,26 @@ tape('CLI', function (t) {
       spt.succeeds();
       spt.end();
     });
+  });
+
+  t.test('attempt to overwrite without --overwrite flag', function (st) {
+    const cwd = tmp.dirSync({ unsafeCleanup: true }).name;
+    // create a fake C.bin to cause name collision
+    fs.openSync(`${cwd}/C.bin`, 'w');
+
+    const spt = spawn(st, `node ${solcjs} --bin ${dist}/test/resources/fixtureSmoke.sol`, { cwd });
+    spt.stderr.match(/^Refusing to overwrite existing file C\.bin \(use --overwrite to force\)\./);
+    spt.end();
+  });
+
+  t.test('--overwrite', function (st) {
+    const cwd = tmp.dirSync({ unsafeCleanup: true }).name;
+    // create a fake C.bin to cause name collision
+    fs.openSync(`${cwd}/C.bin`, 'w');
+
+    const spt = spawn(st, `node ${solcjs} --bin ${dist}/test/resources/fixtureSmoke.sol --overwrite`, { cwd });
+    spt.stderr.empty();
+    spt.succeeds();
+    spt.end();
   });
 });

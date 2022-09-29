@@ -44,6 +44,7 @@ program
     'When using a package manager to install libraries, use this option to specify directories where packages are installed. ' +
     'Can be used multiple times to provide multiple locations.'
   )
+  .option('--overwrite', 'If artifacts already exist on disk, overwrite them.', false)
   .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.')
   .option('-p, --pretty-json', 'Pretty-print all JSON output.', false)
   .option('-v, --verbose', 'More detailed console output.', false);
@@ -224,26 +225,33 @@ if (!output) {
 
 fs.mkdirSync(destination, { recursive: true });
 
-function writeFile (file, content) {
-  file = path.join(destination, file);
+function writeFile (file, extension, content) {
+  file = path.join(destination, `${file}.${extension}`);
+
+  if (fs.existsSync(file) && !options.overwrite) {
+    throw new Error(`Refusing to overwrite existing file ${file} (use --overwrite to force).`);
+  }
+
   fs.writeFile(file, content, function (err) {
     if (err) {
-      console.error('Failed to write ' + file + ': ' + err);
+      throw new Error(`Failed to write ${file}: ${err}`);
     }
   });
 }
 
 for (const fileName in output.contracts) {
   for (const contractName in output.contracts[fileName]) {
-    let contractFileName = fileName + ':' + contractName;
-    contractFileName = contractFileName.replace(/[:./\\]/g, '_');
+    try {
+      if (options.bin) {
+        writeFile(contractName, 'bin', output.contracts[fileName][contractName].evm.bytecode.object);
+      }
 
-    if (options.bin) {
-      writeFile(contractFileName + '.bin', output.contracts[fileName][contractName].evm.bytecode.object);
-    }
-
-    if (options.abi) {
-      writeFile(contractFileName + '.abi', toFormattedJson(output.contracts[fileName][contractName].abi));
+      if (options.abi) {
+        writeFile(contractName, 'abi', toFormattedJson(output.contracts[fileName][contractName].abi));
+      }
+    } catch (err) {
+      console.error(err.message);
+      hasError = true;
     }
   }
 }
