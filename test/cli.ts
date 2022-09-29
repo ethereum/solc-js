@@ -1,11 +1,19 @@
 import tape from 'tape';
 import spawn from 'tape-spawn';
+import rimraf from 'rimraf';
 import * as path from 'path';
 import solc from '../';
 
+const dist = path.resolve(__dirname, '..');
+const solcjs = path.join(dist, 'solc.js');
+
+function clean () {
+  rimraf.sync(`${dist}/*{.bin,.abi}`);
+}
+
 tape('CLI', function (t) {
   t.test('--version', function (st) {
-    const spt = spawn(st, './solc.js --version');
+    const spt = spawn(st, `node ${solcjs} --version`);
     spt.stdout.match(solc.version() + '\n');
     spt.stdout.match(/^\s*[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?\+commit\.[0-9a-f]+([a-zA-Z0-9.-]+)?\s*$/);
     spt.stderr.empty();
@@ -13,81 +21,87 @@ tape('CLI', function (t) {
   });
 
   t.test('no parameters', function (st) {
-    const spt = spawn(st, './solc.js');
+    const spt = spawn(st, `node ${solcjs}`);
     spt.stderr.match(/^Must provide a file/);
     spt.end();
   });
 
   t.test('no mode specified', function (st) {
-    const spt = spawn(st, './solc.js test/resources/fixtureSmoke.sol');
+    const spt = spawn(st, `node ${solcjs} test/resources/fixtureSmoke.sol`);
     spt.stderr.match(/^Invalid option selected/);
     spt.end();
   });
 
   t.test('--bin', function (st) {
-    const spt = spawn(st, './solc.js --bin test/resources/fixtureSmoke.sol');
+    const spt = spawn(st, `node ${solcjs} --bin test/resources/fixtureSmoke.sol`);
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('--bin --optimize', function (st) {
-    const spt = spawn(st, './solc.js --bin --optimize test/resources/fixtureSmoke.sol');
+    const spt = spawn(st, `node ${solcjs} --bin --optimize test/resources/fixtureSmoke.sol`);
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('--bin --optimize-runs 666', function (st) {
-    const spt = spawn(st, './solc.js --bin --optimize-runs 666 test/resources/fixtureSmoke.sol');
+    const spt = spawn(st, `node ${solcjs} --bin --optimize-runs 666 test/resources/fixtureSmoke.sol`);
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('--bin --optimize-runs not-a-number', function (st) {
-    const spt = spawn(st, './solc.js --bin --optimize-runs not-a-number test/resources/fixtureSmoke.sol');
+    const spt = spawn(st, `node ${solcjs} --bin --optimize-runs not-a-number test/resources/fixtureSmoke.sol`);
     spt.stderr.match(/^error: option '--optimize-runs <optimize-runs>' argument 'not-a-number' is invalid/);
     spt.end();
   });
 
   t.test('invalid file specified', function (st) {
-    const spt = spawn(st, './solc.js --bin test/fileNotFound.sol');
+    const spt = spawn(st, `node ${solcjs} --bin test/fileNotFound.sol`);
     spt.stderr.match(/^Error reading /);
     spt.end();
   });
 
   t.test('incorrect source source', function (st) {
-    const spt = spawn(st, './solc.js --bin test/resources/fixtureIncorrectSource.sol');
+    const spt = spawn(st, `node ${solcjs} --bin test/resources/fixtureIncorrectSource.sol`);
     spt.stderr.match(/SyntaxError: Invalid pragma "contract"/);
     spt.end();
   });
 
   t.test('--abi', function (st) {
-    const spt = spawn(st, './solc.js --abi test/resources/fixtureSmoke.sol');
+    const spt = spawn(st, `node ${solcjs} --abi test/resources/fixtureSmoke.sol`);
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('--bin --abi', function (st) {
-    const spt = spawn(st, './solc.js --bin --abi test/resources/fixtureSmoke.sol');
+    const spt = spawn(st, `node ${solcjs} --bin --abi test/resources/fixtureSmoke.sol`);
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('no base path', function (st) {
     const spt = spawn(
       st,
-      './solc.js --bin ' +
-        'test/resources/importA.sol ' +
-        './test/resources//importA.sol ' +
-        path.resolve('test/resources/importA.sol')
+        `node ${solcjs} --bin \
+            test/resources/importA.sol \
+            ./test/resources//importA.sol \
+            ${path.resolve('test/resources/importA.sol')}`
     );
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('relative base path', function (st) {
@@ -96,65 +110,69 @@ tape('CLI', function (t) {
     // by the import callback when it appends the base path back.
     const spt = spawn(
       st,
-      './solc.js --bin --base-path test/resources ' +
-        'test/resources/importA.sol ' +
-        './test/resources//importA.sol ' +
-        path.resolve('test/resources/importA.sol')
+      `node ${solcjs} --bin --base-path test/resources \
+            test/resources/importA.sol \
+            ./test/resources//importA.sol \
+            ${path.resolve('test/resources/importA.sol')}`
     );
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('relative non canonical base path', function (st) {
     const spt = spawn(
       st,
-      './solc.js --bin --base-path ./test/resources ' +
-        'test/resources/importA.sol ' +
-        './test/resources//importA.sol ' +
-        path.resolve('test/resources/importA.sol')
+      `node ${solcjs} --bin --base-path ./test/resources \
+            test/resources/importA.sol \
+            ./test/resources//importA.sol \
+            ${path.resolve('test/resources/importA.sol')}`
     );
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('absolute base path', function (st) {
     const spt = spawn(
       st,
-      './solc.js --bin --base-path ' + path.resolve('test/resources') + ' ' +
-        'test/resources/importA.sol ' +
-        './test/resources//importA.sol ' +
-        path.resolve('test/resources/importA.sol')
+      `node ${solcjs} --bin --base-path ${path.resolve('test/resources')} \
+            test/resources/importA.sol \
+            ./test/resources//importA.sol \
+            ${path.resolve('test/resources/importA.sol')}`
     );
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('include paths', function (st) {
     const spt = spawn(
       st,
-      './solc.js --bin ' +
-        'test/resources/importCallback/base/contractB.sol ' +
-        'test/resources/importCallback/includeA/libY.sol ' +
-        './test/resources/importCallback/includeA//libY.sol ' +
-        path.resolve('test/resources/importCallback/includeA/libY.sol') + ' ' +
-        '--base-path test/resources/importCallback/base ' +
-        '--include-path test/resources/importCallback/includeA ' +
-        '--include-path ' + path.resolve('test/resources/importCallback/includeB/')
+      `node ${solcjs} --bin \
+            test/resources/importCallback/base/contractB.sol \
+            test/resources/importCallback/includeA/libY.sol \
+            ./test/resources/importCallback/includeA//libY.sol \
+            ${path.resolve('test/resources/importCallback/includeA/libY.sol')} \
+            --base-path test/resources/importCallback/base \
+            --include-path test/resources/importCallback/includeA \
+            --include-path ${path.resolve('test/resources/importCallback/includeB/')}`
     );
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
+    st.teardown(() => { clean(); });
   });
 
   t.test('include paths without base path', function (st) {
     const spt = spawn(
       st,
-      './solc.js --bin ' +
-        'test/resources/importCallback/contractC.sol ' +
-        '--include-path test/resources/importCallback/includeA'
+      `node ${solcjs} --bin \
+            test/resources/importCallback/contractC.sol \
+            --include-path test/resources/importCallback/includeA`
     );
     spt.stderr.match(/--include-path option requires a non-empty base path\./);
     spt.fails();
@@ -164,10 +182,10 @@ tape('CLI', function (t) {
   t.test('empty include paths', function (st) {
     const spt = spawn(
       st,
-      './solc.js --bin ' +
-        'test/resources/importCallback/contractC.sol ' +
-        '--base-path test/resources/importCallback/base ' +
-        '--include-path='
+      `node ${solcjs} --bin \
+            test/resources/importCallback/contractC.sol \
+            --base-path test/resources/importCallback/base \
+            --include-path=`
     );
     spt.stderr.match(/Empty values are not allowed in --include-path\./);
     spt.fails();
@@ -190,7 +208,7 @@ tape('CLI', function (t) {
         }
       }
     };
-    const spt = spawn(st, './solc.js --standard-json');
+    const spt = spawn(st, `node ${solcjs} --standard-json`);
     spt.stdin.setEncoding('utf-8');
     spt.stdin.write(JSON.stringify(input));
     spt.stdin.end();
@@ -219,7 +237,7 @@ tape('CLI', function (t) {
         }
       }
     };
-    const spt = spawn(st, './solc.js --standard-json --base-path test/resources');
+    const spt = spawn(st, `node ${solcjs} --standard-json --base-path test/resources`);
     spt.stdin.setEncoding('utf-8');
     spt.stdin.write(JSON.stringify(input));
     spt.stdin.end();
@@ -245,10 +263,10 @@ tape('CLI', function (t) {
     };
     const spt = spawn(
       st,
-      './solc.js --standard-json ' +
-        '--base-path test/resources/importCallback/base ' +
-        '--include-path test/resources/importCallback/includeA ' +
-        '--include-path ' + path.resolve('test/resources/importCallback/includeB/')
+      `node ${solcjs} --standard-json \
+            --base-path test/resources/importCallback/base \
+            --include-path test/resources/importCallback/includeA \
+            --include-path ${path.resolve('test/resources/importCallback/includeB/')}`
     );
     spt.stdin.setEncoding('utf-8');
     spt.stdin.write(JSON.stringify(input));
