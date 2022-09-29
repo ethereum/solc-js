@@ -9,7 +9,7 @@ import solc from '../';
 const dist = path.resolve(__dirname, '..');
 const solcjs = path.join(dist, 'solc.js');
 
-function clean () {
+function cleanupArtifacts () {
   rimraf.sync(`${dist}/*{.bin,.abi}`);
 }
 
@@ -39,7 +39,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('--bin --optimize', function (st) {
@@ -47,7 +47,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('--bin --optimize-runs 666', function (st) {
@@ -55,7 +55,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('--bin --optimize-runs not-a-number', function (st) {
@@ -81,7 +81,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('--bin --abi', function (st) {
@@ -89,7 +89,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('no base path', function (st) {
@@ -103,7 +103,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('relative base path', function (st) {
@@ -120,7 +120,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('relative non canonical base path', function (st) {
@@ -134,7 +134,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('absolute base path', function (st) {
@@ -148,7 +148,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('include paths', function (st) {
@@ -166,7 +166,7 @@ tape('CLI', function (t) {
     spt.stderr.empty();
     spt.succeeds();
     spt.end();
-    st.teardown(() => { clean(); });
+    st.teardown(cleanupArtifacts);
   });
 
   t.test('include paths without base path', function (st) {
