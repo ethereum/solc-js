@@ -205,7 +205,9 @@ The low-level API is as follows:
 For examples how to use them, please refer to the README of the above mentioned solc-js releases.
 
 **Note**: These low-level functions remain available for compatibility reasons.
-However, they were superseded by the `compile()` function and are no longer required in newer versions. The functions `compileSingle`, `compileMulti` and `compileCallback` are always `null` in the newer versions.
+However, they were superseded by the `compile()` function and are no longer required.
+Starting from version `0.5.0+commit.1d4f565a`, the functions `compileSingle`, `compileMulti`, and `compileCallback` are always `null` when using newer solc binary versions.
+It is recommended to use the latest release of solc-js, but it should also handle all the older solc binaries down to `0.1.x`.
 
 ### Using with Electron
 
@@ -250,7 +252,7 @@ solc.loadRemoteVersion('latest', function(err, solcSnapshot) {
 
 The version **must** be in the long format.
 Thus, if you would like to use version `v0.8.17` you need to include the commit hash of the release.
-You can extract the long version string for each version from the [public available release list](https://binaries.soliditylang.org/bin/list.json).
+You can extract the long version string for each version from the [publicly available release list](https://binaries.soliditylang.org/bin/list.json).
 
 ```javascript
 solc.loadRemoteVersion('v0.8.17+commit.8df45f5f', function(err, solcSnapshot) { /* ... */ });
