@@ -337,7 +337,7 @@ Adding SRI configuration to your HTML script tag ensures that the resource will 
 You can generate the SRI hash yourself based on the base64-encoded version of the sha256 hash of the release.
 For example, after downloading version `v0.8.16+commit.07a7930e`, run:
 ```bash
-sha256sum --binary soljson-v0.8.16+commit.07a7930e.js | awk '{ print $1 }' | xxd -revert -plain | base64
+node -e "console.log(crypto.createHash('sha256').update(fs.readFileSync('./soljson-v0.8.16+commit.07a7930e.js', 'utf8')).digest('base64'))"
 ```
 ```
 J7KCDvk4BaZcdreUWklDJYLTBv0XoomFcJpR5kA2d8I=
