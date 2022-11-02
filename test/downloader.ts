@@ -12,7 +12,7 @@ const assets = path.resolve(__dirname, 'resources/assets');
 
 tape.onFinish(() => {
   if (!nock.isDone()) {
-    throw Error('expected requests were not performed');
+    throw Error('Expected download requests were not performed');
   }
 });
 
