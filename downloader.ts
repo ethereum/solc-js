@@ -33,7 +33,7 @@ function downloadBinary (host: string, outputName: string, releaseFile: string, 
 
     process.on('SIGINT', function () {
       fs.unlinkSync(outputName);
-      reject(new Error('Interrupted, removing file.'));
+      reject(new Error('Interrupted... file removed'));
     });
 
     const file = fs.createWriteStream(outputName, { encoding: 'binary' });
