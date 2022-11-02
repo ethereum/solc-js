@@ -11,7 +11,7 @@ async function download (version, host = DEFAULT_HOST) {
   try {
     const list = JSON.parse(await downloader.getVersionList(host));
     const releaseFileName = list.releases[version];
-    const expectedFile = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0];
+    const expectedFile = list.builds.find((entry) => entry.path === releaseFileName);
 
     if (!expectedFile) {
       throw new Error('Requested version not found. Version list is invalid or corrupted.');
