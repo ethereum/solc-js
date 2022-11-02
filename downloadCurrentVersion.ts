@@ -14,7 +14,7 @@ async function download (version, host = DEFAULT_HOST) {
     const expectedFile = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0];
 
     if (!expectedFile) {
-      throw new Error('Requested version not found. Version list is invalid or corrupted?');
+      throw new Error('Requested version not found. Version list is invalid or corrupted.');
     }
 
     const expectedHash = expectedFile.keccak256;
