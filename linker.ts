@@ -39,7 +39,7 @@ function replacePlaceholder (bytecode: string, label: string, address: string, l
   // truncate to 36 characters
   const truncatedName = label.slice(0, 36);
 
-  if (linkReferences && linkReferences[truncatedName]) {
+  if (linkReferences[truncatedName]) {
     linkReferences[truncatedName].forEach(function (reference) {
       const start = reference.start * 2;
       const end = (reference.start + reference.length) * 2;
