@@ -55,7 +55,7 @@ const files = program.args;
 const destination = options.outputDir || '.';
 
 function abort (msg) {
-  console.error(msg || 'Error occured');
+  console.error(msg || 'Error occurred');
   process.exit(1);
 }
 
