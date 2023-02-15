@@ -1,4 +1,8 @@
 import wrapper from './wrapper';
 
-const soljson = require('./soljson.js');
-export = wrapper(soljson);
+export function bagelsWrapper() { 
+  // console.log('demo: switching to v0.8.17....');
+  const soljson = require('./soljson.js');
+
+  return wrapper(soljson);
+}
