@@ -4,9 +4,12 @@ import * as path from 'path';
 import specificSolVersion from '../';
 
 tape('CLI', function (t) {
-  t.test('--version', function (st) {
+  t.test('--version', async function (st) {
     const spt = spawn(st, './solc.js --version');
-    spt.stdout.match(specificSolVersion().version() + '\n');
+
+    const solc = await specificSolVersion();
+    
+    spt.stdout.match(solc.version() + '\n');
     spt.stdout.match(/^\s*[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?\+commit\.[0-9a-f]+([a-zA-Z0-9.-]+)?\s*$/);
     spt.stderr.empty();
     spt.end();

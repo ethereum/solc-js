@@ -55,8 +55,10 @@ function expectErrors (expectations, errors, ignoreCex) {
 }
 
 tape('SMTCheckerCallback', function (t) {
-  t.test('Interface via callback', function (st) {
-    if (!semver.gt(specificSolVersion().semver(), '0.5.99')) {
+  t.test('Interface via callback', async function (st) {
+    const solc = await specificSolVersion();
+
+    if (!semver.gt(solc.semver(), '0.5.99')) {
       st.skip('SMT callback not implemented by this compiler version.');
       st.end();
       return;
@@ -75,7 +77,7 @@ tape('SMTCheckerCallback', function (t) {
     let pragmaSMT = '';
     let settings = {};
     // `pragma experimental SMTChecker;` was deprecated in 0.8.4
-    if (!semver.gt(specificSolVersion().semver(), '0.8.3')) {
+    if (!semver.gt(solc.semver(), '0.8.3')) {
       pragmaSMT = 'pragma experimental SMTChecker;\n';
     } else {
       settings = { modelChecker: { engine: 'all' } };
@@ -89,14 +91,14 @@ tape('SMTCheckerCallback', function (t) {
     });
 
     let tests;
-    if (!semver.gt(specificSolVersion().semver(), '0.6.8')) {
+    if (!semver.gt(solc.semver(), '0.6.8')) {
       // Up to version 0.6.8 there were no embedded solvers.
       tests = [
         { cb: satCallback, expectations: ['Assertion violation happens here'] },
         { cb: unsatCallback, expectations: [] },
         { cb: errorCallback, expectations: ['BMC analysis was not possible'] }
       ];
-    } else if (!semver.gt(specificSolVersion().semver(), '0.6.12')) {
+    } else if (!semver.gt(solc.semver(), '0.6.12')) {
       // Solidity 0.6.9 comes with z3.
       tests = [
         { cb: satCallback, expectations: ['Assertion violation happens here'] },
@@ -114,7 +116,7 @@ tape('SMTCheckerCallback', function (t) {
 
     for (const i in tests) {
       const test = tests[i];
-      const output = JSON.parse(specificSolVersion().compile(
+      const output = JSON.parse(solc.compile(
         inputJSON,
         { smtSolver: test.cb }
       ));
@@ -124,7 +126,7 @@ tape('SMTCheckerCallback', function (t) {
     st.end();
   });
 
-  t.test('Solidity smtCheckerTests', function (st) {
+  t.test('Solidity smtCheckerTests', async function (st) {
     const testdir = path.resolve(__dirname, 'resources/smtChecker/');
     if (!fs.existsSync(testdir)) {
       st.skip('SMT checker tests not present.');
@@ -209,8 +211,10 @@ tape('SMTCheckerCallback', function (t) {
       }
 
       let settings = {};
+      const solc = await specificSolVersion();
+
       // `pragma experimental SMTChecker;` was deprecated in 0.8.4
-      if (semver.gt(specificSolVersion().semver(), '0.8.3')) {
+      if (semver.gt(solc.semver(), '0.8.3')) {
         const engine = test.engine !== undefined ? test.engine : 'all';
         settings = {
           modelChecker: {
@@ -221,7 +225,7 @@ tape('SMTCheckerCallback', function (t) {
           }
         };
       }
-      const output = JSON.parse(specificSolVersion().compile(
+      const output = JSON.parse(solc.compile(
         JSON.stringify({
           language: 'Solidity',
           sources: test.solidity,

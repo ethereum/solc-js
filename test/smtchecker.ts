@@ -58,7 +58,7 @@ tape('SMTCheckerWithSolver', function (t) {
   // In these tests we require z3 to actually run the solver.
   // This uses the SMT double run mechanism instead of the callback.
 
-  t.test('Simple test with axuiliaryInputRequested', function (st) {
+  t.test('Simple test with axuiliaryInputRequested', async function (st) {
     const z3 = smtsolver.availableSolvers.filter(solver => solver.command === 'z3');
     if (z3.length === 0) {
       st.skip('Test requires z3.');
@@ -66,7 +66,9 @@ tape('SMTCheckerWithSolver', function (t) {
       return;
     }
 
-    if (semver.lt(specificSolVersion().semver(), '0.8.7')) {
+    const solc = await specificSolVersion();
+
+    if (semver.lt(solc.semver(), '0.8.7')) {
       st.skip('This test requires Solidity 0.8.7 to enable all SMTChecker options.');
       st.end();
       return;
@@ -87,13 +89,13 @@ tape('SMTCheckerWithSolver', function (t) {
       settings: settings
     };
 
-    const output = JSON.parse(specificSolVersion().compile(JSON.stringify(input)));
+    const output = JSON.parse(solc.compile(JSON.stringify(input)));
     st.ok(output);
 
     const newInput = smtchecker.handleSMTQueries(input, output, smtsolver.smtSolver, z3[0]);
     st.notEqual(newInput, null);
 
-    const newOutput = JSON.parse(specificSolVersion().compile(JSON.stringify(newInput)));
+    const newOutput = JSON.parse(solc.compile(JSON.stringify(newInput)));
     st.ok(newOutput);
 
     const smtErrors = newOutput.errors.filter(e => e.errorCode === '6328');

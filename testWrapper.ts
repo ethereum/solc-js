@@ -32,8 +32,9 @@ async function compileContract(solVersionDir) {
     },
   }
 
+  const solc = await specificSolVersion(solVersionDir);
   let output = JSON.parse(
-    specificSolVersion(solVersionDir).compile(JSON.stringify(input)),
+    solc.compile(JSON.stringify(input)),
   )
 
   for (let contractName in output.contracts['BasicContract']) {

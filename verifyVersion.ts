@@ -5,15 +5,20 @@ import specificSolVersion from './';
 
 const { version: packageVersion } = require('./package.json');
 
-const solcVersion = specificSolVersion().version();
-
-console.log('solcVersion: ' + solcVersion);
-console.log('packageVersion: ' + packageVersion);
-
-if (semver.eq(packageVersion, solcVersion)) {
-  console.log('Version matching');
-  process.exit(0);
-} else {
-  console.log('Version mismatch');
-  process.exit(1);
+async function main() {
+  const solc = await specificSolVersion();
+  const solcVersion = solc.version();
+  
+  console.log('solcVersion: ' + solcVersion);
+  console.log('packageVersion: ' + packageVersion);
+  
+  if (semver.eq(packageVersion, solcVersion)) {
+    console.log('Version matching');
+    process.exit(0);
+  } else {
+    console.log('Version mismatch');
+    process.exit(1);
+  }
 }
+
+main();

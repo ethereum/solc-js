@@ -14,45 +14,184 @@ const originalUncaughtExceptionListeners = process.listeners('uncaughtException'
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
 
-const program: any = new commander.Command();
-const commanderParseInt = function (value) {
-  const parsedValue = parseInt(value, 10);
-  if (isNaN(parsedValue)) {
-    throw new commander.InvalidArgumentError('Not a valid integer.');
+let program; 
+let options; 
+let files;
+let destination; 
+let callbacks;
+
+async function main() {
+  program = new commander.Command();
+  const commanderParseInt = function (value) {
+    const parsedValue = parseInt(value, 10);
+    if (isNaN(parsedValue)) {
+      throw new commander.InvalidArgumentError('Not a valid integer.');
+    }
+    return parsedValue;
+  };
+  
+  program.name('solcjs');
+  const solc = await specificSolVersion();
+  program.version(solc.version());
+  program
+    .option('--version', 'Show version and exit.')
+    .option('--optimize', 'Enable bytecode optimizer.', false)
+    .option(
+      '--optimize-runs <optimize-runs>',
+      'The number of runs specifies roughly how often each opcode of the deployed code will be executed across the lifetime of the contract. ' +
+      'Lower values will optimize more for initial deployment cost, higher values will optimize more for high-frequency usage.',
+      commanderParseInt
+    )
+    .option('--bin', 'Binary of the contracts in hex.')
+    .option('--abi', 'ABI of the contracts.')
+    .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
+    .option('--base-path <path>', 'Root of the project source tree. ' +
+      'The import callback will attempt to interpret all import paths as relative to this directory.'
+    )
+    .option('--include-path <path...>', 'Extra source directories available to the import callback. ' +
+      'When using a package manager to install libraries, use this option to specify directories where packages are installed. ' +
+      'Can be used multiple times to provide multiple locations.'
+    )
+    .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.')
+    .option('-p, --pretty-json', 'Pretty-print all JSON output.', false)
+    .option('-v, --verbose', 'More detailed console output.', false);
+  
+  program.parse(process.argv);
+  options = program.opts();
+  
+  files = program.args;
+  destination = options.outputDir || '.';
+
+  if (options.basePath || !options.standardJson) { callbacks = { import: readFileCallback }; }
+
+  if (options.standardJson) {
+    const input = fs.readFileSync(process.stdin.fd).toString('utf8');
+    if (program.verbose) { console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + '\n'); }
+    let output = reformatJsonIfRequested(solc.compile(input, callbacks));
+  
+    try {
+      if (smtsolver.availableSolvers.length === 0) {
+        console.log('>>> Cannot retry compilation with SMT because there are no SMT solvers available.');
+      } else {
+        const inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver, smtsolver.availableSolvers[0]);
+        if (inputJSON) {
+          if (program.verbose) { console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n'); }
+          output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
+        }
+      }
+    } catch (e) {
+      const addError = {
+        component: 'general',
+        formattedMessage: e.toString(),
+        message: e.toString(),
+        type: 'Warning'
+      };
+  
+      const outputJSON = JSON.parse(output);
+      if (!outputJSON.errors) {
+        outputJSON.errors = [];
+      }
+      outputJSON.errors.push(addError);
+      output = toFormattedJson(outputJSON);
+    }
+  
+    if (program.verbose) { console.log('>>> Compilation result:'); }
+    console.log(output);
+    process.exit(0);
+  } else if (files.length === 0) {
+    console.error('Must provide a file');
+    process.exit(1);
   }
-  return parsedValue;
-};
+  
+  if (!(options.bin || options.abi)) {
+    abort('Invalid option selected, must specify either --bin or --abi');
+  }
+  
+  if (!options.basePath && options.includePath && options.includePath.length > 0) {
+    abort('--include-path option requires a non-empty base path.');
+  }
+  
+  if (options.includePath) {
+    for (const includePath of options.includePath) {
+      if (!includePath) { abort('Empty values are not allowed in --include-path.'); }
+    }
+  }
+  
+  const sources = {};
+  
+  for (let i = 0; i < files.length; i++) {
+    try {
+      sources[makeSourcePathRelativeIfPossible(files[i])] = {
+        content: fs.readFileSync(files[i]).toString()
+      };
+    } catch (e) {
+      abort('Error reading ' + files[i] + ': ' + e);
+    }
+  }
+  
+  const cliInput = {
+    language: 'Solidity',
+    settings: {
+      optimizer: {
+        enabled: options.optimize,
+        runs: options.optimizeRuns
+      },
+      outputSelection: {
+        '*': {
+          '*': ['abi', 'evm.bytecode']
+        }
+      }
+    },
+    sources: sources
+  };
+  if (program.verbose) { console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n'); }
+  
+  const output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));
+  
+  let hasError = false;
+  
+  if (!output) {
+    abort('No output from compiler');
+  } else if (output.errors) {
+    for (const error in output.errors) {
+      const message = output.errors[error];
+      if (message.severity === 'warning') {
+        console.log(message.formattedMessage);
+      } else {
+        console.error(message.formattedMessage);
+        hasError = true;
+      }
+    }
+  }
+  
+  fs.mkdirSync(destination, { recursive: true });
+  
 
-program.name('solcjs');
-program.version(specificSolVersion().version());
-program
-  .option('--version', 'Show version and exit.')
-  .option('--optimize', 'Enable bytecode optimizer.', false)
-  .option(
-    '--optimize-runs <optimize-runs>',
-    'The number of runs specifies roughly how often each opcode of the deployed code will be executed across the lifetime of the contract. ' +
-    'Lower values will optimize more for initial deployment cost, higher values will optimize more for high-frequency usage.',
-    commanderParseInt
-  )
-  .option('--bin', 'Binary of the contracts in hex.')
-  .option('--abi', 'ABI of the contracts.')
-  .option('--standard-json', 'Turn on Standard JSON Input / Output mode.')
-  .option('--base-path <path>', 'Root of the project source tree. ' +
-    'The import callback will attempt to interpret all import paths as relative to this directory.'
-  )
-  .option('--include-path <path...>', 'Extra source directories available to the import callback. ' +
-    'When using a package manager to install libraries, use this option to specify directories where packages are installed. ' +
-    'Can be used multiple times to provide multiple locations.'
-  )
-  .option('-o, --output-dir <output-directory>', 'Output directory for the contracts.')
-  .option('-p, --pretty-json', 'Pretty-print all JSON output.', false)
-  .option('-v, --verbose', 'More detailed console output.', false);
+  for (const fileName in output.contracts) {
+    for (const contractName in output.contracts[fileName]) {
+      let contractFileName = fileName + ':' + contractName;
+      contractFileName = contractFileName.replace(/[:./\\]/g, '_');
 
-program.parse(process.argv);
-const options = program.opts();
+      if (options.bin) {
+        writeFile(contractFileName + '.bin', output.contracts[fileName][contractName].evm.bytecode.object);
+      }
 
-const files = program.args;
-const destination = options.outputDir || '.';
+      if (options.abi) {
+        writeFile(contractFileName + '.abi', toFormattedJson(output.contracts[fileName][contractName].abi));
+      }
+    }
+  }
+
+  // Put back original exception handlers.
+  originalUncaughtExceptionListeners.forEach(function (listener) {
+    process.addListener('uncaughtException', listener);
+  });
+
+  if (hasError) {
+    process.exit(1);
+  }
+
+}
 
 function abort (msg) {
   console.error(msg || 'Error occurred');
@@ -120,109 +259,6 @@ function reformatJsonIfRequested (inputJson) {
   return (program.prettyJson ? toFormattedJson(JSON.parse(inputJson)) : inputJson);
 }
 
-let callbacks;
-if (options.basePath || !options.standardJson) { callbacks = { import: readFileCallback }; }
-
-if (options.standardJson) {
-  const input = fs.readFileSync(process.stdin.fd).toString('utf8');
-  if (program.verbose) { console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + '\n'); }
-  let output = reformatJsonIfRequested(specificSolVersion().compile(input, callbacks));
-
-  try {
-    if (smtsolver.availableSolvers.length === 0) {
-      console.log('>>> Cannot retry compilation with SMT because there are no SMT solvers available.');
-    } else {
-      const inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver, smtsolver.availableSolvers[0]);
-      if (inputJSON) {
-        if (program.verbose) { console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n'); }
-        output = reformatJsonIfRequested(specificSolVersion().compile(JSON.stringify(inputJSON), callbacks));
-      }
-    }
-  } catch (e) {
-    const addError = {
-      component: 'general',
-      formattedMessage: e.toString(),
-      message: e.toString(),
-      type: 'Warning'
-    };
-
-    const outputJSON = JSON.parse(output);
-    if (!outputJSON.errors) {
-      outputJSON.errors = [];
-    }
-    outputJSON.errors.push(addError);
-    output = toFormattedJson(outputJSON);
-  }
-
-  if (program.verbose) { console.log('>>> Compilation result:'); }
-  console.log(output);
-  process.exit(0);
-} else if (files.length === 0) {
-  console.error('Must provide a file');
-  process.exit(1);
-}
-
-if (!(options.bin || options.abi)) {
-  abort('Invalid option selected, must specify either --bin or --abi');
-}
-
-if (!options.basePath && options.includePath && options.includePath.length > 0) {
-  abort('--include-path option requires a non-empty base path.');
-}
-
-if (options.includePath) {
-  for (const includePath of options.includePath) {
-    if (!includePath) { abort('Empty values are not allowed in --include-path.'); }
-  }
-}
-
-const sources = {};
-
-for (let i = 0; i < files.length; i++) {
-  try {
-    sources[makeSourcePathRelativeIfPossible(files[i])] = {
-      content: fs.readFileSync(files[i]).toString()
-    };
-  } catch (e) {
-    abort('Error reading ' + files[i] + ': ' + e);
-  }
-}
-
-const cliInput = {
-  language: 'Solidity',
-  settings: {
-    optimizer: {
-      enabled: options.optimize,
-      runs: options.optimizeRuns
-    },
-    outputSelection: {
-      '*': {
-        '*': ['abi', 'evm.bytecode']
-      }
-    }
-  },
-  sources: sources
-};
-if (program.verbose) { console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n'); }
-const output = JSON.parse(specificSolVersion().compile(JSON.stringify(cliInput), callbacks));
-
-let hasError = false;
-
-if (!output) {
-  abort('No output from compiler');
-} else if (output.errors) {
-  for (const error in output.errors) {
-    const message = output.errors[error];
-    if (message.severity === 'warning') {
-      console.log(message.formattedMessage);
-    } else {
-      console.error(message.formattedMessage);
-      hasError = true;
-    }
-  }
-}
-
-fs.mkdirSync(destination, { recursive: true });
 
 function writeFile (file, content) {
   file = path.join(destination, file);
@@ -231,28 +267,4 @@ function writeFile (file, content) {
       console.error('Failed to write ' + file + ': ' + err);
     }
   });
-}
-
-for (const fileName in output.contracts) {
-  for (const contractName in output.contracts[fileName]) {
-    let contractFileName = fileName + ':' + contractName;
-    contractFileName = contractFileName.replace(/[:./\\]/g, '_');
-
-    if (options.bin) {
-      writeFile(contractFileName + '.bin', output.contracts[fileName][contractName].evm.bytecode.object);
-    }
-
-    if (options.abi) {
-      writeFile(contractFileName + '.abi', toFormattedJson(output.contracts[fileName][contractName].abi));
-    }
-  }
-}
-
-// Put back original exception handlers.
-originalUncaughtExceptionListeners.forEach(function (listener) {
-  process.addListener('uncaughtException', listener);
-});
-
-if (hasError) {
-  process.exit(1);
 }

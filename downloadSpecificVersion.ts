@@ -68,7 +68,7 @@ function downloadBinary (outputName, version, expectedHash) {
   })
 }
 
-export function downloadSpecificVersion(versionWanted:string) { 
+export function downloadSpecificVersion(versionWanted:string):Promise<string> { 
   return new Promise(async (resolve, reject) => {
     try {
       let list = await getVersionList();
