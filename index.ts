@@ -51,7 +51,7 @@ export default async function specificSolVersion(contractSolVersion?: string):Pr
 
      console.time('download finished')
      const output = await downloadSpecificVersion(validSolcVersionToDownload);
-     console.time('download finished')
+     console.timeEnd('download finished')
 
      const soljson = require(output);
      return wrapper(soljson);
