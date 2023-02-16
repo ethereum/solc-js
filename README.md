@@ -1,4 +1,4 @@
-# bagels-solc - a fork of solc-js for [bagels](https://github.com/Alex-Neo-Projects/bagels)
+# bagels-solc-js - a fork of solc-js for [bagels](https://github.com/Alex-Neo-Projects/bagels)
 
 JavaScript bindings for the [Solidity compiler](https://github.com/ethereum/solidity).
 
