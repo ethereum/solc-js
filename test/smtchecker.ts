@@ -1,6 +1,6 @@
 import tape from 'tape';
 import * as semver from 'semver';
-import solc from '../';
+import specificSolVersion from '../';
 import smtchecker from '../smtchecker';
 import smtsolver from '../smtsolver';
 
@@ -66,7 +66,7 @@ tape('SMTCheckerWithSolver', function (t) {
       return;
     }
 
-    if (semver.lt(solc.semver(), '0.8.7')) {
+    if (semver.lt(specificSolVersion().semver(), '0.8.7')) {
       st.skip('This test requires Solidity 0.8.7 to enable all SMTChecker options.');
       st.end();
       return;
@@ -87,13 +87,13 @@ tape('SMTCheckerWithSolver', function (t) {
       settings: settings
     };
 
-    const output = JSON.parse(solc.compile(JSON.stringify(input)));
+    const output = JSON.parse(specificSolVersion().compile(JSON.stringify(input)));
     st.ok(output);
 
     const newInput = smtchecker.handleSMTQueries(input, output, smtsolver.smtSolver, z3[0]);
     st.notEqual(newInput, null);
 
-    const newOutput = JSON.parse(solc.compile(JSON.stringify(newInput)));
+    const newOutput = JSON.parse(specificSolVersion().compile(JSON.stringify(newInput)));
     st.ok(newOutput);
 
     const smtErrors = newOutput.errors.filter(e => e.errorCode === '6328');

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import * as semver from 'semver';
-import solc from './';
+import specificSolVersion from './';
 
 const { version: packageVersion } = require('./package.json');
 
-const solcVersion = (solc as any).version();
+const solcVersion = specificSolVersion().version();
 
 console.log('solcVersion: ' + solcVersion);
 console.log('packageVersion: ' + packageVersion);

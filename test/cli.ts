@@ -1,12 +1,12 @@
 import tape from 'tape';
 import spawn from 'tape-spawn';
 import * as path from 'path';
-import solc from '../';
+import specificSolVersion from '../';
 
 tape('CLI', function (t) {
   t.test('--version', function (st) {
     const spt = spawn(st, './solc.js --version');
-    spt.stdout.match(solc.version() + '\n');
+    spt.stdout.match(specificSolVersion().version() + '\n');
     spt.stdout.match(/^\s*[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?\+commit\.[0-9a-f]+([a-zA-Z0-9.-]+)?\s*$/);
     spt.stderr.empty();
     spt.end();

@@ -4,7 +4,7 @@ import * as commander from 'commander';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import solc from './index';
+import specificSolVersion from './index';
 import smtchecker from './smtchecker';
 import smtsolver from './smtsolver';
 
@@ -24,7 +24,7 @@ const commanderParseInt = function (value) {
 };
 
 program.name('solcjs');
-program.version(solc.version());
+program.version(specificSolVersion().version());
 program
   .option('--version', 'Show version and exit.')
   .option('--optimize', 'Enable bytecode optimizer.', false)
@@ -126,7 +126,7 @@ if (options.basePath || !options.standardJson) { callbacks = { import: readFileC
 if (options.standardJson) {
   const input = fs.readFileSync(process.stdin.fd).toString('utf8');
   if (program.verbose) { console.log('>>> Compiling:\n' + reformatJsonIfRequested(input) + '\n'); }
-  let output = reformatJsonIfRequested(solc.compile(input, callbacks));
+  let output = reformatJsonIfRequested(specificSolVersion().compile(input, callbacks));
 
   try {
     if (smtsolver.availableSolvers.length === 0) {
@@ -135,7 +135,7 @@ if (options.standardJson) {
       const inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output), smtsolver.smtSolver, smtsolver.availableSolvers[0]);
       if (inputJSON) {
         if (program.verbose) { console.log('>>> Retrying compilation with SMT:\n' + toFormattedJson(inputJSON) + '\n'); }
-        output = reformatJsonIfRequested(solc.compile(JSON.stringify(inputJSON), callbacks));
+        output = reformatJsonIfRequested(specificSolVersion().compile(JSON.stringify(inputJSON), callbacks));
       }
     }
   } catch (e) {
@@ -204,7 +204,7 @@ const cliInput = {
   sources: sources
 };
 if (program.verbose) { console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n'); }
-const output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));
+const output = JSON.parse(specificSolVersion().compile(JSON.stringify(cliInput), callbacks));
 
 let hasError = false;
 
