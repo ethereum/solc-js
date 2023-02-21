@@ -34,7 +34,6 @@ function downloadBinary (outputName, version, expectedHash) {
   }
 
   process.on('SIGINT', function () {
-    console.log('Interrupted, removing file.');
     fs.unlinkSync(outputName);
     process.exit(1);
   });

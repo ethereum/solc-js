@@ -1,6 +1,6 @@
 {
   "name": "bagels-solc-js",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "Solidity compiler",
   "main": "index.js",
   "bin": {
@@ -12,7 +12,7 @@
     "lint": "eslint --ext .js,.ts .",
     "lint:fix": "eslint --fix --ext .js,.ts .",
     "updateBinary": "node build/clean.js && ts-node ./downloadCurrentVersion.ts && ts-node ./verifyVersion.ts",
-    "prepack": "node build/pack-publish-block.js",
+    "prepack": "node /Users/hack/Local/bagels-solc-js/build/pack-publish-block.js",
     "build:tarball": "npm run updateBinary && npm run build && BYPASS_SAFETY_CHECK=true npm pack ./dist",
     "publish:tarball": "tarball=$(npm run --silent tarballName) && ls \"$tarball\" && BYPASS_SAFETY_CHECK=true npm publish \"$tarball\"",
     "tarballName": "jq --raw-output '.name + \"-\" + .version + \".tgz\"' package.json",

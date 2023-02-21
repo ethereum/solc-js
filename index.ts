@@ -30,7 +30,7 @@ export default async function specificSolVersion(contractSolVersion?: string):Pr
   } 
   // Download a valid solc version
   else { 
-    await downloadValidSolcVersion(contractSolVersion);
+    return await downloadValidSolcVersion(contractSolVersion);
   }
 }
 
