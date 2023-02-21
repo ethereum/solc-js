@@ -2,7 +2,7 @@ import assert from 'assert';
 import tape from 'tape';
 import * as semver from 'semver';
 import * as tmp from 'tmp';
-import solc from '../';
+import specificSolVersion from '../index';
 import linker from '../linker';
 import { execSync } from 'child_process';
 import wrapper from '../wrapper';
@@ -867,7 +867,14 @@ function runTests (solc, versionText) {
   }
 }
 
-runTests(solc, 'latest');
+
+async function main() { 
+  const solc = await specificSolVersion();
+  solc.version();
+  runTests(solc, 'latest');
+}
+
+main();
 
 if (!noRemoteVersions) {
   // New compiler interface features 0.1.6, 0.2.1, 0.4.11, 0.5.0, etc.

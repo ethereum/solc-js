@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path'; 
 import * as semver from 'semver';
 
-const SOLC_INSTALLATION_DIRECTORY = os.homedir() + '/.bagels';
+export const SOLC_INSTALLATION_DIRECTORY = os.homedir() + '/.bagels';
 
 // Important to note: 
 // contractSolVersion can be any semver type of string
@@ -30,37 +30,40 @@ export default async function specificSolVersion(contractSolVersion?: string):Pr
   } 
   // Download a valid solc version
   else { 
-     let list = await getVersionList();
-     let parsedList = JSON.parse(list);
-        
-     const releases = parsedList['releases'];
-     let validSolcVersionToDownload: string | null;
-  
-     for (const key in releases) { 
-       if (isValidVersion(key, contractSolVersion)) {
-         validSolcVersionToDownload = key;
-         break;
-       }
-     }
-   
-     if (!validSolcVersionToDownload) { 
-       throw new Error("Couldn't find a valid solc version to download. Is the pragma solidity line valid?")
-     }
-   
-     console.log(`downloading solc-js v${validSolcVersionToDownload}...`);
-
-     console.time('download finished')
-     const output = await downloadSpecificVersion(validSolcVersionToDownload);
-     console.timeEnd('download finished')
-
-     const soljson = require(output);
-     return wrapper(soljson);
+    await downloadValidSolcVersion(contractSolVersion);
   }
 }
 
-function getInstalledValidVersion(contractPragmaVersion: string): string | null {
+export async function downloadValidSolcVersion(contractSolVersion) {
+  let list = await getVersionList();
+  let parsedList = JSON.parse(list);
+    
+  const releases = parsedList['releases'];
+  let validSolcVersionToDownload: string | null;
+
+  for (const key in releases) { 
+    if (isValidVersion(key, contractSolVersion)) {
+      validSolcVersionToDownload = key;
+      break;
+    }
+  }
+
+  if (!validSolcVersionToDownload) { 
+    throw new Error("Couldn't find a valid solc version to download. Is the pragma solidity line valid?")
+  }
+
+  console.log(`downloading solc-js v${validSolcVersionToDownload}...`);
+
+  console.time('download finished')
+  const output = await downloadSpecificVersion(validSolcVersionToDownload);
+  console.timeEnd('download finished')
+
+  const soljson = require(output);
+  return wrapper(soljson);
+}
+export function getInstalledValidVersion(contractPragmaVersion: string): string | null {
   try { 
-    let validVersionAlreadyInstalled = null;
+    let validVersionAlreadyInstalled;
     const installedVersions = getInstalledVersions();
 
     for (var index = 0; index < Object.keys(installedVersions).length; index++) {
@@ -83,7 +86,7 @@ function getInstalledValidVersion(contractPragmaVersion: string): string | null 
   }
 }
 
-function getInstalledVersions() { 
+export function getInstalledVersions() { 
   if (!fs.existsSync(SOLC_INSTALLATION_DIRECTORY)) {
     fs.mkdirSync(SOLC_INSTALLATION_DIRECTORY);
   } 

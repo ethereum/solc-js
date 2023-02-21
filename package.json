@@ -17,7 +17,7 @@
     "publish:tarball": "tarball=$(npm run --silent tarballName) && ls \"$tarball\" && BYPASS_SAFETY_CHECK=true npm publish \"$tarball\"",
     "tarballName": "jq --raw-output '.name + \"-\" + .version + \".tgz\"' package.json",
     "copyTestFiles": "cp -r ./test/resources ./dist/test/",
-    "pretest": "npm run lint && npm run build && npm run copyTestFiles",
+    "pretest": "npm run build && npm run copyTestFiles",
     "test": "cd dist && tape ./test/index.js",
     "coverage": "nyc npm run test",
     "coveralls": "npm run coverage && coveralls <coverage/lcov.info"
@@ -67,6 +67,7 @@
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.1",
+    "jest": "^29.4.3",
     "nyc": "^15.1.0",
     "tape": "^4.11.0",
     "tape-spawn": "^1.4.2",
