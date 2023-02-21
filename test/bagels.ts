@@ -16,20 +16,15 @@ function runTests(solc) {
       st.equal(solcInDir, true);
       st.end();
     })
+    // TODO: Still doesn't work!!!
     t.test('download invalid version', async function (st) {
       const specificSolc = await specificSolVersion('0.8.1'); 
       st.end();
     })
-    t.test('clean install', function (st) {
-      // if (fs.existsSync(SOLC_INSTALLATION_DIRECTORY)) {
-      //   console.log(SOLC_INSTALLATION_DIRECTORY);
-      //   fs.rmSync(SOLC_INSTALLATION_DIRECTORY, { recursive: true });
-      // }
-
-      // console.log(getInstalledVersions())
-      st.equal('0.1.0', '0.1.0');
+    t.test('weird pragma', async function (st) {
+      const specificSolc = await specificSolVersion('>=0.5.0 <0.8.0'); 
       st.end();
-    });
+    })
   });
 }
 
