@@ -16,7 +16,7 @@ function runTests(solc) {
       st.equal(solcInDir, true);
       st.end();
     })
-    // TODO: Still doesn't work!!! CWHY???
+    // TODO: Still doesn't work!!! WHY???
     t.test('download invalid version', async function (st) {
       const specificSolc = await specificSolVersion('0.8.19'); 
       st.end();

@@ -48,7 +48,7 @@ export async function downloadValidSolcVersion(contractSolVersion) {
     }
   }
 
-  if (!validSolcVersionToDownload) { 
+  if (!validSolcVersionToDownload) {
     throw new Error("Couldn't find a valid solc version to download. Is the pragma solidity line valid?")
   }
 
