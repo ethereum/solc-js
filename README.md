@@ -318,64 +318,47 @@ var output = translate.prettyPrintLegacyAssemblyJSON(assemblyJSON, sourceCode)
 
 ## Browser Usage
 
-Add the version of `solc` you want to use into `index.html`:
+Compilation is generally a long-running and resource intensive task that cannot reasonably be performed in the main thread of the browser.
+Some browsers even dissallow synchronous compilation on the main thread if the module is larger than 4KB.
+Thus, the only supported way to use `solc` in a web browser is through a [web worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers).
 
+### Loading solc with web workers
+
+Web Workers allow you to run javascript in the background in the browser, letting the browser's main thread free to do whatever it needs to do.
+Please, see the minimal example of how to use `solc` with web workers below or check out this [repository](https://github.com/r0qs/solcjs-webworker-example) for a full demo.
+
+* index.html
 ```html
-<script
-  type="text/javascript"
-  src="https://binaries.soliditylang.org/bin/{{ SOLC_VERSION }}.js"
-  integrity="sha256-{{ BASE64_ENCODED_HASH_OF_SOLC_VERSION  }}"
-  crossorigin="anonymous"
-></script>
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+</head>
+
+<body>
+	<script>
+		var worker = new Worker('./dist/bundle.js');
+		worker.addEventListener('message', function (e) {
+			console.log(e.data.version)
+		}, false);
+
+		worker.postMessage({})
+	</script>
+</body>
+
+</html>
 ```
 
-This will load `solc` into the global variable `window.Module`.
-Alternatively, use `soljson-latest.js` as `{{ SOLC_VERSION }}.js` in the code snippet above to load the latest version.
-
-It is recommended that you check the integrity of the resource being fetched before using it in your application.
-For that, you can use the [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) feature.
-Adding SRI configuration to your HTML script tag ensures that the resource will only be loaded by the browser if the cryptographic hashes match.
-
-You can generate the SRI hash yourself based on the base64-encoded version of the sha256 hash of the release.
-For example, after downloading version `v0.8.16+commit.07a7930e`, run:
-```bash
-node -e "console.log(crypto.createHash('sha256').update(fs.readFileSync('./soljson-v0.8.16+commit.07a7930e.js', 'utf8')).digest('base64'))"
-```
-```
-J7KCDvk4BaZcdreUWklDJYLTBv0XoomFcJpR5kA2d8I=
-```
-
-And update your `index.html` to:
-```html
-<script
-  type="text/javascript"
-  src="https://binaries.soliditylang.org/bin/soljson-v0.8.16+commit.07a7930e.js"
-  integrity="sha256-J7KCDvk4BaZcdreUWklDJYLTBv0XoomFcJpR5kA2d8I="
-  crossorigin="anonymous"
-></script>
-```
-
-Then use this inside JavaScript as:
-
+* worker.js:
 ```javascript
-var wrapper = require('solc/wrapper');
-var solc = wrapper(window.Module);
-```
-
-Or in ES6 syntax:
-
-```javascript
+importScripts('https://binaries.soliditylang.org/bin/soljson-v0.8.19+commit.7dd6d404.js')
 import wrapper from 'solc/wrapper';
-const solc = wrapper(window.Module);
+
+self.addEventListener('message', () => {
+	const compiler = wrapper(self.Module)
+	self.postMessage({
+		version: compiler.version()
+	})
+}, false)
 ```
-
-Alternatively, to iterate the releases, one can load `list.js` from `solc-bin`:
-
-```html
-<script
-  type="text/javascript"
-  src="https://binaries.soliditylang.org/bin/list.js"
-></script>
-```
-
-This will result in two global variables, `window.soljsonReleases` listing all releases and `window.soljsonSources` listing all nightly builds and releases.
