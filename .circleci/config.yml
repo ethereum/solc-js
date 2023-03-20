@@ -350,7 +350,7 @@ jobs:
 
             echo "contract C {}" > C.sol
             dist/solc.js C.sol --bin
-            [[ -f C_sol_C.bin ]]
+            [[ -f C.bin ]]
       - run:
           name: "CLI smoke test (package)"
           command: |
@@ -362,7 +362,7 @@ jobs:
 
             echo "contract C {}" > C.sol
             npx solcjs C.sol --bin
-            [[ -f C_sol_C.bin ]]
+            [[ -f C.bin ]]
 
   solidity-solcjs-ext-test:
     docker:
