@@ -9,6 +9,8 @@ workflows:
       - node-v16:
           run_coveralls: true
       - node-v18
+      - node-v20:
+          run_coveralls: true
       - hardhat-core-default-solc
       - hardhat-core-latest-solc
       - hardhat-sample-project
@@ -33,7 +35,7 @@ commands:
       - run:
           name: Update globally available npm to the latest version
           # Note: We need npm >= 8.3 which supports 'overrides' in package.json
-          command: npm install npm --global
+          command: sudo npm update npm --location=global
 
   install-dependencies:
     parameters:
@@ -305,7 +307,7 @@ jobs:
 
   truffle-sample-project:
     docker:
-      - image: cimg/node:16.15
+      - image: cimg/node:20.5
     steps:
       - update-npm
       - show-npm-version
@@ -395,3 +397,7 @@ jobs:
     <<: *node-base
     docker:
       - image: cimg/node:18.3
+  node-v20:
+    <<: *node-base
+    docker:
+      - image: cimg/node:20.5
