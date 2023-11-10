@@ -8,7 +8,8 @@ workflows:
       - node-v14
       - node-v16
       - node-v18
-      - node-v20:
+      - node-v20
+      - node-current:
           run_coveralls: true
       - hardhat-core-default-solc
       - hardhat-core-latest-solc
@@ -397,3 +398,7 @@ jobs:
     <<: *node-base
     docker:
       - image: cimg/node:20.5
+  node-current:
+    <<: *node-base
+    docker:
+      - image: cimg/node:current
