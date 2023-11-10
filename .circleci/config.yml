@@ -131,7 +131,10 @@ commands:
       - run:
           name: "Sanity check: all transitive dependencies successfully replaced with the tarball"
           command: |
-            solc_version=$(jq --raw-output .version solc-js/package.json)
+            solc_version=$(
+              tar --extract --to-stdout --file "<<parameters.tarball-path>>" package/package.json |
+              jq --raw-output .version
+            )
             cd "<<parameters.path>>"
             if [[ "<<parameters.package-manager>>" == "pnpm" ]]; then
               dependency_version=$(pnpm list --depth Infinity solc | grep "solc" | grep -v "solc ${solc_version}" || true)
@@ -266,11 +269,12 @@ jobs:
       - run:
           name: Run hardhat-core test suite with latest solc
           command: |
-            HARDHAT_TESTS_SOLC_PATH="${PWD}/solc-js/soljson.js"
-            HARDHAT_TESTS_SOLC_VERSION=$(jq --raw-output .version solc-js/package.json)
+            cd hardhat/
+            HARDHAT_TESTS_SOLC_PATH="${PWD}/node_modules/solc/soljson.js"
+            HARDHAT_TESTS_SOLC_VERSION=$(jq --raw-output .version node_modules/solc/package.json)
             export HARDHAT_TESTS_SOLC_PATH HARDHAT_TESTS_SOLC_VERSION
 
-            cd hardhat/packages/hardhat-core
+            cd packages/hardhat-core/
             pnpm install
             pnpm test
 
@@ -300,9 +304,9 @@ jobs:
       - run:
           name: Configure the boilerplate project to force Hardhat not to use a native binary
           command: |
-            solc_version=$(jq --raw-output .version solc-js/package.json)
-
             cd boilerplate/
+
+            solc_version=$(jq --raw-output .version node_modules/solc/package.json)
 
             sed -i 's|pragma solidity [^;]\+;|pragma solidity *;|g' contracts/Token.sol
 
@@ -313,7 +317,7 @@ jobs:
               echo "subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, async (args, hre, runSuper) => {"
               echo "    assert(args.solcVersion == '${solc_version}', 'Unexpected solc version: ' + args.solcVersion);"
               echo "    return {"
-              echo "        compilerPath: '$(realpath "../solc-js/soljson.js")',"
+              echo "        compilerPath: '$(realpath "node_modules/solc/soljson.js")',"
               echo "        isSolcJs: true,"
               echo "        version: args.solcVersion,"
               echo "        longVersion: args.solcVersion"
