@@ -173,9 +173,6 @@ jobs:
       - install-dependencies:
           cache-id: solc-js
       - run:
-          name: install-npm
-          command: npm install
-      - run:
           name: updateBinary
           command: npm run updateBinary
       - run:
