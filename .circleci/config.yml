@@ -28,7 +28,10 @@ commands:
     steps:
       - run:
           name: Versions
-          command: npm version
+          command: |
+            npm version
+            yarn --version
+            pnpm version || >&2 echo "pnpm not installed"
 
   update-npm:
     steps:
@@ -52,14 +55,23 @@ commands:
         default: package.json
     steps:
       - restore_cache:
-          key: <<parameters.cache-id>>-dependency-cache-v2-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
+          name: "Restoring <<parameters.cache-id>> cache"
+          key: <<parameters.cache-id>>-dependency-cache-v4-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
       - run:
           name: "<<parameters.package-manager>> install in <<parameters.path>>"
           command: |
             cd "<<parameters.path>>"
-            [[ -e node_modules/ ]] || <<parameters.package-manager>> install
+            if [[ ! -e node_modules/ ]]; then
+              if [[ "<<parameters.package-manager>>" == "pnpm" ]]; then
+                # Create a flat node_modules without symlinks. Same as the node_modules created by npm or Yarn.
+                <<parameters.package-manager>> install --node-linker=hoisted
+              else
+                <<parameters.package-manager>> install
+              fi
+            fi
       - save_cache:
-          key: <<parameters.cache-id>>-dependency-cache-v2-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
+          name: "Saving <<parameters.cache-id>> cache"
+          key: <<parameters.cache-id>>-dependency-cache-v4-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
           paths:
             - "<<parameters.path>>/node_modules/"
 
@@ -71,6 +83,7 @@ commands:
             cd truffle/
             echo "export _TRUFFLE_COMMIT_ID=$(git rev-parse --verify HEAD)" >> $BASH_ENV
       - restore_cache:
+          name: "Restoring truffle cache"
           key: truffle-dependency-cache-{{ checksum "truffle/yarn.lock" }}-{{ .Environment._TRUFFLE_COMMIT_ID }}
       - run:
           name: yarn install in truffle
@@ -78,6 +91,7 @@ commands:
             cd truffle/
             [[ -e node_modules/ ]] || yarn install
       - save_cache:
+          name: "Saving truffle cache"
           key: truffle-dependency-cache-{{ checksum "truffle/yarn.lock" }}-{{ .Environment._TRUFFLE_COMMIT_ID }}
           paths:
             - truffle/
@@ -93,7 +107,7 @@ commands:
         default: solc-js.tgz
       package-manager:
         type: enum
-        enum: ["npm", "yarn"]
+        enum: ["npm", "yarn", "pnpm"]
         default: npm
     steps:
       - run:
@@ -109,13 +123,22 @@ commands:
             mv package.json original-package.json
             # NOTE: The 'overrides' feature requires npm >= 8.3. Yarn requires `resolutions` instead.
             jq ". + {overrides: {solc: \"${absolute_tarball_path}\"}} + {resolutions: {solc: \"${absolute_tarball_path}\"}}" original-package.json > package.json
-            "<<parameters.package-manager>>" install
+            if [[ "<<parameters.package-manager>>" == "pnpm" ]]; then
+              <<parameters.package-manager>> install --no-frozen-lockfile --node-linker=hoisted
+            else
+              <<parameters.package-manager>> install --no-frozen-lockfile
+            fi
       - run:
           name: "Sanity check: all transitive dependencies successfully replaced with the tarball"
           command: |
             solc_version=$(jq --raw-output .version solc-js/package.json)
             cd "<<parameters.path>>"
-            if "<<parameters.package-manager>>" list --pattern solc | grep 'solc@' | grep -v "solc@${solc_version}"; then
+            if [[ "<<parameters.package-manager>>" == "pnpm" ]]; then
+              dependency_version=$(pnpm list --depth Infinity solc | grep "solc" | grep -v "solc ${solc_version}" || true)
+            else
+              dependency_version=$(<<parameters.package-manager>> list solc | grep "solc@" | grep -v "solc@${solc_version}" || true)
+            fi
+            if [[ -n "${dependency_version}" ]]; then
               echo "Another version of solc-js is still present in the dependency tree."
               exit 1
             fi
@@ -142,11 +165,11 @@ commands:
       - install-dependencies:
           cache-id: hardhat
           path: hardhat
-          package-manager: yarn
-          dependency-file: yarn.lock
+          package-manager: pnpm
+          dependency-file: pnpm-lock.yaml
       - inject-solc-js-tarball:
           path: hardhat/
-          package-manager: yarn
+          package-manager: pnpm
 
   provision-truffle-with-packaged-solcjs:
     description: "Clones Truffle repository and configures it to use a local clone of solc-js."
@@ -220,17 +243,18 @@ jobs:
             hardhat_default_solc_version=$(jq --raw-output '.dependencies.solc' hardhat/packages/hardhat-core/package.json)
             mkdir hardhat-default-solc/
             pushd hardhat-default-solc/
-            npm install "solc@${hardhat_default_solc_version}"
+            pnpm install --node-linker=hoisted "solc@${hardhat_default_solc_version}"
             popd
             ln -sf ../../../hardhat-default-solc/node_modules/solc/soljson.js hardhat/node_modules/solc/soljson.js
       - run:
           name: Run hardhat-core test suite with its default solc binary
           command: |
             cd hardhat/packages/hardhat-core
-            # TODO: yarn build should not be needed to run these tests. Remove it.
-            # See https://github.com/NomicFoundation/hardhat/issues/2486 for details.
-            yarn build
-            yarn test
+            # The install command is required again here to create the correct symlinks under the hardhat-core/node_modules
+            # In our case that is something like: solc -> ../../../node_modules/.pnpm/file+..+solc-js.tgz/node_modules/solc
+            # See: https://pnpm.io/symlinked-node-modules-structure
+            pnpm install
+            pnpm test
 
   hardhat-core-latest-solc:
     docker:
@@ -247,7 +271,8 @@ jobs:
             export HARDHAT_TESTS_SOLC_PATH HARDHAT_TESTS_SOLC_VERSION
 
             cd hardhat/packages/hardhat-core
-            yarn test
+            pnpm install
+            pnpm test
 
   hardhat-sample-project:
     docker:
