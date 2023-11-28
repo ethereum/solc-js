@@ -6,10 +6,10 @@ workflows:
       - node-v10
       - node-v12
       - node-v14
-      - node-v16:
-          run_coveralls: true
+      - node-v16
       - node-v18
-      - node-v20:
+      - node-v20
+      - node-current:
           run_coveralls: true
       - hardhat-core-default-solc
       - hardhat-core-latest-solc
@@ -173,9 +173,6 @@ jobs:
       - install-dependencies:
           cache-id: solc-js
       - run:
-          name: install-npm
-          command: npm install
-      - run:
           name: updateBinary
           command: npm run updateBinary
       - run:
@@ -210,7 +207,7 @@ jobs:
     # Runs out of memory on 'medium'.
     resource_class: medium+
     docker:
-      - image: cimg/node:16.15
+      - image: cimg/node:current
     steps:
       - show-npm-version
       - provision-and-package-solcjs
@@ -237,7 +234,7 @@ jobs:
 
   hardhat-core-latest-solc:
     docker:
-      - image: cimg/node:16.15
+      - image: cimg/node:current
     steps:
       - show-npm-version
       - provision-and-package-solcjs
@@ -254,7 +251,7 @@ jobs:
 
   hardhat-sample-project:
     docker:
-      - image: cimg/node:16.15
+      - image: cimg/node:current
     steps:
       - show-npm-version
       - provision-and-package-solcjs
@@ -307,7 +304,7 @@ jobs:
 
   truffle-sample-project:
     docker:
-      - image: cimg/node:20.5
+      - image: cimg/node:lts
     steps:
       - update-npm
       - show-npm-version
@@ -388,16 +385,20 @@ jobs:
   node-v14:
     <<: *node-base
     docker:
-      - image: cimg/node:14.19
+      - image: cimg/node:14.21
   node-v16:
     <<: *node-base
     docker:
-      - image: cimg/node:16.15
+      - image: cimg/node:16.20
   node-v18:
     <<: *node-base
     docker:
-      - image: cimg/node:18.3
+      - image: cimg/node:18.18
   node-v20:
     <<: *node-base
     docker:
-      - image: cimg/node:20.5
+      - image: cimg/node:20.9
+  node-current:
+    <<: *node-base
+    docker:
+      - image: cimg/node:current
