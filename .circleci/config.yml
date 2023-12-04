@@ -1,3 +1,8 @@
+defaults:
+  - requires_package: &requires_package
+      requires:
+        - build-package
+
 workflows:
   version: 2.1
   node-multi-build:
@@ -11,11 +16,12 @@ workflows:
       - node-v20
       - node-current:
           run_coveralls: true
-      - hardhat-core-default-solc
-      - hardhat-core-latest-solc
-      - hardhat-sample-project
-      - truffle-sample-project
-      - cli-smoke-test
+      - build-package
+      - hardhat-core-default-solc: *requires_package
+      - hardhat-core-latest-solc: *requires_package
+      - hardhat-sample-project: *requires_package
+      - truffle-sample-project: *requires_package
+      - cli-smoke-test: *requires_package
       - solidity-solcjs-ext-test
 
 version: 2.1
@@ -104,7 +110,7 @@ commands:
         default: .
       tarball-path:
         type: string
-        default: solc-js.tgz
+        default: workspace/solc-js.tgz
       package-manager:
         type: enum
         enum: ["npm", "yarn", "pnpm"]
@@ -131,7 +137,10 @@ commands:
       - run:
           name: "Sanity check: all transitive dependencies successfully replaced with the tarball"
           command: |
-            solc_version=$(jq --raw-output .version solc-js/package.json)
+            solc_version=$(
+              tar --extract --to-stdout --file "<<parameters.tarball-path>>" package/package.json |
+              jq --raw-output .version
+            )
             cd "<<parameters.path>>"
             if [[ "<<parameters.package-manager>>" == "pnpm" ]]; then
               dependency_version=$(pnpm list --depth Infinity solc | grep "solc" | grep -v "solc ${solc_version}" || true)
@@ -142,21 +151,6 @@ commands:
               echo "Another version of solc-js is still present in the dependency tree."
               exit 1
             fi
-
-  provision-and-package-solcjs:
-    description: "Creates a package out of latest solc-js to test its installation as a dependency."
-    steps:
-      - checkout:
-          path: solc-js/
-      - install-dependencies:
-          cache-id: solc-js
-          path: solc-js
-      - run:
-          name: Package solc-js
-          command: |
-            cd solc-js/
-            npm run build:tarball
-            mv "$(npm run --silent tarballName)" ../solc-js.tgz
 
   provision-hardhat-with-packaged-solcjs:
     description: "Clones Hardhat repository and configures it to use a local clone of solc-js."
@@ -226,6 +220,38 @@ jobs:
             ./node_modules
             ./dist
 
+  build-package:
+    docker:
+      - image: cimg/node:current
+    steps:
+      - show-npm-version
+      - checkout:
+          path: solc-js/
+      - install-dependencies:
+          cache-id: solc-js
+          path: solc-js
+      - attach_workspace:
+          at: workspace
+      - run:
+          name: Package solc-js
+          command: |
+            cd solc-js/
+            npm run build:tarball
+
+            cp "$(npm run --silent tarballName)" ../workspace/solc-js.tgz
+
+            # The artifact is meant to be used with `npm publish` and that fails unless the file name includes a version number.
+            # Oddly, the name and version from the file name do not even need to be correct - after npm accepts the file,
+            # it will use the ones from package.json anyway.
+            mkdir ../artifacts
+            mv "$(npm run --silent tarballName)" ../artifacts/
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - solc-js.tgz
+      - store_artifacts:
+          path: artifacts/
+
   hardhat-core-default-solc:
     # Runs out of memory on 'medium'.
     resource_class: medium+
@@ -233,7 +259,8 @@ jobs:
       - image: cimg/node:current
     steps:
       - show-npm-version
-      - provision-and-package-solcjs
+      - attach_workspace:
+          at: workspace
       - provision-hardhat-with-packaged-solcjs
       - run:
           name: Restore the default solc binary expected by Hardhat
@@ -261,16 +288,18 @@ jobs:
       - image: cimg/node:current
     steps:
       - show-npm-version
-      - provision-and-package-solcjs
+      - attach_workspace:
+          at: workspace
       - provision-hardhat-with-packaged-solcjs
       - run:
           name: Run hardhat-core test suite with latest solc
           command: |
-            HARDHAT_TESTS_SOLC_PATH="${PWD}/solc-js/soljson.js"
-            HARDHAT_TESTS_SOLC_VERSION=$(jq --raw-output .version solc-js/package.json)
+            cd hardhat/
+            HARDHAT_TESTS_SOLC_PATH="${PWD}/node_modules/solc/soljson.js"
+            HARDHAT_TESTS_SOLC_VERSION=$(jq --raw-output .version node_modules/solc/package.json)
             export HARDHAT_TESTS_SOLC_PATH HARDHAT_TESTS_SOLC_VERSION
 
-            cd hardhat/packages/hardhat-core
+            cd packages/hardhat-core/
             pnpm install
             pnpm test
 
@@ -279,7 +308,8 @@ jobs:
       - image: cimg/node:current
     steps:
       - show-npm-version
-      - provision-and-package-solcjs
+      - attach_workspace:
+          at: workspace
       - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat-hackathon-boilerplate" boilerplate/
       - run:
           # Leaving package-lock.json causes a weird error in arborist when npm is used again after
@@ -300,9 +330,9 @@ jobs:
       - run:
           name: Configure the boilerplate project to force Hardhat not to use a native binary
           command: |
-            solc_version=$(jq --raw-output .version solc-js/package.json)
-
             cd boilerplate/
+
+            solc_version=$(jq --raw-output .version node_modules/solc/package.json)
 
             sed -i 's|pragma solidity [^;]\+;|pragma solidity *;|g' contracts/Token.sol
 
@@ -313,7 +343,7 @@ jobs:
               echo "subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, async (args, hre, runSuper) => {"
               echo "    assert(args.solcVersion == '${solc_version}', 'Unexpected solc version: ' + args.solcVersion);"
               echo "    return {"
-              echo "        compilerPath: '$(realpath "../solc-js/soljson.js")',"
+              echo "        compilerPath: '$(realpath "node_modules/solc/soljson.js")',"
               echo "        isSolcJs: true,"
               echo "        version: args.solcVersion,"
               echo "        longVersion: args.solcVersion"
@@ -333,7 +363,8 @@ jobs:
     steps:
       - update-npm
       - show-npm-version
-      - provision-and-package-solcjs
+      - attach_workspace:
+          at: workspace
       - run: sudo apt update
       - run: sudo apt install python3 python-is-python3 --assume-yes --no-install-recommends
       - provision-truffle-with-packaged-solcjs
@@ -365,7 +396,31 @@ jobs:
       - image: cimg/node:current
     steps:
       - show-npm-version
-      - provision-and-package-solcjs
+      - attach_workspace:
+          at: workspace
+      - run:
+          name: "CLI smoke test (package)"
+          command: |
+            mkdir package/
+            cd package/
+            npm install ../workspace/solc-js.tgz
+
+            npx solcjs --version
+
+            echo "contract C {}" > C.sol
+            npx solcjs C.sol --bin
+            [[ -f C_sol_C.bin ]]
+      - checkout:
+          path: solc-js/
+      - install-dependencies:
+          cache-id: solc-js
+          path: solc-js
+      - run:
+          name: Build solc-js
+          command: |
+            cd solc-js/
+            npm run updateBinary
+            npm run build
       - run:
           name: "CLI smoke test (repository)"
           command: |
@@ -374,18 +429,6 @@ jobs:
 
             echo "contract C {}" > C.sol
             dist/solc.js C.sol --bin
-            [[ -f C_sol_C.bin ]]
-      - run:
-          name: "CLI smoke test (package)"
-          command: |
-            mkdir package/
-            cd package/
-            npm install ../solc-js.tgz
-
-            npx solcjs --version
-
-            echo "contract C {}" > C.sol
-            npx solcjs C.sol --bin
             [[ -f C_sol_C.bin ]]
 
   solidity-solcjs-ext-test:
