@@ -39,6 +39,12 @@ commands:
             yarn --version
             pnpm version || >&2 echo "pnpm not installed"
 
+  install-pnpm:
+    steps:
+      - run:
+          name: Install pnpm
+          command: sudo npm install -g pnpm
+
   update-npm:
     steps:
       - run:
@@ -255,9 +261,12 @@ jobs:
   hardhat-core-default-solc:
     # Runs out of memory on 'medium'.
     resource_class: medium+
+    environment:
+      NODE_OPTIONS: "--max-old-space-size=4096"
     docker:
-      - image: cimg/node:current
+      - image: cimg/rust:1.74.0-node
     steps:
+      - install-pnpm
       - show-npm-version
       - attach_workspace:
           at: workspace
@@ -285,8 +294,9 @@ jobs:
 
   hardhat-core-latest-solc:
     docker:
-      - image: cimg/node:current
+      - image: cimg/rust:1.74.0-node
     steps:
+      - install-pnpm
       - show-npm-version
       - attach_workspace:
           at: workspace
