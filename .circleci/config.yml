@@ -290,6 +290,9 @@ jobs:
             # In our case that is something like: solc -> ../../../node_modules/.pnpm/file+..+solc-js.tgz/node_modules/solc
             # See: https://pnpm.io/symlinked-node-modules-structure
             pnpm install
+            # TODO: temporarily set hardhat stack traces tests to use cancun hardfork
+            # Remove this when hardhat switch to cancun by default: https://github.com/NomicFoundation/hardhat/issues/4851
+            sed -i 's/hardfork: "shanghai",/hardfork: "cancun",/' test/internal/hardhat-network/stack-traces/execution.ts
             pnpm test
 
   hardhat-core-latest-solc:
@@ -311,6 +314,9 @@ jobs:
 
             cd packages/hardhat-core/
             pnpm install
+            # TODO: temporarily set hardhat stack traces tests to use cancun hardfork
+            # Remove this when hardhat switch to cancun by default: https://github.com/NomicFoundation/hardhat/issues/4851
+            sed -i 's/hardfork: "shanghai",/hardfork: "cancun",/' test/internal/hardhat-network/stack-traces/execution.ts
             pnpm test
 
   hardhat-sample-project:
