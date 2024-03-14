@@ -20,7 +20,6 @@ workflows:
       - hardhat-core-default-solc: *requires_package
       - hardhat-core-latest-solc: *requires_package
       - hardhat-sample-project: *requires_package
-      - truffle-sample-project: *requires_package
       - cli-smoke-test: *requires_package
       - solidity-solcjs-ext-test
 
@@ -87,27 +86,6 @@ commands:
           paths:
             - "<<parameters.path>>/node_modules/"
 
-  install-truffle-dependencies:
-    steps:
-      - run:
-          name: Store current Truffle commit ID in a variable
-          command: |
-            cd truffle/
-            echo "export _TRUFFLE_COMMIT_ID=$(git rev-parse --verify HEAD)" >> $BASH_ENV
-      - restore_cache:
-          name: "Restoring truffle cache"
-          key: truffle-dependency-cache-{{ checksum "truffle/yarn.lock" }}-{{ .Environment._TRUFFLE_COMMIT_ID }}
-      - run:
-          name: yarn install in truffle
-          command: |
-            cd truffle/
-            [[ -e node_modules/ ]] || yarn install
-      - save_cache:
-          name: "Saving truffle cache"
-          key: truffle-dependency-cache-{{ checksum "truffle/yarn.lock" }}-{{ .Environment._TRUFFLE_COMMIT_ID }}
-          paths:
-            - truffle/
-
   inject-solc-js-tarball:
     description: "Recursively finds and replaces all instances of solc-js module installed in node_modules/ with the one from a tarball."
     parameters:
@@ -170,15 +148,6 @@ commands:
       - inject-solc-js-tarball:
           path: hardhat/
           package-manager: pnpm
-
-  provision-truffle-with-packaged-solcjs:
-    description: "Clones Truffle repository and configures it to use a local clone of solc-js."
-    steps:
-      - run: git clone --depth 1 "https://github.com/trufflesuite/truffle" truffle/
-      - install-truffle-dependencies
-      - inject-solc-js-tarball:
-          path: truffle/
-          package-manager: yarn
 
 jobs:
   node-base: &node-base
@@ -372,40 +341,6 @@ jobs:
           command: |
             cd boilerplate/
             npm run test
-
-  truffle-sample-project:
-    docker:
-      - image: cimg/node:lts
-    steps:
-      - update-npm
-      - show-npm-version
-      - attach_workspace:
-          at: workspace
-      - run: sudo apt update
-      - run: sudo apt install python3 python-is-python3 --assume-yes --no-install-recommends
-      - provision-truffle-with-packaged-solcjs
-      - run:
-          name: Unbox MetaCoin
-          command: |
-            mkdir metacoin/
-            cd metacoin/
-            node ../truffle/node_modules/.bin/truffle unbox metacoin
-      - run:
-          name: Strip version pragmas
-          command: sed -i 's|pragma solidity [^;]\+;|pragma solidity *;|g' $(find metacoin/{contracts,test}/ -name "*.sol")
-      - run:
-          name: Build and test the sample project with local Truffle and its default solc
-          command: |
-            cd metacoin/
-            node ../truffle/node_modules/.bin/truffle test
-      - run:
-          name: Build and test the sample project with local Truffle and latest solc
-          command: |
-            cd metacoin/
-            # `truffle test` compiles the project but artifacts go into /tmp/
-            ! [[ -e build/ ]]
-            echo "module.exports['compilers'] = {solc: {version: '$(realpath ../truffle/node_modules/solc/)'}}" >> truffle-config.js
-            node ../truffle/node_modules/.bin/truffle test
 
   cli-smoke-test:
     docker:
