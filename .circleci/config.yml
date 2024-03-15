@@ -5,7 +5,7 @@ defaults:
 
 workflows:
   version: 2.1
-  node-multi-build:
+  pr-checks:
     jobs:
       - check-coding-style
       - node-v10
@@ -16,6 +16,24 @@ workflows:
       - node-v20
       - node-current:
           run_coveralls: true
+      - build-package
+      - hardhat-core-default-solc: *requires_package
+      - hardhat-core-latest-solc: *requires_package
+      - hardhat-sample-project: *requires_package
+      - cli-smoke-test: *requires_package
+      - solidity-solcjs-ext-test
+
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+
+    jobs:
+      - node-current
       - build-package
       - hardhat-core-default-solc: *requires_package
       - hardhat-core-latest-solc: *requires_package
