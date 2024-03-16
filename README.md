@@ -319,7 +319,7 @@ var output = translate.prettyPrintLegacyAssemblyJSON(assemblyJSON, sourceCode)
 ## Browser Usage
 
 Compilation is generally a long-running and resource intensive task that cannot reasonably be performed in the main thread of the browser.
-Some browsers even dissallow synchronous compilation on the main thread if the module is larger than 4KB.
+Some browsers even disallow synchronous compilation on the main thread if the module is larger than 4KB.
 Thus, the only supported way to use `solc` in a web browser is through a [web worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers).
 
 ### Loading solc with web workers
