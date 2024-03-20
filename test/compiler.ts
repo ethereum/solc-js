@@ -76,7 +76,7 @@ function runTests (solc, versionText) {
         const error = output.errors[errorIndex];
         if (error.type === errorType) {
           if (message) {
-            if (error.message.match(message) !== null) {
+            if (error.message === message || error.message.match(message) !== null) {
               return true;
             }
           } else {
@@ -751,7 +751,11 @@ function runTests (solc, versionText) {
       t.test('compiling standard JSON (invalid JSON)', function (st) {
         const output = JSON.parse(solc.compile('{invalid'));
         // TODO: change wrapper to output matching error
-        st.ok(expectError(output, 'JSONError', 'Line 1, Column 2\n  Missing \'}\' or object member name') || expectError(output, 'JSONError', 'Invalid JSON supplied:'));
+        st.ok(
+          expectError(output, 'JSONError', 'Line 1, Column 2\n  Missing \'}\' or object member name') ||
+          expectError(output, 'JSONError', 'Invalid JSON supplied:') ||
+          expectError(output, 'JSONError', 'parse error at line 1, column 2: syntax error while parsing object key - invalid literal; last read: \'{i\'; expected string literal')
+        );
         st.end();
       });
 
