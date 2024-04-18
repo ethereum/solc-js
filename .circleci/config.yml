@@ -62,13 +62,6 @@ commands:
           name: Install pnpm
           command: sudo npm install -g pnpm
 
-  update-npm:
-    steps:
-      - run:
-          name: Update globally available npm to the latest version
-          # Note: We need npm >= 8.3 which supports 'overrides' in package.json
-          command: sudo npm update npm --location=global
-
   install-dependencies:
     parameters:
       cache-id:
