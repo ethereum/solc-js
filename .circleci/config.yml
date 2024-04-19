@@ -62,13 +62,6 @@ commands:
           name: Install pnpm
           command: sudo npm install -g pnpm
 
-  update-npm:
-    steps:
-      - run:
-          name: Update globally available npm to the latest version
-          # Note: We need npm >= 8.3 which supports 'overrides' in package.json
-          command: sudo npm update npm --location=global
-
   install-dependencies:
     parameters:
       cache-id:
@@ -85,7 +78,7 @@ commands:
     steps:
       - restore_cache:
           name: "Restoring <<parameters.cache-id>> cache"
-          key: <<parameters.cache-id>>-dependency-cache-v4-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
+          key: <<parameters.cache-id>>-dependency-cache-v5-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
       - run:
           name: "<<parameters.package-manager>> install in <<parameters.path>>"
           command: |
@@ -93,14 +86,14 @@ commands:
             if [[ ! -e node_modules/ ]]; then
               if [[ "<<parameters.package-manager>>" == "pnpm" ]]; then
                 # Create a flat node_modules without symlinks. Same as the node_modules created by npm or Yarn.
-                <<parameters.package-manager>> install --node-linker=hoisted
+                <<parameters.package-manager>> install --no-frozen-lockfile --node-linker=hoisted
               else
                 <<parameters.package-manager>> install
               fi
             fi
       - save_cache:
           name: "Saving <<parameters.cache-id>> cache"
-          key: <<parameters.cache-id>>-dependency-cache-v4-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
+          key: <<parameters.cache-id>>-dependency-cache-v5-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
           paths:
             - "<<parameters.path>>/node_modules/"
 
@@ -134,7 +127,7 @@ commands:
             if [[ "<<parameters.package-manager>>" == "pnpm" ]]; then
               <<parameters.package-manager>> install --no-frozen-lockfile --node-linker=hoisted
             else
-              <<parameters.package-manager>> install --no-frozen-lockfile
+              <<parameters.package-manager>> install
             fi
       - run:
           name: "Sanity check: all transitive dependencies successfully replaced with the tarball"
@@ -276,7 +269,7 @@ jobs:
             # The install command is required again here to create the correct symlinks under the hardhat-core/node_modules
             # In our case that is something like: solc -> ../../../node_modules/.pnpm/file+..+solc-js.tgz/node_modules/solc
             # See: https://pnpm.io/symlinked-node-modules-structure
-            pnpm install
+            pnpm install --no-frozen-lockfile
             # TODO: temporarily set hardhat stack traces tests to use cancun hardfork
             # Remove this when hardhat switch to cancun by default: https://github.com/NomicFoundation/hardhat/issues/4851
             sed -i 's/hardfork: "shanghai",/hardfork: "cancun",/' test/internal/hardhat-network/stack-traces/execution.ts
@@ -300,7 +293,7 @@ jobs:
             export HARDHAT_TESTS_SOLC_PATH HARDHAT_TESTS_SOLC_VERSION
 
             cd packages/hardhat-core/
-            pnpm install
+            pnpm install --no-frozen-lockfile
             # TODO: temporarily set hardhat stack traces tests to use cancun hardfork
             # Remove this when hardhat switch to cancun by default: https://github.com/NomicFoundation/hardhat/issues/4851
             sed -i 's/hardfork: "shanghai",/hardfork: "cancun",/' test/internal/hardhat-network/stack-traces/execution.ts
