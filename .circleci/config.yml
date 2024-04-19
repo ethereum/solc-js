@@ -78,7 +78,7 @@ commands:
     steps:
       - restore_cache:
           name: "Restoring <<parameters.cache-id>> cache"
-          key: <<parameters.cache-id>>-dependency-cache-v4-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
+          key: <<parameters.cache-id>>-dependency-cache-v5-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
       - run:
           name: "<<parameters.package-manager>> install in <<parameters.path>>"
           command: |
@@ -93,7 +93,7 @@ commands:
             fi
       - save_cache:
           name: "Saving <<parameters.cache-id>> cache"
-          key: <<parameters.cache-id>>-dependency-cache-v4-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
+          key: <<parameters.cache-id>>-dependency-cache-v5-{{ .Environment.CIRCLE_JOB }}-{{ checksum "<<parameters.path>>/<<parameters.dependency-file>>" }}
           paths:
             - "<<parameters.path>>/node_modules/"
 
