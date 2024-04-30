@@ -26,7 +26,6 @@ const commanderParseInt = function (value) {
 program.name('solcjs');
 program.version(solc.version());
 program
-  .option('--version', 'Show version and exit.')
   .option('--optimize', 'Enable bytecode optimizer.', false)
   .option(
     '--optimize-runs <optimize-runs>',
@@ -201,7 +200,7 @@ const cliInput = {
       }
     }
   },
-  sources: sources
+  sources
 };
 if (program.verbose) { console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n'); }
 const output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));

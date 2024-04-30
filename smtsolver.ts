@@ -44,7 +44,7 @@ function solve (query, solver) {
         encoding: 'utf8',
         maxBuffer: 1024 * 1024 * 1024,
         stdio: 'pipe',
-        timeout: timeout // Enforce timeout on the process, since solvers can sometimes go around it.
+        timeout // Enforce timeout on the process, since solvers can sometimes go around it.
       }
     ).toString();
   } catch (e) {

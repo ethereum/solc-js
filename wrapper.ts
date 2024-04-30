@@ -101,13 +101,13 @@ function compileStandardWrapper (compile, inputRaw, readCallback) {
 
   // Try to wrap around old versions
   if (!isNil(compile.compileJsonCallback)) {
-    const inputJson = JSON.stringify({ sources: sources });
+    const inputJson = JSON.stringify({ sources });
     const output = compile.compileJsonCallback(inputJson, optimize, readCallback);
     return translateOutput(output, libraries);
   }
 
   if (!isNil(compile.compileJsonMulti)) {
-    const output = compile.compileJsonMulti(JSON.stringify({ sources: sources }), optimize);
+    const output = compile.compileJsonMulti(JSON.stringify({ sources }), optimize);
     return translateOutput(output, libraries);
   }
 

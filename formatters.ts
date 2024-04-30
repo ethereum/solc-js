@@ -5,7 +5,7 @@ export function formatFatalError (message) {
         type: 'JSONError',
         component: 'solcjs',
         severity: 'error',
-        message: message,
+        message,
         formattedMessage: 'Error: ' + message
       }
     ]
