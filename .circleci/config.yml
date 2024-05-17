@@ -147,10 +147,33 @@ commands:
               exit 1
             fi
 
+  fetch-latest-hardhat-release-tag:
+    description: "Uses GitHub API to fetch the latest hardhat release version."
+    steps:
+      - run:
+          name: Retrieve Hardhat latest release tag
+          command: |
+            # Make authenticated requests when the Github token is available
+            if [[ -n "$GITHUB_ACCESS_TOKEN" ]]; then
+              EXTRA_HEADERS=(--header "Authorization: Bearer ${GITHUB_ACCESS_TOKEN}")
+            fi
+            HARDHAT_LATEST_RELEASE_TAG=$(
+              curl \
+                --silent \
+                --location \
+                --fail \
+                --show-error \
+                "${EXTRA_HEADERS[@]}" \
+                https://api.github.com/repos/nomiclabs/hardhat/releases/latest \
+                | jq --raw-output .tag_name \
+            )
+            echo "export HARDHAT_LATEST_RELEASE_TAG='${HARDHAT_LATEST_RELEASE_TAG}'" >> "$BASH_ENV"
+
   provision-hardhat-with-packaged-solcjs:
     description: "Clones Hardhat repository and configures it to use a local clone of solc-js."
     steps:
-      - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat" hardhat/
+      - fetch-latest-hardhat-release-tag
+      - run: git clone --depth 1 https://github.com/nomiclabs/hardhat.git --branch "$HARDHAT_LATEST_RELEASE_TAG" hardhat/
       - install-dependencies:
           cache-id: hardhat
           path: hardhat
@@ -315,12 +338,15 @@ jobs:
       - install-dependencies:
           cache-id: hardhat-hackathon-boilerplate
           path: boilerplate
+      - fetch-latest-hardhat-release-tag
       - run:
           name: Update to the latest Hardhat release
           command: |
             # We can just use a release here because injection does not require rebuilding it.
             cd boilerplate/
-            npm update hardhat
+            # Install the latest release of Hardhat if the version matches the expected format.
+            [[ "${HARDHAT_LATEST_RELEASE_TAG}" =~ ^hardhat@([0-9]+\.){2}[0-9]+$ ]] && npm install ${HARDHAT_LATEST_RELEASE_TAG}
+
       - inject-solc-js-tarball:
           path: boilerplate/
       - run:
