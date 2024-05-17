@@ -150,7 +150,25 @@ commands:
   provision-hardhat-with-packaged-solcjs:
     description: "Clones Hardhat repository and configures it to use a local clone of solc-js."
     steps:
-      - run: git clone --depth 1 "https://github.com/nomiclabs/hardhat" hardhat/
+      - run:
+          name: Retrieve Hardhat latest release tag
+          command: |
+            # Make authenticated requests when the Github token is available
+            if [[ -n "$GITHUB_ACCESS_TOKEN" ]]; then
+              EXTRA_HEADERS=(--header "Authorization: Bearer ${GITHUB_ACCESS_TOKEN}")
+            fi
+            HARDHAT_LATEST_RELEASE_TAG=$(
+              curl \
+                --silent \
+                --location \
+                --fail \
+                --show-error \
+                "${EXTRA_HEADERS[@]}" \
+                https://api.github.com/repos/nomiclabs/hardhat/releases/latest \
+                | jq --raw-output .tag_name \
+            )
+            echo "export HARDHAT_LATEST_RELEASE_TAG='${HARDHAT_LATEST_RELEASE_TAG}'" >> "$BASH_ENV"
+      - run: git clone --depth 1 https://github.com/nomiclabs/hardhat.git --branch "$HARDHAT_LATEST_RELEASE_TAG" hardhat/
       - install-dependencies:
           cache-id: hardhat
           path: hardhat
