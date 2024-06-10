@@ -18,8 +18,8 @@ const potentialSolvers = [
     params: '-horn -t:' + (timeout / 1000) // Eldarica takes timeout in seconds.
   },
   {
-    name: 'cvc4',
-    command: 'cvc4',
+    name: 'cvc5',
+    command: 'cvc5',
     params: '--lang=smt2 --tlimit=' + timeout
   }
 ];

@@ -152,7 +152,7 @@ return either an error or the result from the solver.  A default
 ``smtchecker.js`` which exports the ``smtCallback`` function that takes 1) a
 function that takes queries and returns the solving result, and 2) a solver
 configuration object. The module ``smtsolver.js`` has a few predefined solver
-configurations, and relies on Z3, Eldarica or CVC4 being installed locally.  It
+configurations, and relies on Z3, Eldarica or cvc5 being installed locally.  It
 exports the list of locally found solvers and a function that invokes a given
 solver.
 
