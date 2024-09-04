@@ -421,7 +421,7 @@ jobs:
 
   solidity-solcjs-ext-test:
     docker:
-      - image: circleci/node
+      - image: cimg/node:current
     steps:
       - show-npm-version
       - checkout:
