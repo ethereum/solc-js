@@ -36,8 +36,11 @@
   },
   "files": [
     "common/*.js",
+    "common/*.d.ts",
     "bindings/*.js",
-    "*.js"
+    "bindings/*.d.ts",
+    "*.js",
+    "*.d.ts"
   ],
   "author": "chriseth",
   "license": "MIT",
