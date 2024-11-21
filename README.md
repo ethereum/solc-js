@@ -310,7 +310,7 @@ var outputABI = abi.update('0.3.6', inputABI);
 There is a helper available to format old JSON assembly output into a text familiar to earlier users of Remix IDE.
 
 ```
-var translate = require('solc/translate')
+var translate = require('solc/translate');
 
 // assemblyJSON refers to the JSON of the given assembly and sourceCode is the source of which the assembly was generated from
 var output = translate.prettyPrintLegacyAssemblyJSON(assemblyJSON, sourceCode)
