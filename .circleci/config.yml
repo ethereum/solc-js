@@ -154,8 +154,8 @@ commands:
                 --fail \
                 --show-error \
                 "${EXTRA_HEADERS[@]}" \
-                https://api.github.com/repos/nomiclabs/hardhat/releases/latest \
-                | jq --raw-output .tag_name \
+                https://api.github.com/repos/nomiclabs/hardhat/releases \
+                | jq --raw-output 'map(select(.tag_name | test("^hardhat@"))) | .[0].tag_name' \
             )
             echo "export HARDHAT_LATEST_RELEASE_TAG='${HARDHAT_LATEST_RELEASE_TAG}'" >> "$BASH_ENV"
 
