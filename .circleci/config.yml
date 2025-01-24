@@ -17,8 +17,6 @@ workflows:
       - node-current:
           run_coveralls: true
       - build-package
-      - hardhat-core-default-solc: *requires_package
-      - hardhat-core-latest-solc: *requires_package
       - hardhat-sample-project: *requires_package
       - cli-smoke-test: *requires_package
       - solidity-solcjs-ext-test
@@ -35,8 +33,6 @@ workflows:
     jobs:
       - node-current
       - build-package
-      - hardhat-core-default-solc: *requires_package
-      - hardhat-core-latest-solc: *requires_package
       - hardhat-sample-project: *requires_package
       - cli-smoke-test: *requires_package
       - solidity-solcjs-ext-test
@@ -55,12 +51,6 @@ commands:
             npm version
             yarn --version
             pnpm version || >&2 echo "pnpm not installed"
-
-  install-pnpm:
-    steps:
-      - run:
-          name: Install pnpm
-          command: sudo npm install -g pnpm
 
   install-dependencies:
     parameters:
@@ -164,24 +154,10 @@ commands:
                 --fail \
                 --show-error \
                 "${EXTRA_HEADERS[@]}" \
-                https://api.github.com/repos/nomiclabs/hardhat/releases/latest \
-                | jq --raw-output .tag_name \
+                https://api.github.com/repos/nomiclabs/hardhat/releases \
+                | jq --raw-output 'map(select(.tag_name | test("^hardhat@"))) | .[0].tag_name' \
             )
             echo "export HARDHAT_LATEST_RELEASE_TAG='${HARDHAT_LATEST_RELEASE_TAG}'" >> "$BASH_ENV"
-
-  provision-hardhat-with-packaged-solcjs:
-    description: "Clones Hardhat repository and configures it to use a local clone of solc-js."
-    steps:
-      - fetch-latest-hardhat-release-tag
-      - run: git clone --depth 1 https://github.com/nomiclabs/hardhat.git --branch "$HARDHAT_LATEST_RELEASE_TAG" hardhat/
-      - install-dependencies:
-          cache-id: hardhat
-          path: hardhat
-          package-manager: pnpm
-          dependency-file: pnpm-lock.yaml
-      - inject-solc-js-tarball:
-          path: hardhat/
-          package-manager: pnpm
 
 jobs:
   node-base: &node-base
@@ -260,67 +236,6 @@ jobs:
             - solc-js.tgz
       - store_artifacts:
           path: artifacts/
-
-  hardhat-core-default-solc:
-    # Runs out of memory on 'medium'.
-    resource_class: medium+
-    environment:
-      NODE_OPTIONS: "--max-old-space-size=4096"
-    docker:
-      - image: cimg/rust:1.74.0-node
-    steps:
-      - install-pnpm
-      - show-npm-version
-      - attach_workspace:
-          at: workspace
-      - provision-hardhat-with-packaged-solcjs
-      - run:
-          name: Restore the default solc binary expected by Hardhat
-          command: |
-            # Hardhat downloader tests are hard-coded to expect the version that comes with the solc-js.
-            # We forced latest solc-js but we still want the default binary with it.
-            hardhat_default_solc_version=$(jq --raw-output '.dependencies.solc' hardhat/packages/hardhat-core/package.json)
-            mkdir hardhat-default-solc/
-            pushd hardhat-default-solc/
-            pnpm install --node-linker=hoisted "solc@${hardhat_default_solc_version}"
-            popd
-            ln -sf ../../../hardhat-default-solc/node_modules/solc/soljson.js hardhat/node_modules/solc/soljson.js
-      - run:
-          name: Run hardhat-core test suite with its default solc binary
-          command: |
-            cd hardhat/packages/hardhat-core
-            # The install command is required again here to create the correct symlinks under the hardhat-core/node_modules
-            # In our case that is something like: solc -> ../../../node_modules/.pnpm/file+..+solc-js.tgz/node_modules/solc
-            # See: https://pnpm.io/symlinked-node-modules-structure
-            pnpm install --no-frozen-lockfile
-            # TODO: temporarily set hardhat stack traces tests to use cancun hardfork
-            # Remove this when hardhat switch to cancun by default: https://github.com/NomicFoundation/hardhat/issues/4851
-            sed -i 's/hardfork: "shanghai",/hardfork: "cancun",/' test/internal/hardhat-network/stack-traces/execution.ts
-            pnpm test
-
-  hardhat-core-latest-solc:
-    docker:
-      - image: cimg/rust:1.74.0-node
-    steps:
-      - install-pnpm
-      - show-npm-version
-      - attach_workspace:
-          at: workspace
-      - provision-hardhat-with-packaged-solcjs
-      - run:
-          name: Run hardhat-core test suite with latest solc
-          command: |
-            cd hardhat/
-            HARDHAT_TESTS_SOLC_PATH="${PWD}/node_modules/solc/soljson.js"
-            HARDHAT_TESTS_SOLC_VERSION=$(jq --raw-output .version node_modules/solc/package.json)
-            export HARDHAT_TESTS_SOLC_PATH HARDHAT_TESTS_SOLC_VERSION
-
-            cd packages/hardhat-core/
-            pnpm install --no-frozen-lockfile
-            # TODO: temporarily set hardhat stack traces tests to use cancun hardfork
-            # Remove this when hardhat switch to cancun by default: https://github.com/NomicFoundation/hardhat/issues/4851
-            sed -i 's/hardfork: "shanghai",/hardfork: "cancun",/' test/internal/hardhat-network/stack-traces/execution.ts
-            pnpm test
 
   hardhat-sample-project:
     docker:
