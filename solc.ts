@@ -26,7 +26,6 @@ const commanderParseInt = function (value) {
 program.name('solcjs');
 program.version(solc.version());
 program
-  .option('--version', 'Show version and exit.')
   .option('--optimize', 'Enable bytecode optimizer.', false)
   .option(
     '--optimize-runs <optimize-runs>',
