@@ -85,7 +85,7 @@ tape('SMTCheckerCallback', function (t) {
     const inputJSON = JSON.stringify({
       language: 'Solidity',
       sources: input,
-      settings: settings
+      settings
     });
 
     let tests;
@@ -192,7 +192,7 @@ tape('SMTCheckerCallback', function (t) {
         expectations: expected,
         solidity: { test: { content: preamble + source } },
         ignoreCex: source.includes('// SMTIgnoreCex: yes'),
-        engine: engine
+        engine
       };
     }
 
@@ -214,7 +214,7 @@ tape('SMTCheckerCallback', function (t) {
         const engine = test.engine !== undefined ? test.engine : 'all';
         settings = {
           modelChecker: {
-            engine: engine,
+            engine,
             solvers: [
               'smtlib2'
             ]
@@ -225,7 +225,7 @@ tape('SMTCheckerCallback', function (t) {
         JSON.stringify({
           language: 'Solidity',
           sources: test.solidity,
-          settings: settings
+          settings
         }),
         // This test needs z3 specifically.
         { smtSolver: smtchecker.smtCallback(smtsolver.smtSolver, z3HornSolvers[0]) }

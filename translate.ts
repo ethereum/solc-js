@@ -38,7 +38,7 @@ function translateErrors (ret, errors) {
       type = 'Error';
     }
     ret.push({
-      type: type,
+      type,
       component: 'general',
       severity: (type === 'Warning') ? 'warning' : 'error',
       message: errors[error],

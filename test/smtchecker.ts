@@ -84,7 +84,7 @@ tape('SMTCheckerWithSolver', function (t) {
     const input = {
       language: 'Solidity',
       sources: source,
-      settings: settings
+      settings
     };
 
     const output = JSON.parse(solc.compile(JSON.stringify(input)));
