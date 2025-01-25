@@ -201,7 +201,7 @@ const cliInput = {
       }
     }
   },
-  sources: sources
+  sources
 };
 if (program.verbose) { console.log('>>> Compiling:\n' + toFormattedJson(cliInput) + '\n'); }
 const output = JSON.parse(solc.compile(JSON.stringify(cliInput), callbacks));
