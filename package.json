@@ -47,7 +47,7 @@
   "homepage": "https://github.com/ethereum/solc-js#readme",
   "dependencies": {
     "command-exists": ">=1.1.0",
-    "commander": ">=8.0.0",
+    "commander": ">=8.0.0 <13.0.0",
     "follow-redirects": ">=1.0.0",
     "js-sha3": ">=0.8.0",
     "memorystream": ">=0.3.0",
