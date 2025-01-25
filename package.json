@@ -49,10 +49,10 @@
     "command-exists": "^1.1.0",
     "commander": "^8.0.0",
     "follow-redirects": "^1.0.0",
-    "js-sha3": "0.8.0",
+    "js-sha3": "^0.8.0",
     "memorystream": "^0.3.0",
     "semver": "^5.0.0",
-    "tmp": "0.0.33"
+    "tmp": "^0.0.26"
   },
   "devDependencies": {
     "@types/node": "^16.11.7",
