@@ -13,6 +13,7 @@ workflows:
       - node-v16
       - node-v18
       - node-v20
+      - node-v22
       - node-current:
           run_coveralls: true
       - build-package
@@ -364,6 +365,10 @@ jobs:
     <<: *node-base
     docker:
       - image: cimg/node:20.9
+  node-v22:
+    <<: *node-base
+    docker:
+      - image: cimg/node:22.14
   node-current:
     <<: *node-base
     docker:
