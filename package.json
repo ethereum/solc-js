@@ -3,6 +3,7 @@
   "version": "0.8.29",
   "description": "Solidity compiler",
   "main": "index.js",
+  "types": "index.d.ts",
   "bin": {
     "solcjs": "solc.js"
   },
