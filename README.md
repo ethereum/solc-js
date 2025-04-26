@@ -42,7 +42,7 @@ when it's placed in these exact absolute locations.
 Note: this commandline interface is not compatible with `solc` provided by the Solidity compiler package and thus cannot be
 used in combination with an Ethereum client via the `eth.compile.solidity()` RPC method. Please refer to the
 [Solidity compiler documentation](https://solidity.readthedocs.io/) for instructions to install `solc`.
-Furthermore, the commandline interface to solc-js provides fewer features than the binary release.
+Furthermore, the command-line interface to solc-js provides fewer features than the binary release.
 
 ### Usage in Projects
 
@@ -202,7 +202,7 @@ The low-level API is as follows:
 - `solc.lowlevel.compileCallback`: this supports callbacks, introduced in 0.2.1
 - `solc.lowlevel.compileStandard`: this works just like `compile` above, but is only present in compilers after (and including) 0.4.11
 
-For examples how to use them, please refer to the README of the above mentioned solc-js releases.
+For examples how to use them, please refer to the README of the above-mentioned solc-js releases.
 
 **Note**: These low-level functions remain available for compatibility reasons.
 However, they were superseded by the `compile()` function and are no longer required.
