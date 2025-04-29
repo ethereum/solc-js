@@ -3,6 +3,7 @@
   "version": "0.8.29",
   "description": "Solidity compiler",
   "main": "index.js",
+  "types": "index.d.ts",
   "bin": {
     "solcjs": "solc.js"
   },
@@ -36,8 +37,11 @@
   },
   "files": [
     "common/*.js",
+    "common/*.d.ts",
     "bindings/*.js",
-    "*.js"
+    "bindings/*.d.ts",
+    "*.js",
+    "*.d.ts"
   ],
   "author": "chriseth",
   "license": "MIT",
