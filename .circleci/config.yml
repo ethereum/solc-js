@@ -8,12 +8,12 @@ workflows:
   pr-checks:
     jobs:
       - check-coding-style
-      - node-v10
       - node-v12
       - node-v14
       - node-v16
       - node-v18
       - node-v20
+      - node-v22
       - node-current:
           run_coveralls: true
       - build-package
@@ -155,7 +155,7 @@ commands:
                 --show-error \
                 "${EXTRA_HEADERS[@]}" \
                 https://api.github.com/repos/nomiclabs/hardhat/releases \
-                | jq --raw-output 'map(select(.tag_name | test("^hardhat@"))) | .[0].tag_name' \
+                | jq --raw-output 'map(select(.prerelease == false and (.tag_name | test("^hardhat@")))) | .[0].tag_name' \
             )
             echo "export HARDHAT_LATEST_RELEASE_TAG='${HARDHAT_LATEST_RELEASE_TAG}'" >> "$BASH_ENV"
 
@@ -345,10 +345,6 @@ jobs:
       - run: cd solidity/ && curl "https://binaries.soliditylang.org/bin/soljson-nightly.js" --location --output soljson.js
       - run: cd solidity/ && test/externalTests/solc-js/solc-js.sh "$(realpath soljson.js)" "$(scripts/get_version.sh)" "$(realpath ../solc-js/)"
 
-  node-v10:
-    <<: *node-base
-    docker:
-      - image: cimg/node:10.24
   node-v12:
     <<: *node-base
     docker:
@@ -369,6 +365,10 @@ jobs:
     <<: *node-base
     docker:
       - image: cimg/node:20.9
+  node-v22:
+    <<: *node-base
+    docker:
+      - image: cimg/node:22.14
   node-current:
     <<: *node-base
     docker:

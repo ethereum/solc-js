@@ -1,8 +1,9 @@
 {
   "name": "solc",
-  "version": "0.8.28",
+  "version": "0.8.30",
   "description": "Solidity compiler",
   "main": "index.js",
+  "types": "index.d.ts",
   "bin": {
     "solcjs": "solc.js"
   },
@@ -32,12 +33,15 @@
     "compiler"
   ],
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "files": [
     "common/*.js",
+    "common/*.d.ts",
     "bindings/*.js",
-    "*.js"
+    "bindings/*.d.ts",
+    "*.js",
+    "*.d.ts"
   ],
   "author": "chriseth",
   "license": "MIT",
